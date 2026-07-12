@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\components\\EventCard.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\EventCard.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\App.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\App.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\components\\SplashScreen.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\SplashScreen.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
@@ -23,10 +31,6 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\ProfilePage.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\components\\EventCard.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\EventCard.jsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
@@ -38,7 +42,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -46,7 +50,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
+              "Title": "App.jsx",
+              "DocumentMoniker": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\App.jsx",
+              "RelativeDocumentMoniker": "src\\App.jsx",
+              "ToolTip": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\App.jsx",
+              "RelativeToolTip": "src\\App.jsx",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABoAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2026-06-04T19:32:53.203Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "SplashScreen.jsx",
               "DocumentMoniker": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\components\\SplashScreen.jsx",
               "RelativeDocumentMoniker": "src\\components\\SplashScreen.jsx",
@@ -54,12 +70,11 @@
               "RelativeToolTip": "src\\components\\SplashScreen.jsx",
               "ViewState": "AgIAAGEAAAAAAAAAAAAhwHkAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
-              "WhenOpened": "2026-06-04T17:05:09.188Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T17:05:09.188Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "vercel.json",
               "DocumentMoniker": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\vercel.json",
               "RelativeDocumentMoniker": "vercel.json",
@@ -67,12 +82,11 @@
               "RelativeToolTip": "vercel.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-06-04T16:29:51.238Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T16:29:51.238Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "ProgressDots.jsx",
               "DocumentMoniker": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\components\\ProgressDots.jsx",
               "RelativeDocumentMoniker": "src\\components\\ProgressDots.jsx",
@@ -84,7 +98,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "ProfilePage.jsx",
               "DocumentMoniker": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\components\\ProfilePage.jsx",
               "RelativeDocumentMoniker": "src\\components\\ProfilePage.jsx",
@@ -96,19 +110,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
               "Title": "EventCard.jsx",
               "DocumentMoniker": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\components\\EventCard.jsx",
               "RelativeDocumentMoniker": "src\\components\\EventCard.jsx",
               "ToolTip": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\src\\components\\EventCard.jsx",
               "RelativeToolTip": "src\\components\\EventCard.jsx",
-              "ViewState": "AgIAAIABAAAAAAAAAAAAAJEBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABcBAAAAAAAAAAAAABcBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
-              "WhenOpened": "2026-06-04T15:09:10.219Z"
+              "WhenOpened": "2026-06-04T15:09:10.219Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "package.json",
               "DocumentMoniker": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\package.json",
               "RelativeDocumentMoniker": "package.json",
@@ -120,7 +135,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "index.html",
               "DocumentMoniker": "C:\\Users\\Razvan Chiceanu\\Desktop\\nightfeed\\files\\index.html",
               "RelativeDocumentMoniker": "index.html",

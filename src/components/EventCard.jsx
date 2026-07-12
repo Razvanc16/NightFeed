@@ -1,5 +1,6 @@
 import JoinRequestSheet from "./JoinRequestSheet";
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "../supabase";
 
 const HeartIcon = ({ filled, color }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={filled ? color : "rgba(255,255,255,0.8)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -79,13 +80,11 @@ const Toast = ({ message, show, color }) => (
 );
 
 export default function EventCard({ event, isActive, user, onComment }) {
-  const [liked, setLiked] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(`liked_${event.id}`)) || false; } catch { return false; }
-  });
+  // Like-urile și attend-ul (pentru evenimente non-homemade) sunt acum în Supabase,
+  // vizibile pentru toți userii, pe orice device.
+  const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(event.likes);
-  const [attending, setAttending] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(`attending_${event.id}`)) || false; } catch { return false; }
-  });
+  const [attending, setAttending] = useState(false);
   const [attendCount, setAttendCount] = useState(event.attending);
   const [hearts, setHearts] = useState([]);
   const [bigHeart, setBigHeart] = useState(false);
@@ -97,12 +96,87 @@ export default function EventCard({ event, isActive, user, onComment }) {
   const cardRef = useRef(null);
   const toastTimer = useRef(null);
 
+  // Attend count (Supabase, shared) — la fel ca la likes: bază demo + count real + realtime
   useEffect(() => {
-    const savedLiked = JSON.parse(localStorage.getItem(`liked_${event.id}`)) || false;
-    setLikeCount(event.likes + (savedLiked ? 1 : 0));
-    const savedAttending = JSON.parse(localStorage.getItem(`attending_${event.id}`)) || false;
-    setAttendCount(event.attending + (savedAttending ? 1 : 0));
-  }, []);
+    let active = true;
+
+    const loadAttendance = async () => {
+      const { count } = await supabase
+        .from("attendances")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", String(event.id));
+      if (active) setAttendCount(event.attending + (count || 0));
+
+      if (user) {
+        const { data } = await supabase
+          .from("attendances")
+          .select("id")
+          .eq("event_id", String(event.id))
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (active) setAttending(!!data);
+      } else {
+        setAttending(false);
+      }
+    };
+    loadAttendance();
+
+    const channel = supabase
+      .channel(`attendances:${event.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "attendances", filter: `event_id=eq.${event.id}` },
+        () => setAttendCount(c => c + 1)
+      )
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "attendances", filter: `event_id=eq.${event.id}` },
+        () => setAttendCount(c => Math.max(0, c - 1))
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [event.id, user?.id]);
+
+  // Încarcă numărul real de like-uri + dacă userul curent a dat like, apoi ascultă live la schimbări
+  useEffect(() => {
+    let active = true;
+
+    const loadLikes = async () => {
+      const { count } = await supabase
+        .from("likes")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", String(event.id));
+      if (active) setLikeCount(event.likes + (count || 0));
+
+      if (user) {
+        const { data } = await supabase
+          .from("likes")
+          .select("id")
+          .eq("event_id", String(event.id))
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (active) setLiked(!!data);
+      } else {
+        setLiked(false);
+      }
+    };
+    loadLikes();
+
+    const channel = supabase
+      .channel(`likes:${event.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "likes", filter: `event_id=eq.${event.id}` },
+        () => setLikeCount(c => c + 1)
+      )
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "likes", filter: `event_id=eq.${event.id}` },
+        () => setLikeCount(c => Math.max(0, c - 1))
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [event.id, user?.id]);
 
   const showToast = (message, color) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -127,6 +201,26 @@ export default function EventCard({ event, isActive, user, onComment }) {
     setTimeout(() => setBtnAnim(prev => ({ ...prev, [key]: false })), 400);
   };
 
+  const setLikeInSupabase = async (newLiked) => {
+    if (!user) {
+      showToast("Autentifică-te pentru a da like!", "rgba(255,255,255,0.5)");
+      return;
+    }
+    setLiked(newLiked); // optimistic, doar pentru inima ta — count-ul vine din realtime
+    try {
+      if (newLiked) {
+        const { error } = await supabase.from("likes").insert([{ event_id: String(event.id), user_id: user.id }]);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("likes").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
+        if (error) throw error;
+      }
+    } catch (err) {
+      setLiked(!newLiked); // revert dacă a eșuat
+      showToast("Eroare la like. Încearcă din nou.", "#FF3366");
+    }
+  };
+
   const handleDoubleTap = (e) => {
     const now = Date.now();
     if (now - lastTap.current < 300) triggerLike(e);
@@ -135,9 +229,7 @@ export default function EventCard({ event, isActive, user, onComment }) {
 
   const triggerLike = (e) => {
     if (!liked) {
-      setLiked(true);
-      setLikeCount(c => c + 1);
-      localStorage.setItem(`liked_${event.id}`, "true");
+      setLikeInSupabase(true);
     }
     setBigHeart(true);
     setTimeout(() => setBigHeart(false), 700);
@@ -159,22 +251,36 @@ export default function EventCard({ event, isActive, user, onComment }) {
     e.stopPropagation();
     animateBtn("like");
     spawnBurst(e, event.color);
-    const newLiked = !liked;
-    setLiked(newLiked);
-    setLikeCount(c => newLiked ? c + 1 : c - 1);
-    localStorage.setItem(`liked_${event.id}`, JSON.stringify(newLiked));
+    setLikeInSupabase(!liked);
+  };
+
+  const setAttendInSupabase = async (newAttending) => {
+    if (!user) {
+      showToast("Autentifică-te ca să participi!", "rgba(255,255,255,0.5)");
+      return;
+    }
+    setAttending(newAttending); // optimistic — count-ul vine din realtime
+    try {
+      if (newAttending) {
+        const { error } = await supabase.from("attendances").insert([{ event_id: String(event.id), user_id: user.id }]);
+        if (error) throw error;
+        showToast(`Ești pe lista pentru ${event.title}!`, event.color);
+      } else {
+        const { error } = await supabase.from("attendances").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
+        if (error) throw error;
+        showToast(`Ai renunțat la ${event.title}`, "rgba(255,255,255,0.5)");
+      }
+    } catch (err) {
+      setAttending(!newAttending);
+      showToast("Eroare. Încearcă din nou.", "#FF3366");
+    }
   };
 
   const handleAttend = (e) => {
     e.stopPropagation();
     animateBtn("attend");
     spawnBurst(e, event.color);
-    const newAttending = !attending;
-    setAttending(newAttending);
-    setAttendCount(c => newAttending ? c + 1 : c - 1);
-    localStorage.setItem(`attending_${event.id}`, JSON.stringify(newAttending));
-    if (newAttending) showToast(`Ești pe lista pentru ${event.title}!`, event.color);
-    else showToast(`Ai renunțat la ${event.title}`, "rgba(255,255,255,0.5)");
+    setAttendInSupabase(!attending);
   };
 
   const handleShare = (e) => {

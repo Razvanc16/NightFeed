@@ -4,6 +4,17 @@ import { events as staticEvents } from "../data/events";
 import PostPage from "./PostPage";
 import RequestsPage from "./RequestsPage";
 
+// Format minimal pentru evenimentele postate, ca să apară în listele "Particip" / "Apreciate"
+const convertPostedEventMinimal = (e) => ({
+  id: `posted_${e.id}`,
+  type: e.type || "homemade",
+  title: e.title,
+  date: e.date || "Data necunoscută",
+  price: e.price || "Gratuit",
+  color: e.type === "official" ? "#FF3366" : "#FFB800",
+  bgColor: e.type === "official" ? "#1a0010" : "#110d00",
+});
+
 export default function ProfilePage({ user, onLogout }) {
   const [view, setView] = useState("loading");
   const [saving, setSaving] = useState(false);
@@ -23,11 +34,7 @@ export default function ProfilePage({ user, onLogout }) {
   useEffect(() => {
     if (!user) return;
     loadProfileByUserId();
-
-    const attending = staticEvents.filter(e => JSON.parse(localStorage.getItem(`attending_${e.id}`)) === true);
-    const liked = staticEvents.filter(e => JSON.parse(localStorage.getItem(`liked_${e.id}`)) === true);
-    setAttendingEvents(attending);
-    setLikedEvents(liked);
+    loadAttendingAndLiked();
     loadMyPostedEvents();
   }, [user]);
 
@@ -41,6 +48,23 @@ export default function ProfilePage({ user, onLogout }) {
     } else {
       setView("setup");
     }
+  };
+
+  // Particip / Apreciate — acum din Supabase (tabelele "attendances" și "likes"),
+  // valabil pentru evenimente statice ȘI postate de alți useri, sincronizat cross-device.
+  const loadAttendingAndLiked = async () => {
+    const { data: postedRaw } = await supabase.from("posted_events").select("*");
+    const posted = (postedRaw || []).map(convertPostedEventMinimal);
+    const allEvents = [...staticEvents, ...posted];
+
+    const { data: myAttendances } = await supabase.from("attendances").select("event_id").eq("user_id", user.id);
+    const { data: myLikes } = await supabase.from("likes").select("event_id").eq("user_id", user.id);
+
+    const attendingIds = new Set((myAttendances || []).map(r => r.event_id));
+    const likedIds = new Set((myLikes || []).map(r => r.event_id));
+
+    setAttendingEvents(allEvents.filter(e => attendingIds.has(String(e.id))));
+    setLikedEvents(allEvents.filter(e => likedIds.has(String(e.id))));
   };
 
   const loadMyPostedEvents = async () => {
@@ -72,7 +96,7 @@ export default function ProfilePage({ user, onLogout }) {
     try {
       // Check if profile already exists for this user
       const { data: existing } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
-      
+
       let profileId = existing?.id;
       let avatarUrl = form.avatar_url;
 
@@ -103,8 +127,8 @@ export default function ProfilePage({ user, onLogout }) {
     setSaving(false);
   };
 
-  const handleRemoveAttending = (eventId) => {
-    localStorage.setItem(`attending_${eventId}`, "false");
+  const handleRemoveAttending = async (eventId) => {
+    await supabase.from("attendances").delete().eq("event_id", String(eventId)).eq("user_id", user.id);
     setAttendingEvents(prev => prev.filter(e => e.id !== eventId));
   };
 

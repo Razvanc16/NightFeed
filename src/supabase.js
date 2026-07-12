@@ -7,6 +7,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false,
+    // true e necesar ca link-urile de recovery/confirmare (care conțin token în URL)
+    // să fie recunoscute corect de Supabase și să declanșeze evenimentul PASSWORD_RECOVERY.
+    detectSessionInUrl: true,
   },
 });
