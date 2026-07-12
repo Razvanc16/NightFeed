@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
 import PasswordChecklist from "./PasswordChecklist";
+import PasswordInput from "./PasswordInput";
 
 export default function ResetPasswordPage({ onDone }) {
   const [password, setPassword] = useState("");
@@ -81,21 +82,16 @@ export default function ResetPasswordPage({ onDone }) {
         <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă nouă</div>
-            <input
-              type="password" placeholder="parolă nouă"
-              value={password} onChange={e => setPassword(e.target.value)}
-              style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
-            />
+            <PasswordInput placeholder="parolă nouă" value={password} onChange={e => setPassword(e.target.value)} />
             <PasswordChecklist password={password} />
           </div>
 
           <div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Confirmă parola</div>
-            <input
-              type="password" placeholder="repetă parola"
+            <PasswordInput
+              placeholder="repetă parola"
               value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSubmit()}
-              style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
             />
           </div>
 

@@ -94,8 +94,16 @@ export default function App() {
         setAuthLoading(false);
         return;
       }
-      // Cât timp suntem în ecranul de recovery, ignorăm orice alt eveniment de auth
-      // (ex: SIGNED_IN generat de sesiunea temporară de recovery).
+      // Delogarea trebuie procesată IMEDIAT, indiferent dacă suntem în recovery mode —
+      // altfel, după ce ResetPasswordPage face signOut(), aplicația nu află de asta și
+      // rămâne cu sesiunea veche "agățată" în memorie.
+      if (_event === "SIGNED_OUT") {
+        setUser(null);
+        setAuthLoading(false);
+        return;
+      }
+      // Cât timp suntem în ecranul de recovery, ignorăm alte evenimente (ex: SIGNED_IN
+      // generat de sesiunea temporară de recovery).
       if (recoveryModeRef.current) return;
 
       setUser(session?.user || null);
