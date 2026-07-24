@@ -162,13 +162,18 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
     };
     loadLikes();
 
+    const refreshCount = async () => {
+      const { count } = await supabase
+        .from("likes")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", String(event.id));
+      if (active) setLikeCount(event.likes + (count || 0));
+    };
+
     const channel = supabase
       .channel(`likes:${event.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "likes", filter: `event_id=eq.${event.id}` },
-        () => setLikeCount(c => c + 1)
-      )
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "likes", filter: `event_id=eq.${event.id}` },
-        () => setLikeCount(c => Math.max(0, c - 1))
+      .on("postgres_changes", { event: "*", schema: "public", table: "likes", filter: `event_id=eq.${event.id}` },
+        refreshCount
       )
       .subscribe();
 
@@ -206,10 +211,15 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       showToast("Autentifică-te pentru a da like!", "rgba(255,255,255,0.5)");
       return;
     }
+    if (newLiked === liked) return; // deja în starea cerută — evită operații redundante
     setLiked(newLiked); // optimistic, doar pentru inima ta — count-ul vine din realtime
     try {
       if (newLiked) {
-        const { error } = await supabase.from("likes").insert([{ event_id: String(event.id), user_id: user.id }]);
+        // upsert cu ignoreDuplicates: dacă cumva există deja, nu creează duplicate
+        const { error } = await supabase.from("likes").upsert(
+          [{ event_id: String(event.id), user_id: user.id }],
+          { onConflict: "event_id,user_id", ignoreDuplicates: true }
+        );
         if (error) throw error;
       } else {
         const { error } = await supabase.from("likes").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
