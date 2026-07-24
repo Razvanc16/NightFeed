@@ -79,7 +79,7 @@ const Toast = ({ message, show, color }) => (
   </div>
 );
 
-export default function EventCard({ event, isActive, user, onComment }) {
+export default function EventCard({ event, isActive, user, onComment, onViewProfile }) {
   // Like-urile și attend-ul (pentru evenimente non-homemade) sunt acum în Supabase,
   // vizibile pentru toți userii, pe orice device.
   const [liked, setLiked] = useState(false);
@@ -316,11 +316,23 @@ export default function EventCard({ event, isActive, user, onComment }) {
     <div ref={cardRef} onClick={handleDoubleTap} style={{ width: "100%", height: "100%", position: "relative", background: event.bgColor, overflow: "hidden", userSelect: "none", WebkitUserSelect: "none", cursor: "pointer", flexShrink: 0 }}>
       <style>{`@keyframes btnBounce { 0%{transform:scale(1)} 30%{transform:scale(0.85)} 60%{transform:scale(1.2)} 80%{transform:scale(0.95)} 100%{transform:scale(1)} }`}</style>
 
+      {event.cover_url && (
+        <img
+          src={event.cover_url}
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      )}
+
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 30%, ${event.color}40 0%, transparent 70%)` }} />
-      <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: 220, height: 220, borderRadius: "50%", background: `radial-gradient(circle, ${event.color}30 0%, transparent 70%)`, filter: "blur(40px)", animation: isActive ? "pulse 3s ease-in-out infinite" : "none" }} />
-      <div style={{ position: "absolute", top: "18%", left: "50%", transform: "translateX(-50%)", width: 120, height: 120, borderRadius: 28, background: `${event.color}20`, border: `1.5px solid ${event.color}50`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 52 }}>
-        {event.type === "official" ? "⚡" : "🏠"}
-      </div>
+      {!event.cover_url && (
+        <>
+          <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: 220, height: 220, borderRadius: "50%", background: `radial-gradient(circle, ${event.color}30 0%, transparent 70%)`, filter: "blur(40px)", animation: isActive ? "pulse 3s ease-in-out infinite" : "none" }} />
+          <div style={{ position: "absolute", top: "18%", left: "50%", transform: "translateX(-50%)", width: 120, height: 120, borderRadius: 28, background: `${event.color}20`, border: `1.5px solid ${event.color}50`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 52 }}>
+            {event.type === "official" ? "⚡" : "🏠"}
+          </div>
+        </>
+      )}
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "65%", background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 50%, transparent 100%)" }} />
 
       <div style={{ position: "absolute", top: 20, left: 16, padding: "4px 10px", borderRadius: 20, background: event.type === "official" ? `${event.color}30` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "80" : "rgba(255,255,255,0.2)"}`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5 }}>
@@ -331,10 +343,17 @@ export default function EventCard({ event, isActive, user, onComment }) {
       </div>
 
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 64, padding: "0 16px 28px" }}>
-        <div style={{ fontSize: 11, color: event.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", marginBottom: 6, opacity: 0.9 }}>{event.organizer}</div>
+        <div
+          onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
+          style={{ fontSize: 11, color: event.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", marginBottom: 6, opacity: 0.9, cursor: event.organizer_id ? "pointer" : "default", display: "inline-flex", alignItems: "center", gap: 4 }}
+        >
+          {event.organizer}{event.organizer_id && " ›"}
+        </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8, fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>📍 {event.venue}</span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
+            📍 {event.type === "homemade" ? "Zonă aproximativă 🔒" : event.venue}
+          </span>
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>·</span>
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>🕐 {event.date}</span>
         </div>
@@ -344,6 +363,15 @@ export default function EventCard({ event, isActive, user, onComment }) {
             <span key={tag} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 12, background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace" }}>#{tag}</span>
           ))}
           <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{event.price}</span>
+          {event.code && (
+            <span
+              onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(event.code); }}
+              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+              title="Apasă pentru a copia codul"
+            >
+              🔑 {event.code}
+            </span>
+          )}
         </div>
       </div>
 

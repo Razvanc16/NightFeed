@@ -33,34 +33,52 @@ export default function Navbar({ active, onChange }) {
             key={tab.id}
             onClick={() => onChange(tab.id)}
             style={{
+              position: "relative",
               background: isPost
                 ? "linear-gradient(135deg, #FF3366, #FF6B35)"
                 : "none",
-              border: isPost ? "none" : "none",
+              border: "none",
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               gap: isPost ? 0 : 3,
-              padding: isPost ? 0 : "4px 12px",
-              borderRadius: isPost ? "50%" : 12,
+              padding: isPost ? 0 : "6px 14px",
+              borderRadius: isPost ? "50%" : 14,
               width: isPost ? 44 : "auto",
               height: isPost ? 44 : "auto",
               justifyContent: "center",
               boxShadow: isPost ? "0 4px 20px rgba(255,51,102,0.4)" : "none",
               transform: isPost ? "translateY(-8px)" : "none",
-              transition: "all 0.2s",
+              transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             }}
           >
+            {/* Pastila de fundal pentru tab-ul activ (nu la Post) */}
+            {isActive && !isPost && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: 14,
+                  background: "rgba(255,51,102,0.12)",
+                  border: "1px solid rgba(255,51,102,0.25)",
+                  animation: "navPill 0.35s cubic-bezier(0.16,1,0.3,1)",
+                  zIndex: 0,
+                }}
+              />
+            )}
             <span
               style={{
+                position: "relative",
+                zIndex: 1,
                 fontSize: isPost ? 22 : 18,
                 color: isPost
                   ? "#fff"
                   : isActive
                   ? "#FF3366"
                   : "rgba(255,255,255,0.4)",
-                transition: "color 0.15s",
+                transition: "color 0.25s, transform 0.25s cubic-bezier(0.16,1,0.3,1)",
+                transform: isActive && !isPost ? "translateY(-1px) scale(1.1)" : "none",
                 lineHeight: 1,
               }}
             >
@@ -69,32 +87,25 @@ export default function Navbar({ active, onChange }) {
             {!isPost && (
               <span
                 style={{
+                  position: "relative",
+                  zIndex: 1,
                   fontSize: 10,
                   color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)",
                   fontWeight: isActive ? 700 : 400,
                   fontFamily: "'DM Mono', monospace",
                   letterSpacing: "0.05em",
-                  transition: "color 0.15s",
+                  transition: "color 0.25s",
                 }}
               >
                 {tab.label}
               </span>
             )}
-            {isActive && !isPost && (
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 6,
-                  width: 3,
-                  height: 3,
-                  borderRadius: "50%",
-                  background: "#FF3366",
-                }}
-              />
-            )}
           </button>
         );
       })}
+      <style>{`
+        @keyframes navPill { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+      `}</style>
     </div>
   );
 }

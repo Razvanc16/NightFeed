@@ -25,6 +25,23 @@ export default function ProfilePage({ user, onLogout }) {
   const [likedEvents, setLikedEvents] = useState([]);
   const [myPostedEvents, setMyPostedEvents] = useState([]);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(null);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
+  const copyCode = (code) => {
+    navigator.clipboard?.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 1500);
+  };
+
+  const loadFollowCounts = async () => {
+    if (!user) return;
+    const { count: f } = await supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user.id);
+    setFollowerCount(f || 0);
+    const { count: g } = await supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user.id);
+    setFollowingCount(g || 0);
+  };
   const [showRequests, setShowRequests] = useState(false);
   const fileRef = useRef(null);
   const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", avatar_url: "" });
@@ -36,6 +53,7 @@ export default function ProfilePage({ user, onLogout }) {
     loadProfileByUserId();
     loadAttendingAndLiked();
     loadMyPostedEvents();
+    loadFollowCounts();
   }, [user]);
 
   const loadProfileByUserId = async () => {
@@ -219,6 +237,18 @@ export default function ProfilePage({ user, onLogout }) {
             </div>
           </div>
 
+          <div style={{ display: "flex", justifyContent: "center", gap: 40, padding: "8px 20px 16px" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.05em" }}>Urmăritori</div>
+            </div>
+            <div style={{ width: 1, background: "rgba(255,255,255,0.1)" }} />
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.05em" }}>Urmărește</div>
+            </div>
+          </div>
+
           <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[
               { label: "Particip", value: attendingEvents.length, icon: "✅" },
@@ -248,9 +278,10 @@ export default function ProfilePage({ user, onLogout }) {
           <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
             {activeTab === "posted" ? (
               myPostedEvents.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.25)" }}>
-                  <div style={{ fontSize: 40, marginBottom: 10 }}>📤</div>
-                  <div style={{ fontSize: 13 }}>Nu ai postat niciun eveniment</div>
+                <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>📤</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>Niciun eveniment postat</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Creează primul tău eveniment din butonul + de jos.</div>
                 </div>
               ) : myPostedEvents.map(event => (
                 <div key={event.id} style={{ borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px" }}>
@@ -261,8 +292,18 @@ export default function ProfilePage({ user, onLogout }) {
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {event.price || "Gratuit"}</div>
-                      <div style={{ marginTop: 4, display: "inline-block", padding: "2px 8px", borderRadius: 10, background: event.verified ? "rgba(0,200,100,0.15)" : "rgba(255,184,0,0.15)", border: `1px solid ${event.verified ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, fontSize: 10, color: event.verified ? "#00C864" : "#FFB800", fontFamily: "'DM Mono', monospace" }}>
-                        {event.verified ? "✅ Verificat" : "⏳ În așteptare"}
+                      <div style={{ marginTop: 4, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                        <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 10, background: event.verified ? "rgba(0,200,100,0.15)" : "rgba(255,184,0,0.15)", border: `1px solid ${event.verified ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, fontSize: 10, color: event.verified ? "#00C864" : "#FFB800", fontFamily: "'DM Mono', monospace" }}>
+                          {event.verified ? "✅ Verificat" : "⏳ În așteptare"}
+                        </span>
+                        {event.code && (
+                          <button
+                            onClick={() => copyCode(event.code)}
+                            style={{ padding: "2px 8px", borderRadius: 10, background: copiedCode === event.code ? "rgba(0,200,100,0.15)" : "rgba(255,51,102,0.12)", border: `1px solid ${copiedCode === event.code ? "rgba(0,200,100,0.3)" : "rgba(255,51,102,0.25)"}`, fontSize: 10, color: copiedCode === event.code ? "#00C864" : "#FF3366", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                          >
+                            {copiedCode === event.code ? "✓ Copiat!" : `🔑 ${event.code}`}
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -274,9 +315,14 @@ export default function ProfilePage({ user, onLogout }) {
               ))
             ) : (
               (activeTab === "attending" ? attendingEvents : likedEvents).length === 0 ? (
-                <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.25)" }}>
-                  <div style={{ fontSize: 40, marginBottom: 10 }}>{activeTab === "attending" ? "🎉" : "🤍"}</div>
-                  <div style={{ fontSize: 13 }}>{activeTab === "attending" ? "Nu ești înscris la niciun eveniment" : "Nu ai apreciat niciun eveniment"}</div>
+                <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>{activeTab === "attending" ? "🎉" : "🤍"}</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>
+                    {activeTab === "attending" ? "Încă nu participi nicăieri" : "Nimic apreciat încă"}
+                  </div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+                    {activeTab === "attending" ? "Explorează feed-ul și înscrie-te la ce-ți place." : "Dă like la evenimentele care te atrag din feed."}
+                  </div>
                 </div>
               ) : (activeTab === "attending" ? attendingEvents : likedEvents).map(event => (
                 <div key={event.id} style={{ borderRadius: 14, background: event.bgColor, border: `1px solid ${event.color}30`, padding: "14px", position: "relative", overflow: "hidden" }}>

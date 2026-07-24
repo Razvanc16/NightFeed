@@ -7,6 +7,9 @@ import ProfilePage from "./components/ProfilePage";
 import MapPage from "./components/MapPage";
 import SplashScreen from "./components/SplashScreen";
 import AuthPage from "./components/AuthPage";
+import LandingPage from "./components/LandingPage";
+import SearchPage from "./components/SearchPage";
+import PublicProfilePage from "./components/PublicProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import PostPage from "./components/PostPage";
 import CommentsSheet from "./components/CommentsSheet";
@@ -40,14 +43,34 @@ const convertPostedEvent = (e) => ({
   organizer: "Utilizator NightFeed",
   cover_url: e.cover_url,
   ticket_link: e.ticket_link,
+  code: e.code,
+  organizer_id: e.user_id,
   isPosted: true,
 });
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [recoveryMode, setRecoveryMode] = useState(false);
+  const [authScreen, setAuthScreen] = useState(null); // null = landing, "login" | "register" = AuthPage
+  const [viewingProfile, setViewingProfile] = useState(null); // user_id of profile being viewed publicly
+
+  // Când intri în login/register, împingem o intrare în istoricul browserului,
+  // ca săgeata "Back" a browserului să te aducă înapoi la landing, nu să te scoată din site.
+  const openAuthScreen = (mode) => {
+    setAuthScreen(mode);
+    window.history.pushState({ authScreen: mode }, "");
+  };
+
+  useEffect(() => {
+    const handlePop = () => {
+      // La "Back", dacă eram în login/register, revenim la landing
+      setAuthScreen(null);
+    };
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("feed");
   const [activeFilter, setActiveFilter] = useState("all");
@@ -152,18 +175,42 @@ export default function App() {
     setActiveTab(tab);
   };
 
+  // Deschide un eveniment specific (din Căutare sau cod) — comută pe feed și
+  // derulează exact la el.
+  const openSpecificEvent = (event) => {
+    const idx = filtered.findIndex(e => e.id === event.id || e.rawId === event.rawId);
+    setActiveTab("feed");
+    setTimeout(() => {
+      if (feedRef.current && idx >= 0) {
+        feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
+        setCurrentIndex(idx);
+      }
+    }, 50);
+  };
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,800;0,900;1,400;1,500;1,600&family=Inter:wght@400;500;600;700;800;900&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background: #000; overflow: hidden; font-family: 'DM Sans', sans-serif; }
+        body { background: #000; overflow: hidden; font-family: 'Inter', sans-serif; }
         #root { width: 100vw; height: 100dvh; position: relative; overflow: hidden; }
+
+        /* Fonturi unificate: totul pe Inter (titlurile care foloseau Syne devin
+           tot Inter, dar rămân bold prin greutatea deja setată în cod). */
+        [style*="Syne"] { font-family: 'Inter', sans-serif !important; }
+        [style*="DM Sans"], [style*="DM Mono"] { font-family: 'Inter', sans-serif !important; }
+
+        /* Feedback tactil subtil pe toate butoanele — se "apasă" ușor la click */
+        button { transition: transform 0.12s ease; }
+        button:active { transform: scale(0.95); }
+
         @keyframes floatHeart { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-80px) scale(0.5);opacity:0} }
         @keyframes bigHeartPop { 0%{transform:translate(-50%,-50%) scale(0.2);opacity:1} 50%{transform:translate(-50%,-50%) scale(1.2);opacity:1} 100%{transform:translate(-50%,-50%) scale(1);opacity:0} }
         @keyframes pulse { 0%,100%{opacity:0.5;transform:translateX(-50%) scale(1)} 50%{opacity:0.8;transform:translateX(-50%) scale(1.1)} }
         @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes tabEnter { from{opacity:0;transform:translateY(12px) scale(0.99)} to{opacity:1;transform:translateY(0) scale(1)} }
       `}</style>
 
       {recoveryMode ? (
@@ -174,10 +221,17 @@ export default function App() {
       ) : (
         <>
           {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
-          {/* AUTH GATE — dacă nu ești logat, arată login */}
+          {/* AUTH GATE — landing întâi, apoi login/register */}
           {!authLoading && !user && !showSplash && (
             <div style={{ position: "fixed", inset: 0, zIndex: 9997 }}>
-              <AuthPage onAuth={(u) => setUser(u)} />
+              {authScreen === null ? (
+                <LandingPage
+                  onNewUser={() => openAuthScreen("register")}
+                  onExistingUser={() => openAuthScreen("login")}
+                />
+              ) : (
+                <AuthPage onAuth={(u) => setUser(u)} initialMode={authScreen} onBack={() => window.history.back()} />
+              )}
             </div>
           )}
 
@@ -197,16 +251,35 @@ export default function App() {
             </div>
           )}
 
+          {/* PUBLIC PROFILE — overlay peste tot când vizitezi profilul cuiva */}
+          {viewingProfile && (
+            <div style={{ position: "fixed", inset: 0, zIndex: 9996, background: "#080808", animation: "tabEnter 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+              <PublicProfilePage
+                profileUserId={viewingProfile}
+                currentUser={user}
+                onBack={() => setViewingProfile(null)}
+                onOpenEvent={(event) => { setViewingProfile(null); openSpecificEvent(event); }}
+              />
+            </div>
+          )}
+
+          {/* SEARCH PAGE */}
+          {activeTab === "search" && (
+            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
+              <SearchPage onOpenEvent={openSpecificEvent} />
+            </div>
+          )}
+
           {/* MAP PAGE */}
           {activeTab === "map" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10 }}>
+            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
               <MapPage user={user} />
             </div>
           )}
 
           {/* PROFILE PAGE */}
           {activeTab === "profile" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "slideUp 0.3s ease-out" }}>
+            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
               {user
                 ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
@@ -218,14 +291,39 @@ export default function App() {
           <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none" }}>
             <div ref={feedRef} style={{ width: "100%", height: "calc(100dvh - 64px)", overflowY: "scroll", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}>
               {filtered.length === 0 ? (
-                <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", gap: 12 }}>
-                  <span style={{ fontSize: 48 }}>🌙</span>
-                  <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 16 }}>Niciun eveniment găsit</span>
+                <div style={{ height: "100%", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px", textAlign: "center", overflow: "hidden" }}>
+                  {/* Orbi subtili în fundal, ca pe landing */}
+                  <div style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", top: "20%", left: "-60px", background: "radial-gradient(circle, rgba(255,51,102,0.25), transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", width: 320, height: 320, borderRadius: "50%", bottom: "15%", right: "-80px", background: "radial-gradient(circle, rgba(180,79,255,0.22), transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
+
+                  <div style={{ position: "relative", zIndex: 2 }}>
+                    <div style={{
+                      width: 80, height: 80, borderRadius: 24, margin: "0 auto 24px",
+                      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38,
+                    }}>🌙</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
+                      Liniște deocamdată
+                    </div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
+                      {activeFilter !== "all"
+                        ? "Niciun eveniment pentru acest filtru. Încearcă altul sau postează tu ceva."
+                        : "Niciun eveniment încă. Fii primul care aprinde noaptea — postează un eveniment."}
+                    </div>
+                    <button onClick={() => setShowPost(true)} style={{
+                      padding: "14px 28px", borderRadius: 30, border: "none", cursor: "pointer",
+                      background: "linear-gradient(120deg, #FF3366, #B44FFF)", color: "#fff",
+                      fontSize: 15, fontWeight: 700, fontFamily: "'Syne', sans-serif",
+                      boxShadow: "0 8px 30px rgba(255,51,102,0.35)",
+                    }}>
+                      + Postează primul eveniment
+                    </button>
+                  </div>
                 </div>
               ) : (
                 filtered.map((event, i) => (
                   <div key={event.id} style={{ width: "100%", height: "calc(100dvh - 64px)", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
-                    <EventCard event={event} isActive={i === currentIndex} user={user} onComment={() => setCommentsEvent(event)} />
+                    <EventCard event={event} isActive={i === currentIndex} user={user} onComment={() => setCommentsEvent(event)} onViewProfile={(uid) => setViewingProfile(uid)} />
                   </div>
                 ))
               )}
