@@ -54,6 +54,13 @@ export default function ProfilePage({ user, onLogout }) {
     loadAttendingAndLiked();
     loadMyPostedEvents();
     loadFollowCounts();
+
+    // Realtime: actualizează numărul de urmăritori/urmăriri instant
+    const channel = supabase
+      .channel(`my_follows_${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "follows" }, () => loadFollowCounts())
+      .subscribe();
+    return () => supabase.removeChannel(channel);
   }, [user]);
 
   const loadProfileByUserId = async () => {
