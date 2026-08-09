@@ -1,9 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { formatEventDateTime, toDateInputValue, toTimeInputValue } from "../utils/eventTime";
-import DateTimePickerSheet from "./DateTimePickerSheet";
-
-const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 const searchAddress = async (query) => {
   if (!query || query.length < 3) return [];
@@ -44,13 +41,8 @@ export default function PostPage({ user, onClose, editEvent }) {
   const [addressResults, setAddressResults] = useState([]);
   const [addressFocused, setAddressFocused] = useState(false);
   const [searchingAddress, setSearchingAddress] = useState(false);
-  const [showPicker, setShowPicker] = useState(false);
   const fileRef = useRef(null);
   const searchTimer = useRef(null);
-
-  const previewLabel = form.eventDate && form.eventTime
-    ? `${capitalize(new Date(`${form.eventDate}T${form.eventTime}`).toLocaleDateString("ro-RO", { weekday: "long", day: "numeric", month: "long" }))} · ${form.eventTime}`
-    : "Alege data și ora";
 
   const handleAddressChange = (val) => {
     setForm(f => ({ ...f, venue: val, lat: null, lng: null }));
@@ -212,43 +204,29 @@ export default function PostPage({ user, onClose, editEvent }) {
           )}
         </div>
 
-        {/* Dată și oră — sheet propriu (calendar + rotițe oră 00–23, fără AM/PM).
-            Se deschide la tap oriunde pe card, nu doar pe o iconiță. */}
+        {/* Dată și oră — pickere native (pe iPhone apar exact ca rotițele de la ceasul cu alarmă).
+            Click oriunde pe câmp (nu doar pe iconiță) deschide picker-ul, prin showPicker(). */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Dată și oră *</div>
-          <button
-            type="button"
-            onClick={() => setShowPicker(true)}
-            style={{
-              width: "100%", textAlign: "left", padding: "12px 16px", background: "rgba(255,255,255,0.06)",
-              border: `1px solid ${form.eventDate && form.eventTime ? "rgba(0,200,100,0.35)" : "rgba(255,255,255,0.1)"}`,
-              borderRadius: 12, color: form.eventDate && form.eventTime ? "#fff" : "rgba(255,255,255,0.35)",
-              fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-            }}
-          >
-            <span>{previewLabel}</span>
-            <span style={{ fontSize: 16 }}>📅</span>
-          </button>
+          <div style={{ display: "flex", gap: 10 }}>
+            <input
+              type="date"
+              value={form.eventDate}
+              onChange={e => setForm(f => ({ ...f, eventDate: e.target.value }))}
+              onClick={e => e.currentTarget.showPicker?.()}
+              style={{ flex: 1, colorScheme: "dark", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+            />
+            <input
+              type="time"
+              step="60"
+              lang="ro-RO"
+              value={form.eventTime}
+              onChange={e => setForm(f => ({ ...f, eventTime: e.target.value }))}
+              onClick={e => e.currentTarget.showPicker?.()}
+              style={{ flex: 1, colorScheme: "dark", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+            />
+          </div>
         </div>
-
-        {showPicker && (
-          <DateTimePickerSheet
-            initialDate={form.eventDate ? new Date(`${form.eventDate}T00:00`) : null}
-            initialHour={form.eventTime ? Number(form.eventTime.split(":")[0]) : 20}
-            initialMinute={form.eventTime ? Number(form.eventTime.split(":")[1]) : 0}
-            onConfirm={(date, hour, minute) => {
-              const p = (n) => String(n).padStart(2, "0");
-              setForm(f => ({
-                ...f,
-                eventDate: `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}`,
-                eventTime: `${p(hour)}:${p(minute)}`,
-              }));
-              setShowPicker(false);
-            }}
-            onClose={() => setShowPicker(false)}
-          />
-        )}
 
         {/* Restul câmpurilor */}
         {[
