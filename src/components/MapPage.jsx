@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
+import { filterActiveEvents } from "../utils/eventTime";
 
 const filters = [
   { id: "all", label: "Toate", icon: "✦" },
@@ -107,7 +108,7 @@ export default function MapPage({ user }) {
 
   const loadPostedEvents = async () => {
     const { data } = await supabase.from("posted_events").select("*").not("lat", "is", null);
-    setPostedEvents(data || []);
+    setPostedEvents(filterActiveEvents(data));
   };
 
   useEffect(() => {

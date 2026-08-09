@@ -4,6 +4,7 @@ import { events as staticEvents } from "../data/events";
 import PostPage from "./PostPage";
 import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
+import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
 
 // Format minimal pentru evenimentele postate, ca să apară în listele "Particip" / "Apreciate"
 const convertPostedEventMinimal = (e) => ({
@@ -81,7 +82,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   // valabil pentru evenimente statice ȘI postate de alți useri, sincronizat cross-device.
   const loadAttendingAndLiked = async () => {
     const { data: postedRaw } = await supabase.from("posted_events").select("*");
-    const posted = (postedRaw || []).map(convertPostedEventMinimal);
+    const posted = filterActiveEvents(postedRaw).map(convertPostedEventMinimal);
     const allEvents = [...staticEvents, ...posted];
 
     const { data: myAttendances } = await supabase.from("attendances").select("event_id").eq("user_id", user.id);
@@ -97,7 +98,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const loadMyPostedEvents = async () => {
     if (!user) return;
     const { data } = await supabase.from("posted_events").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
-    setMyPostedEvents(data || []);
+    const active = filterActiveEvents(data);
+    setMyPostedEvents(active);
+    // Curăță din Supabase evenimentele mele expirate (best-effort, în fundal) —
+    // așa dispar efectiv din bază, nu doar din ce afișează ecranul.
+    cleanupOwnExpiredEvents(supabase, data);
   };
 
   const handleAvatarChange = (e) => {

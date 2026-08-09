@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
+import { filterActiveEvents } from "../utils/eventTime";
 
 const convertPostedEvent = (e) => ({
   id: `posted_${e.id}`,
@@ -26,7 +27,7 @@ export default function SearchPage({ onOpenEvent }) {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("posted_events").select("*").order("created_at", { ascending: false });
-      setAllEvents((data || []).map(convertPostedEvent));
+      setAllEvents(filterActiveEvents(data).map(convertPostedEvent));
       setLoading(false);
     })();
   }, []);

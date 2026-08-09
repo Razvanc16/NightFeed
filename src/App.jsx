@@ -15,13 +15,29 @@ import PostPage from "./components/PostPage";
 import CommentsSheet from "./components/CommentsSheet";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
+import { filterActiveEvents } from "./utils/eventTime";
 
 const filterFn = (event, filter) => {
   if (filter === "all") return true;
   if (filter === "official") return event.type === "official";
   if (filter === "homemade") return event.type === "homemade";
-  if (filter === "today") return event.date?.toLowerCase().includes("azi");
-  if (filter === "weekend") return event.date?.toLowerCase().includes("weekend") || event.date?.toLowerCase().includes("sâmbătă");
+  if (filter === "today") {
+    // Evenimentele postate au acum o dată reală (event_date) — o folosim când există,
+    // altfel rămânem pe potrivirea de text de dinainte (evenimentele statice/vechi).
+    if (event.event_date) {
+      const d = new Date(event.event_date);
+      const now = new Date();
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    }
+    return event.date?.toLowerCase().includes("azi");
+  }
+  if (filter === "weekend") {
+    if (event.event_date) {
+      const day = new Date(event.event_date).getDay(); // 0 = duminică, 5/6 = vineri/sâmbătă
+      return day === 0 || day === 5 || day === 6;
+    }
+    return event.date?.toLowerCase().includes("weekend") || event.date?.toLowerCase().includes("sâmbătă");
+  }
   if (filter === "free") return event.price === "Gratuit";
   return true;
 };
@@ -33,6 +49,7 @@ const convertPostedEvent = (e) => ({
   title: e.title,
   venue: e.venue || "Locație necunoscută",
   date: e.date || "Data necunoscută",
+  event_date: e.event_date || null,
   price: e.price || "Gratuit",
   likes: 0,
   attending: 0,
@@ -149,7 +166,7 @@ export default function App() {
       .from("posted_events")
       .select("*")
       .order("created_at", { ascending: false });
-    if (data) setPostedEvents(data.map(convertPostedEvent));
+    if (data) setPostedEvents(filterActiveEvents(data).map(convertPostedEvent));
   };
 
   useEffect(() => {

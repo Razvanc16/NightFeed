@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
+import { formatEventDateTime, toDateInputValue, toTimeInputValue } from "../utils/eventTime";
 
 const searchAddress = async (query) => {
   if (!query || query.length < 3) return [];
@@ -23,7 +24,8 @@ export default function PostPage({ user, onClose, editEvent }) {
   const [form, setForm] = useState({
     title: editEvent?.title || "",
     venue: editEvent?.venue || "",
-    date: editEvent?.date || "",
+    eventDate: toDateInputValue(editEvent?.event_date),
+    eventTime: toTimeInputValue(editEvent?.event_date),
     price: editEvent?.price || "",
     type: editEvent?.type || "homemade",
     description: editEvent?.description || "",
@@ -71,8 +73,8 @@ export default function PostPage({ user, onClose, editEvent }) {
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !form.venue || !form.date) {
-      alert("Completează titlul, locația și data!"); return;
+    if (!form.title || !form.venue || !form.eventDate || !form.eventTime) {
+      alert("Completează titlul, locația și data/ora!"); return;
     }
     if (!user) { alert("Trebuie să fii autentificat!"); return; }
 
@@ -88,7 +90,9 @@ export default function PostPage({ user, onClose, editEvent }) {
         }
       }
 
-      const payload = { ...form, cover_url, user_id: user.id };
+      const { eventDate, eventTime, ...rest } = form;
+      const event_date = new Date(`${eventDate}T${eventTime}`).toISOString();
+      const payload = { ...rest, date: formatEventDateTime(event_date), event_date, cover_url, user_id: user.id };
 
       if (isEdit) {
         const { error } = await supabase.from("posted_events").update(payload).eq("id", editEvent.id);
@@ -200,9 +204,27 @@ export default function PostPage({ user, onClose, editEvent }) {
           )}
         </div>
 
+        {/* Dată și oră — pickere native (pe iPhone apar exact ca rotițele de la ceasul cu alarmă) */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Dată și oră *</div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <input
+              type="date"
+              value={form.eventDate}
+              onChange={e => setForm(f => ({ ...f, eventDate: e.target.value }))}
+              style={{ flex: 1, colorScheme: "dark", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+            />
+            <input
+              type="time"
+              value={form.eventTime}
+              onChange={e => setForm(f => ({ ...f, eventTime: e.target.value }))}
+              style={{ flex: 1, colorScheme: "dark", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+            />
+          </div>
+        </div>
+
         {/* Restul câmpurilor */}
         {[
-          { key: "date", label: "Dată și oră *", placeholder: "ex: Sâmbătă, 22:00", type: "text" },
           { key: "price", label: "Preț", placeholder: "ex: 80 RON sau Gratuit", type: "text" },
           { key: "tags", label: "Tag-uri", placeholder: "ex: techno, club, party", type: "text" },
           { key: "ticket_link", label: "Link bilete", placeholder: "https://...", type: "url" },

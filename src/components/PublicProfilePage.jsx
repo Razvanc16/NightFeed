@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
+import { filterActiveEvents } from "../utils/eventTime";
 
 const convertPostedEvent = (e) => ({
   id: `posted_${e.id}`,
@@ -44,7 +45,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
     const { data: uname } = await supabase.from("usernames").select("username").eq("user_id", profileUserId).single();
     setUsername(uname?.username || "");
     const { data: evs } = await supabase.from("posted_events").select("*").eq("user_id", profileUserId).order("created_at", { ascending: false });
-    setEvents((evs || []).map(convertPostedEvent));
+    setEvents(filterActiveEvents(evs).map(convertPostedEvent));
     await loadCounts();
     if (currentUser) {
       const { data: rel } = await supabase.from("follows").select("id").eq("follower_id", currentUser.id).eq("following_id", profileUserId).maybeSingle();
