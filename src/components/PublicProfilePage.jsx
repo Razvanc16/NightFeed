@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
+import FollowListSheet from "./FollowListSheet";
 
 const convertPostedEvent = (e) => ({
   id: `posted_${e.id}`,
@@ -14,7 +15,7 @@ const convertPostedEvent = (e) => ({
   cover_url: e.cover_url,
 });
 
-export default function PublicProfilePage({ profileUserId, currentUser, onBack, onOpenEvent }) {
+export default function PublicProfilePage({ profileUserId, currentUser, onBack, onOpenEvent, onViewProfile }) {
   const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState("");
   const [events, setEvents] = useState([]);
@@ -23,6 +24,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
 
   const isSelf = currentUser?.id === profileUserId;
 
@@ -105,14 +107,14 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
             <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{events.length}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Evenimente</div>
           </div>
-          <div style={{ textAlign: "center" }}>
+          <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followers}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Urmăritori</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
+          </button>
+          <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{following}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Urmărește</div>
-          </div>
+          </button>
         </div>
 
         {/* Buton Follow */}
@@ -157,6 +159,15 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
           </div>
         )}
       </div>
+
+      {followSheet && (
+        <FollowListSheet
+          userId={profileUserId}
+          mode={followSheet}
+          onClose={() => setFollowSheet(null)}
+          onViewProfile={(uid) => onViewProfile && onViewProfile(uid)}
+        />
+      )}
     </div>
   );
 }

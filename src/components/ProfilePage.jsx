@@ -3,6 +3,7 @@ import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
 import PostPage from "./PostPage";
 import RequestsPage from "./RequestsPage";
+import FollowListSheet from "./FollowListSheet";
 
 // Format minimal pentru evenimentele postate, ca să apară în listele "Particip" / "Apreciate"
 const convertPostedEventMinimal = (e) => ({
@@ -15,7 +16,7 @@ const convertPostedEventMinimal = (e) => ({
   bgColor: e.type === "official" ? "#1a0010" : "#110d00",
 });
 
-export default function ProfilePage({ user, onLogout }) {
+export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const [view, setView] = useState("loading");
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -43,6 +44,7 @@ export default function ProfilePage({ user, onLogout }) {
     setFollowingCount(g || 0);
   };
   const [showRequests, setShowRequests] = useState(false);
+  const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const fileRef = useRef(null);
   const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", avatar_url: "" });
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -245,15 +247,15 @@ export default function ProfilePage({ user, onLogout }) {
           </div>
 
           <div style={{ display: "flex", justifyContent: "center", gap: 40, padding: "8px 20px 16px" }}>
-            <div style={{ textAlign: "center" }}>
+            <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.05em" }}>Urmăritori</div>
-            </div>
+            </button>
             <div style={{ width: 1, background: "rgba(255,255,255,0.1)" }} />
-            <div style={{ textAlign: "center" }}>
+            <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.05em" }}>Urmărește</div>
-            </div>
+            </button>
           </div>
 
           <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -354,6 +356,15 @@ export default function ProfilePage({ user, onLogout }) {
       )}
 
       {showRequests && <RequestsPage user={user} onClose={() => setShowRequests(false)} />}
+
+      {followSheet && (
+        <FollowListSheet
+          userId={user.id}
+          mode={followSheet}
+          onClose={() => setFollowSheet(null)}
+          onViewProfile={(uid) => onViewProfile && onViewProfile(uid)}
+        />
+      )}
 
       {editingEvent && (
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#080808" }}>

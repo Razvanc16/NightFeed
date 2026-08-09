@@ -259,6 +259,7 @@ export default function App() {
                 currentUser={user}
                 onBack={() => setViewingProfile(null)}
                 onOpenEvent={(event) => { setViewingProfile(null); openSpecificEvent(event); }}
+                onViewProfile={(uid) => setViewingProfile(uid)}
               />
             </div>
           )}
@@ -281,7 +282,7 @@ export default function App() {
           {activeTab === "profile" && (
             <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
               {user
-                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} />
+                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
               }
             </div>
