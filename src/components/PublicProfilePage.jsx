@@ -11,6 +11,7 @@ const convertPostedEvent = (e) => ({
   title: e.title,
   venue: e.venue || "Locație necunoscută",
   date: e.date || "",
+  event_date: e.event_date || null,
   price: e.price || "Gratuit",
   color: e.type === "official" ? "#FF3366" : "#FFB800",
   cover_url: e.cover_url,
@@ -37,6 +38,14 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [profileUserId]);
+
+  // Scoate live evenimentele care expiră cât timp userul stă pe profil.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setEvents(prev => filterActiveEvents(prev));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadEverything = async () => {
     setLoading(true);

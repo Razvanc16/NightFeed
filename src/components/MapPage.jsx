@@ -68,6 +68,14 @@ export default function MapPage({ user }) {
     loadPostedEvents();
   }, []);
 
+  // Scoate live de pe hartă evenimentele care expiră cât timp userul are ecranul deschis.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPostedEvents(prev => filterActiveEvents(prev));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Cererile de participare la homemade — statusul lor decide dacă vezi adresa exactă
   useEffect(() => {
     if (user) loadMyRequests();

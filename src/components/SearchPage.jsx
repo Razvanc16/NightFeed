@@ -10,6 +10,7 @@ const convertPostedEvent = (e) => ({
   title: e.title,
   venue: e.venue || "Locație necunoscută",
   date: e.date || "Data necunoscută",
+  event_date: e.event_date || null,
   price: e.price || "Gratuit",
   tags: e.tags ? e.tags.split(",").map(t => t.trim()) : [],
   color: e.type === "official" ? "#FF3366" : "#FFB800",
@@ -30,6 +31,14 @@ export default function SearchPage({ onOpenEvent }) {
       setAllEvents(filterActiveEvents(data).map(convertPostedEvent));
       setLoading(false);
     })();
+  }, []);
+
+  // Scoate live evenimentele care expiră cât timp userul stă pe ecranul de căutare.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAllEvents(prev => filterActiveEvents(prev));
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const q = query.trim().toLowerCase();

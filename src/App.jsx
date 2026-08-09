@@ -169,6 +169,16 @@ export default function App() {
     if (data) setPostedEvents(filterActiveEvents(data).map(convertPostedEvent));
   };
 
+  // Filtrarea de mai sus rulează o singură dată, la încărcare — dacă rămâi cu
+  // aplicația deschisă și trece ora unei petreceri între timp, ea nu dispărea din
+  // feed decât la un reload. Verificăm din nou periodic și o scoatem live.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPostedEvents(prev => filterActiveEvents(prev));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const feed = feedRef.current;
     if (!feed) return;

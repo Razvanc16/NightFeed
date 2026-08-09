@@ -12,6 +12,7 @@ const convertPostedEventMinimal = (e) => ({
   type: e.type || "homemade",
   title: e.title,
   date: e.date || "Data necunoscută",
+  event_date: e.event_date || null,
   price: e.price || "Gratuit",
   color: e.type === "official" ? "#FF3366" : "#FFB800",
   bgColor: e.type === "official" ? "#1a0010" : "#110d00",
@@ -65,6 +66,17 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
+
+  // Scoate live evenimentele care expiră cât timp userul stă pe profil (Particip /
+  // Apreciate / Evenimentele mele).
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAttendingEvents(prev => filterActiveEvents(prev));
+      setLikedEvents(prev => filterActiveEvents(prev));
+      setMyPostedEvents(prev => filterActiveEvents(prev));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadProfileByUserId = async () => {
     if (!user?.id) { setView("setup"); return; }
