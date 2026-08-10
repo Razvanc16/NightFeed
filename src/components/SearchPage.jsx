@@ -2,21 +2,26 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { filterActiveEvents } from "../utils/eventTime";
 
-const convertPostedEvent = (e) => ({
-  id: `posted_${e.id}`,
-  rawId: e.id,
-  code: e.code,
-  type: e.type || "homemade",
-  title: e.title,
-  venue: e.venue || "Locație necunoscută",
-  date: e.date || "Data necunoscută",
-  event_date: e.event_date || null,
-  price: e.price || "Gratuit",
-  tags: e.tags ? e.tags.split(",").map(t => t.trim()) : [],
-  color: e.type === "official" ? "#FF3366" : "#FFB800",
-  description: e.description || "",
-  cover_url: e.cover_url,
-});
+const convertPostedEvent = (e, organizerMap = {}) => {
+  const organizer = organizerMap[e.user_id] || {};
+  return {
+    id: `posted_${e.id}`,
+    rawId: e.id,
+    code: e.code,
+    type: e.type || "homemade",
+    title: e.title,
+    venue: e.venue || "Locație necunoscută",
+    date: e.date || "Data necunoscută",
+    event_date: e.event_date || null,
+    price: e.price || "Gratuit",
+    tags: e.tags ? e.tags.split(",").map(t => t.trim()) : [],
+    color: e.type === "official" ? "#FF3366" : "#FFB800",
+    description: e.description || "",
+    cover_url: e.cover_url,
+    organizerName: organizer.displayName || "",
+    organizerUsername: organizer.username || "",
+  };
+};
 
 export default function SearchPage({ onOpenEvent }) {
   const [query, setQuery] = useState("");
@@ -28,7 +33,25 @@ export default function SearchPage({ onOpenEvent }) {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("posted_events").select("*").order("created_at", { ascending: false });
-      setAllEvents(filterActiveEvents(data).map(convertPostedEvent));
+      const active = filterActiveEvents(data);
+
+      // Aducem numele/username-ul hostilor, ca să poți căuta și după numele lor,
+      // nu doar după titlul/locația evenimentului.
+      const hostIds = [...new Set(active.map(e => e.user_id).filter(Boolean))];
+      let organizerMap = {};
+      if (hostIds.length > 0) {
+        const [{ data: profiles }, { data: usernames }] = await Promise.all([
+          supabase.from("profiles").select("user_id, nume, prenume").in("user_id", hostIds),
+          supabase.from("usernames").select("user_id, username").in("user_id", hostIds),
+        ]);
+        const unameMap = Object.fromEntries((usernames || []).map(u => [u.user_id, u.username]));
+        organizerMap = Object.fromEntries((profiles || []).map(p => [
+          p.user_id,
+          { displayName: [p.prenume, p.nume].filter(Boolean).join(" "), username: unameMap[p.user_id] || "" },
+        ]));
+      }
+
+      setAllEvents(active.map(e => convertPostedEvent(e, organizerMap)));
       setLoading(false);
     })();
   }, []);
@@ -46,7 +69,9 @@ export default function SearchPage({ onOpenEvent }) {
     e.title.toLowerCase().includes(q) ||
     e.venue.toLowerCase().includes(q) ||
     e.description.toLowerCase().includes(q) ||
-    e.tags.some(t => t.toLowerCase().includes(q))
+    e.tags.some(t => t.toLowerCase().includes(q)) ||
+    e.organizerName.toLowerCase().includes(q) ||
+    e.organizerUsername.toLowerCase().includes(q)
   );
 
   const handleCodeSubmit = () => {
@@ -87,7 +112,7 @@ export default function SearchPage({ onOpenEvent }) {
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Caută după nume, loc, tag..."
+            placeholder="Caută după nume, host, loc, tag..."
             style={{ width: "100%", padding: "13px 16px 13px 44px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
           />
         </div>
@@ -109,8 +134,9 @@ export default function SearchPage({ onOpenEvent }) {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {event.type === "homemade" ? "Zonă aproximativă" : event.venue} · {event.date}
+                    {event.organizerName && ` · ${event.organizerName}`}
                   </div>
                 </div>
                 <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: event.color, letterSpacing: "0.1em", padding: "3px 8px", borderRadius: 8, background: `${event.color}15`, flexShrink: 0 }}>

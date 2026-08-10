@@ -200,6 +200,10 @@ export default function App() {
 
   const handleTabChange = (tab) => {
     if (tab === "post") { setShowPost(true); return; }
+    // Dacă ești pe ecranul de creare eveniment și apeși pe orice alt buton din
+    // meniul de jos, renunțăm direct la creare — nu mai trebuie neapărat să
+    // apeși "Închide" din colțul din dreapta sus.
+    if (showPost) setShowPost(false);
     setActiveTab(tab);
   };
 
