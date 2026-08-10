@@ -14,6 +14,22 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [error, setError] = useState("");
   const usernameCheckTimer = useRef(null);
 
+  // Protecție client-side împotriva încercărilor repetate de login/reset — NU
+  // înlocuiește rate limiting-ul real (care trebuie configurat în Supabase
+  // Dashboard → Authentication → Rate Limits), dar previne spam-ul accidental
+  // sau bot-ii simpli care nu execută JavaScript-ul paginii.
+  const [loginFails, setLoginFails] = useState(0);
+  const [loginCooldown, setLoginCooldown] = useState(0); // secunde rămase
+  const [resetCooldown, setResetCooldown] = useState(0); // secunde rămase
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setLoginCooldown(c => (c > 0 ? c - 1 : 0));
+      setResetCooldown(c => (c > 0 ? c - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
+
   // Verificare live a disponibilității username-ului (cu debounce), doar la înregistrare
   useEffect(() => {
     if (mode !== "register") return;
@@ -36,6 +52,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
   const handleSubmit = async () => {
     setError("");
+    if (mode === "login" && loginCooldown > 0) return;
     if (!email || !password) { setError("Completează email și parola!"); return; }
     if (mode === "register" && !username) { setError("Completează username-ul!"); return; }
     if (mode === "register" && usernameStatus === "taken") { setError("Acest username este deja folosit!"); return; }
@@ -58,8 +75,15 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
             setError(error.message);
           }
           setLoading(false);
+          // După 3 eșecuri la rând, blocăm butonul temporar — durata crește la fiecare
+          // eșec suplimentar (10s, 20s, 40s, plafonat la 60s).
+          const next = loginFails + 1;
+          setLoginFails(next);
+          if (next >= 3) setLoginCooldown(Math.min(60, 10 * Math.pow(2, next - 3)));
           return;
         }
+        setLoginFails(0);
+        setLoginCooldown(0);
         onAuth(data.user);
       } else {
         const { data, error } = await supabase.auth.signUp({
@@ -102,6 +126,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
   const handleForgotSubmit = async () => {
     setError("");
+    if (resetCooldown > 0) return;
     if (!email) { setError("Completează adresa de email!"); return; }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -109,6 +134,9 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     });
     setLoading(false);
     if (error) { setError(error.message); return; }
+    // Blocăm retrimiterea 45s — Supabase oricum limitează emailurile de auth la
+    // 2/oră, dar asta previne spam-ul accidental din interfață.
+    setResetCooldown(45);
     setMode("forgot-sent");
   };
 
@@ -216,19 +244,19 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
           <button
             onClick={handleForgotSubmit}
-            disabled={loading}
+            disabled={loading || resetCooldown > 0}
             style={{
               width: "100%", padding: "14px",
-              background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
+              background: (loading || resetCooldown > 0) ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
               border: "none", borderRadius: 14,
               color: "#fff", fontSize: 16, fontWeight: 700,
               fontFamily: "'Playfair Display', serif",
-              cursor: loading ? "not-allowed" : "pointer",
+              cursor: (loading || resetCooldown > 0) ? "not-allowed" : "pointer",
               boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
               marginTop: 4,
             }}
           >
-            {loading ? "Se trimite..." : "Trimite link de resetare"}
+            {loading ? "Se trimite..." : resetCooldown > 0 ? `Mai poți retrimite în ${resetCooldown}s` : "Trimite link de resetare"}
           </button>
 
           <button
@@ -330,20 +358,24 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
           <button
             onClick={handleSubmit}
-            disabled={loading || (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken"))}
+            disabled={loading || (mode === "login" && loginCooldown > 0) || (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken"))}
             style={{
               width: "100%", padding: "14px",
-              background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
+              background: (loading || (mode === "login" && loginCooldown > 0)) ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
               border: "none", borderRadius: 14,
               color: "#fff", fontSize: 16, fontWeight: 700,
               fontFamily: "'Playfair Display', serif",
-              cursor: loading ? "not-allowed" : "pointer",
+              cursor: (loading || (mode === "login" && loginCooldown > 0)) ? "not-allowed" : "pointer",
               boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
               marginTop: 4,
               opacity: (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken")) ? 0.6 : 1,
             }}
           >
-            {loading ? "Se procesează..." : mode === "login" ? "Intră în cont" : "Creează contul"}
+            {loading
+              ? "Se procesează..."
+              : mode === "login" && loginCooldown > 0
+                ? `Prea multe încercări — mai încearcă în ${loginCooldown}s`
+                : mode === "login" ? "Intră în cont" : "Creează contul"}
           </button>
 
           <div style={{ textAlign: "center", marginTop: 8 }}>
