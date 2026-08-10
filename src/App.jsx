@@ -50,6 +50,7 @@ const convertPostedEvent = (e) => ({
   venue: e.venue || "Locație necunoscută",
   date: e.date || "Data necunoscută",
   event_date: e.event_date || null,
+  age_restricted: !!e.age_restricted,
   price: e.price || "Gratuit",
   likes: 0,
   attending: 0,

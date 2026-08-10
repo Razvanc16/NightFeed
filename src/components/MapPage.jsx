@@ -156,9 +156,13 @@ export default function MapPage({ user }) {
     mapInstanceRef.current = map;
     map.on("zoomend", () => setZoom(map.getZoom()));
 
+    // Cerem locația automat la deschiderea hărții. Dacă userul acceptă, harta se
+    // centrează pe el; dacă refuză sau browserul nu suportă geolocation, rămâne
+    // pe centrul default (București) exact ca înainte — fără mesaje suplimentare.
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
         const { latitude, longitude } = pos.coords;
+        map.setView([latitude, longitude], 13);
         const userIcon = L.divIcon({
           className: "",
           html: `<div style="width:16px;height:16px;border-radius:50%;background:#4FC3F7;border:3px solid #fff;box-shadow:0 0 0 4px rgba(79,195,247,0.3);"></div>`,
@@ -188,7 +192,7 @@ export default function MapPage({ user }) {
       ...postedEvents.filter(e => filterFn(e, activeFilter)).map(e => ({
         id: `posted_${e.id}`,
         title: e.title, venue: e.venue, date: e.date, price: e.price || "Gratuit",
-        type: e.type, description: e.description,
+        type: e.type, description: e.description, age_restricted: !!e.age_restricted,
         color: e.type === "official" ? "#FF3366" : "#FFB800",
         coords: [e.lat, e.lng],
         isHomemade: e.type === "homemade",
@@ -413,8 +417,13 @@ export default function MapPage({ user }) {
               {selectedEvent.type === "official" ? "⚡" : "🏠"}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 10, color: selectedEvent.color, fontWeight: 700, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginBottom: 3 }}>
-                {selectedEvent.type === "official" ? "⚡ Oficial" : "🏠 Homemade"}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                <div style={{ fontSize: 10, color: selectedEvent.color, fontWeight: 700, fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>
+                  {selectedEvent.type === "official" ? "⚡ Oficial" : "🏠 Homemade"}
+                </div>
+                {selectedEvent.age_restricted && (
+                  <span style={{ fontSize: 10, fontWeight: 800, color: "#FF3366", background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.5)", borderRadius: 10, padding: "1px 6px", fontFamily: "'DM Mono', monospace" }}>18+</span>
+                )}
               </div>
               <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{selectedEvent.title}</div>
             </div>

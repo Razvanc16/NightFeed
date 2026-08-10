@@ -345,11 +345,18 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       )}
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "65%", background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 50%, transparent 100%)" }} />
 
-      <div style={{ position: "absolute", top: 20, left: 16, padding: "4px 10px", borderRadius: 20, background: event.type === "official" ? `${event.color}30` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "80" : "rgba(255,255,255,0.2)"}`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5 }}>
-        <span style={{ fontSize: 11 }}>{event.type === "official" ? "⚡" : "🏠"}</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: event.type === "official" ? event.color : "rgba(255,255,255,0.85)", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>
-          {event.type === "official" ? "Oficial" : "Homemade"}
-        </span>
+      <div style={{ position: "absolute", top: 20, left: 16, display: "flex", alignItems: "center", gap: 6 }}>
+        <div style={{ padding: "4px 10px", borderRadius: 20, background: event.type === "official" ? `${event.color}30` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "80" : "rgba(255,255,255,0.2)"}`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5 }}>
+          <span style={{ fontSize: 11 }}>{event.type === "official" ? "⚡" : "🏠"}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: event.type === "official" ? event.color : "rgba(255,255,255,0.85)", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>
+            {event.type === "official" ? "Oficial" : "Homemade"}
+          </span>
+        </div>
+        {event.age_restricted && (
+          <div style={{ padding: "4px 10px", borderRadius: 20, background: "rgba(255,51,102,0.25)", border: "1px solid rgba(255,51,102,0.6)", backdropFilter: "blur(10px)" }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#FF3366", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace" }}>18+</span>
+          </div>
+        )}
       </div>
 
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 64, padding: "0 16px 28px" }}>
