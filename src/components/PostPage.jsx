@@ -20,8 +20,17 @@ const searchAddress = async (query) => {
   } catch { return []; }
 };
 
+// "80 RON" -> "80"; "Gratuit"/gol -> ""
+const extractPriceAmount = (price) => {
+  if (!price || price === "Gratuit") return "";
+  const match = price.match(/\d+/);
+  return match ? match[0] : "";
+};
+
 export default function PostPage({ user, onClose, editEvent }) {
   const isEdit = !!editEvent;
+  const [priceMode, setPriceMode] = useState(editEvent?.price && editEvent.price !== "Gratuit" ? "paid" : "free");
+  const [priceAmount, setPriceAmount] = useState(extractPriceAmount(editEvent?.price));
   const [form, setForm] = useState({
     title: editEvent?.title || "",
     venue: editEvent?.venue || "",
@@ -77,6 +86,9 @@ export default function PostPage({ user, onClose, editEvent }) {
   const handleSubmit = async () => {
     if (!form.title || !form.venue || !form.eventDate || !form.eventTime) {
       alert("Completează titlul, locația și data/ora!"); return;
+    }
+    if (priceMode === "paid" && !priceAmount) {
+      alert("Completează prețul, sau alege Gratuit!"); return;
     }
     if (!user) { alert("Trebuie să fii autentificat!"); return; }
 
@@ -257,9 +269,42 @@ export default function PostPage({ user, onClose, editEvent }) {
           </div>
         </div>
 
+        {/* Preț */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Preț</div>
+          <div style={{ display: "flex", gap: 8, marginBottom: priceMode === "paid" ? 8 : 0 }}>
+            {[{ id: "free", label: "Gratuit" }, { id: "paid", label: "Cu preț" }].map(m => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => {
+                  setPriceMode(m.id);
+                  setForm(f => ({ ...f, price: m.id === "free" ? "Gratuit" : (priceAmount ? `${priceAmount} RON` : "") }));
+                }}
+                style={{ flex: 1, padding: "10px", borderRadius: 12, background: priceMode === m.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${priceMode === m.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: priceMode === m.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: priceMode === m.id ? 700 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+          {priceMode === "paid" && (
+            <div style={{ position: "relative" }}>
+              <input
+                type="number" min="0" placeholder="ex: 80" value={priceAmount}
+                onChange={e => {
+                  const val = e.target.value;
+                  setPriceAmount(val);
+                  setForm(f => ({ ...f, price: val ? `${val} RON` : "" }));
+                }}
+                style={{ width: "100%", padding: "12px 50px 12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+              />
+              <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>RON</span>
+            </div>
+          )}
+        </div>
+
         {/* Restul câmpurilor */}
         {[
-          { key: "price", label: "Preț", placeholder: "ex: 80 RON sau Gratuit", type: "text" },
           { key: "tags", label: "Tag-uri", placeholder: "ex: techno, club, party", type: "text" },
           { key: "ticket_link", label: "Link bilete", placeholder: "https://...", type: "url" },
         ].map(field => (

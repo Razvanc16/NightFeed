@@ -55,6 +55,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const [copiedCode, setCopiedCode] = useState(null);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
   const copyCode = (code) => {
     navigator.clipboard?.writeText(code);
@@ -68,6 +69,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     setFollowerCount(f || 0);
     const { count: g } = await supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user.id);
     setFollowingCount(g || 0);
+  };
+
+  const loadPendingRequestsCount = async () => {
+    if (!user) return;
+    const { count } = await supabase.from("attendance_requests").select("*", { count: "exact", head: true }).eq("host_id", user.id).eq("status", "pending");
+    setPendingRequestsCount(count || 0);
   };
   const [showRequests, setShowRequests] = useState(false);
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
@@ -115,11 +122,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     loadAttendingAndLiked();
     loadMyPostedEvents();
     loadFollowCounts();
+    loadPendingRequestsCount();
 
-    // Realtime: actualizează numărul de urmăritori/urmăriri instant
+    // Realtime: actualizează numărul de urmăritori/urmăriri și cereri instant
     const channel = supabase
       .channel(`my_follows_${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "follows" }, () => loadFollowCounts())
+      .on("postgres_changes", { event: "*", schema: "public", table: "attendance_requests", filter: `host_id=eq.${user.id}` }, () => loadPendingRequestsCount())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
@@ -344,7 +353,10 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
       )}
 
       {!isSetup && profile && (
-        <div style={{ animation: "slideUp 0.3s ease-out" }}>
+        <div style={{ position: "relative", animation: "slideUp 0.3s ease-out" }}>
+          <button onClick={() => setShowSettings(true)} style={{ position: "absolute", top: 14, left: 16, zIndex: 6, width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
+            <GearIcon size={15} />
+          </button>
           <div style={{ padding: "50px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ width: 70, height: 70, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #FF6B35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, overflow: "hidden", flexShrink: 0, border: "2px solid rgba(255,51,102,0.4)" }}>
               {profile.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MoonIcon size={26} style={{ color: "#fff" }} />}
@@ -356,10 +368,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
               </div>
               {profile.hobby && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}><TargetIcon size={12} /> {profile.hobby}</div>}
               {user?.email && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}><EnvelopeIcon size={11} /> {user.email}</div>}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <button onClick={() => setShowRequests(true)} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 10, padding: "7px 12px", color: "#FFB800", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><EnvelopeIcon size={12} /> Cereri</button>
-              <button onClick={() => setShowSettings(true)} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><GearIcon size={13} /> Setări</button>
             </div>
           </div>
 
@@ -378,12 +386,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
           <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[
               { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={18} /> },
-              { id: "liked", label: "Apreciate", value: likedEvents.length, icon: <HeartOutlineIcon size={18} /> },
+              { id: "requests", label: "Cereri", value: pendingRequestsCount, icon: <EnvelopeIcon size={18} /> },
               { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={18} /> },
             ].map(stat => {
-              const isActive = activeTab === stat.id;
+              const isActive = stat.id !== "requests" && activeTab === stat.id;
               return (
-                <button key={stat.id} onClick={() => setActiveTab(stat.id)} style={{ flex: 1, background: isActive ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${isActive ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer" }}>
+                <button key={stat.id} onClick={() => stat.id === "requests" ? setShowRequests(true) : setActiveTab(stat.id)} style={{ flex: 1, background: isActive ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${isActive ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer" }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.5)" }}>{stat.icon}</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
                   <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
@@ -468,6 +476,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
         <SettingsPage
           onClose={() => setShowSettings(false)}
           onEditProfile={() => { setShowSettings(false); setEditing(true); }}
+          onShowLiked={() => { setShowSettings(false); setActiveTab("liked"); }}
           onShowLegal={() => setShowLegal(true)}
           onDeleteAccount={() => setShowDeleteConfirm(true)}
           onLogout={onLogout}
