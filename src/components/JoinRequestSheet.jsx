@@ -16,7 +16,7 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
       event_id: (event.rawId || event.id).toString().replace('posted_', ''),
       requester_id: user.id,
       requester_username: username,
-      host_id: event.user_id,
+      host_id: event.organizer_id,
       status: "pending",
       message: message.trim() || null,
     }]);
