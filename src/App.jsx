@@ -100,6 +100,15 @@ export default function App() {
   const feedRef = useRef(null);
   const recoveryModeRef = useRef(false);
 
+  // Pull-to-refresh pe feed: trage în jos cât ești pe primul eveniment (scrollTop 0)
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const pullStartY = useRef(null);
+  const pullDistanceRef = useRef(0);
+  const refreshingRef = useRef(false);
+  const PULL_THRESHOLD = 70;
+  const PULL_MAX = 110;
+
   // Combine static + posted events
   const allEvents = [...staticEvents, ...postedEvents];
   const filtered = allEvents.filter(e => filterFn(e, activeFilter));
@@ -171,6 +180,67 @@ export default function App() {
     if (data) setPostedEvents(filterActiveEvents(data).map(convertPostedEvent));
   };
 
+  useEffect(() => { refreshingRef.current = refreshing; }, [refreshing]);
+
+  const setPull = (v) => { pullDistanceRef.current = v; setPullDistance(v); };
+
+  const doRefresh = async () => {
+    setRefreshing(true);
+    const start = Date.now();
+    await loadPostedEvents();
+    // durată minimă ca animația să se vadă, nu doar să clipească dacă fetch-ul e instant
+    const elapsed = Date.now() - start;
+    if (elapsed < 700) await new Promise((r) => setTimeout(r, 700 - elapsed));
+    setRefreshing(false);
+    setPull(0);
+  };
+
+  // Ascultătorii de touch se atașează manual (nu prin props JSX), ca touchmove
+  // să poată fi non-pasiv — altfel preventDefault() nu ar avea efect și browserul
+  // ar declanșa propriul pull-to-refresh nativ (recarcă toată pagina) în paralel.
+  useEffect(() => {
+    const feed = feedRef.current;
+    if (!feed) return;
+
+    const onTouchStart = (e) => {
+      if (feed.scrollTop <= 0 && !refreshingRef.current) {
+        pullStartY.current = e.touches[0].clientY;
+      } else {
+        pullStartY.current = null;
+      }
+    };
+    const onTouchMove = (e) => {
+      if (pullStartY.current === null) return;
+      const delta = e.touches[0].clientY - pullStartY.current;
+      if (delta > 6 && feed.scrollTop <= 0) {
+        e.preventDefault();
+        setPull(Math.min(delta * 0.5, PULL_MAX));
+      } else if (delta <= 0) {
+        pullStartY.current = null;
+        setPull(0);
+      }
+    };
+    const onTouchEnd = () => {
+      if (pullStartY.current === null) return;
+      pullStartY.current = null;
+      if (pullDistanceRef.current >= PULL_THRESHOLD) {
+        setPull(PULL_THRESHOLD);
+        doRefresh();
+      } else {
+        setPull(0);
+      }
+    };
+
+    feed.addEventListener("touchstart", onTouchStart, { passive: true });
+    feed.addEventListener("touchmove", onTouchMove, { passive: false });
+    feed.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      feed.removeEventListener("touchstart", onTouchStart);
+      feed.removeEventListener("touchmove", onTouchMove);
+      feed.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
+
   // Filtrarea de mai sus rulează o singură dată, la încărcare — dacă rămâi cu
   // aplicația deschisă și trece ora unei petreceri între timp, ea nu dispărea din
   // feed decât la un reload. Verificăm din nou periodic și o scoatem live.
@@ -224,15 +294,9 @@ export default function App() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,800;0,900;1,400;1,500;1,600&family=Inter:wght@400;500;600;700;800;900&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background: #000; overflow: hidden; font-family: 'Inter', sans-serif; }
+        body { background: #000; overflow: hidden; font-family: 'DM Sans', 'Inter', sans-serif; }
         #root { width: 100vw; height: 100dvh; position: relative; overflow: hidden; }
-
-        /* Fonturi unificate: totul pe Inter (titlurile care foloseau Syne devin
-           tot Inter, dar rămân bold prin greutatea deja setată în cod). */
-        [style*="Syne"] { font-family: 'Inter', sans-serif !important; }
-        [style*="DM Sans"], [style*="DM Mono"] { font-family: 'Inter', sans-serif !important; }
 
         /* Feedback tactil subtil pe toate butoanele — se "apasă" ușor la click */
         button { transition: transform 0.12s ease; }
@@ -244,6 +308,8 @@ export default function App() {
         @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
         @keyframes tabEnter { from{opacity:0;transform:translateY(12px) scale(0.99)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes ptrSpin { to { transform: rotate(360deg); } }
+        @keyframes ptrPop { 0%{transform:scale(1)} 50%{transform:scale(1.22)} 100%{transform:scale(1)} }
       `}</style>
 
       {recoveryMode ? (
@@ -322,8 +388,51 @@ export default function App() {
           )}
 
           {/* FEED */}
-          <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none" }}>
-            <div ref={feedRef} style={{ width: "100%", height: "calc(100dvh - 64px)", overflowY: "scroll", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none", position: "relative" }}>
+            {(pullDistance > 0 || refreshing) && (
+              <div style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 90, zIndex: 5, pointerEvents: "none",
+                display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 12,
+                opacity: Math.min(pullDistance / 24, 1),
+              }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: "50%", position: "relative",
+                  background: "rgba(10,10,12,0.9)", border: "1px solid rgba(255,255,255,0.1)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 4px 20px rgba(255,51,102,0.25)",
+                  animation: !refreshing && pullDistance >= PULL_THRESHOLD ? "ptrPop 0.4s ease-out" : "none",
+                }}>
+                  <svg width="42" height="42" viewBox="0 0 42 42" style={{ position: "absolute", inset: 0, animation: refreshing ? "ptrSpin 0.9s linear infinite" : "none" }}>
+                    <defs>
+                      <linearGradient id="ptrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FF3366" />
+                        <stop offset="100%" stopColor="#B44FFF" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="21" cy="21" r="17" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
+                    <circle
+                      cx="21" cy="21" r="17" fill="none" stroke="url(#ptrGrad)" strokeWidth="2.5" strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 17}
+                      strokeDashoffset={refreshing ? 2 * Math.PI * 17 * 0.25 : 2 * Math.PI * 17 * (1 - Math.min(pullDistance / PULL_THRESHOLD, 1))}
+                      transform="rotate(-90 21 21)"
+                      style={{ transition: pullStartY.current ? "none" : "stroke-dashoffset 0.25s ease-out" }}
+                    />
+                  </svg>
+                  <div style={{
+                    display: "flex", color: pullDistance >= PULL_THRESHOLD || refreshing ? "#FF3366" : "rgba(255,255,255,0.5)",
+                    transform: `scale(${refreshing ? 1 : 0.6 + Math.min(pullDistance / PULL_THRESHOLD, 1) * 0.4}) rotate(${refreshing ? 0 : Math.min(pullDistance / PULL_THRESHOLD, 1) * 360}deg)`,
+                    transition: pullStartY.current ? "none" : "transform 0.25s ease-out, color 0.2s",
+                  }}>
+                    <MoonIcon size={18} />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={feedRef} style={{
+              width: "100%", height: "calc(100dvh - 64px)", overflowY: "scroll", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
+              transform: `translateY(${pullDistance}px)`,
+              transition: pullStartY.current ? "none" : "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            }}>
               {filtered.length === 0 ? (
                 <div style={{ height: "100%", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px", textAlign: "center", overflow: "hidden" }}>
                   {/* Orbi subtili în fundal, ca pe landing */}
