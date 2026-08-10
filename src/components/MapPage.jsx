@@ -115,7 +115,7 @@ export default function MapPage({ user }) {
   };
 
   const loadPostedEvents = async () => {
-    const { data } = await supabase.from("posted_events").select("*").not("lat", "is", null);
+    const { data } = await supabase.from("posted_events_feed").select("*").not("lat_approx", "is", null);
     setPostedEvents(filterActiveEvents(data));
   };
 
@@ -194,7 +194,9 @@ export default function MapPage({ user }) {
         title: e.title, venue: e.venue, date: e.date, price: e.price || "Gratuit",
         type: e.type, description: e.description, age_restricted: !!e.age_restricted,
         color: e.type === "official" ? "#FF3366" : "#FFB800",
-        coords: [e.lat, e.lng],
+        // Homemade: doar coordonatele fuzzate (adresa exactă vine separat, doar
+        // pentru host/cereri acceptate, în RequestsPage). Oficial: coordonate reale.
+        coords: e.type === "homemade" ? [e.lat_approx, e.lng_approx] : [e.lat, e.lng],
         isHomemade: e.type === "homemade",
         isPosted: true,
         rawId: e.id,

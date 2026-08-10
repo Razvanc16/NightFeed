@@ -29,15 +29,33 @@ export default function RequestsPage({ user, onClose }) {
       .eq("host_id", user.id)
       .order("created_at", { ascending: false });
 
-    // Cereri trimise (eu sunt requester)
+    // Cereri trimise (eu sunt requester) — venue/lat/lng nu mai vin din embed
+    // (coloane blocate la nivel de bază de date), ci separat din view-ul care
+    // le dezvăluie doar pentru cererile acceptate.
     const { data: outgoing } = await supabase
       .from("attendance_requests")
-      .select("*, posted_events(title, type, date, venue, lat, lng)")
+      .select("*, posted_events(title, type, date)")
       .eq("requester_id", user.id)
       .order("created_at", { ascending: false });
 
+    const acceptedEventIds = (outgoing || [])
+      .filter(r => r.status === "accepted")
+      .map(r => r.event_id);
+
+    let addressByEventId = {};
+    if (acceptedEventIds.length) {
+      const { data: addresses } = await supabase
+        .from("posted_events_feed")
+        .select("id, venue, lat, lng")
+        .in("id", acceptedEventIds);
+      (addresses || []).forEach(a => { addressByEventId[String(a.id)] = a; });
+    }
+
     setRequests(incoming || []);
-    setMyRequests(outgoing || []);
+    setMyRequests((outgoing || []).map(r => ({
+      ...r,
+      posted_events: { ...r.posted_events, ...addressByEventId[String(r.event_id)] },
+    })));
     setLoading(false);
   };
 

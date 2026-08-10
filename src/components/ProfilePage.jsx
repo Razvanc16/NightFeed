@@ -107,7 +107,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   // Particip / Apreciate — acum din Supabase (tabelele "attendances" și "likes"),
   // valabil pentru evenimente statice ȘI postate de alți useri, sincronizat cross-device.
   const loadAttendingAndLiked = async () => {
-    const { data: postedRaw } = await supabase.from("posted_events").select("*");
+    const { data: postedRaw } = await supabase.from("posted_events_feed").select("*");
     const posted = filterActiveEvents(postedRaw).map(convertPostedEventMinimal);
     const allEvents = [...staticEvents, ...posted];
 
@@ -123,7 +123,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
 
   const loadMyPostedEvents = async () => {
     if (!user) return;
-    const { data } = await supabase.from("posted_events").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data } = await supabase.from("posted_events_feed").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     const active = filterActiveEvents(data);
     setMyPostedEvents(active);
     // Curăță din Supabase evenimentele mele expirate (best-effort, în fundal) —

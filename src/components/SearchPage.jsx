@@ -32,7 +32,7 @@ export default function SearchPage({ onOpenEvent }) {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("posted_events").select("*").order("created_at", { ascending: false });
+      const { data } = await supabase.from("posted_events_feed").select("*").order("created_at", { ascending: false });
       const active = filterActiveEvents(data);
 
       // Aducem numele/username-ul hostilor, ca să poți căuta și după numele lor,

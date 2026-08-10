@@ -91,17 +91,24 @@ export default function PostPage({ user, onClose, editEvent }) {
         }
       }
 
-      const { eventDate, eventTime, ...rest } = form;
+      // venue/lat/lng nu mai trăiesc în posted_events (sunt în tabelul separat
+      // event_locations, protejat prin RLS — vezi supabase/2026-08-11b_event_locations_table.sql).
+      const { eventDate, eventTime, venue, lat, lng, ...rest } = form;
       const event_date = new Date(`${eventDate}T${eventTime}`).toISOString();
       const payload = { ...rest, date: formatEventDateTime(event_date), event_date, cover_url, user_id: user.id };
 
+      let eventId = editEvent?.id;
       if (isEdit) {
-        const { error } = await supabase.from("posted_events").update(payload).eq("id", editEvent.id);
+        const { error } = await supabase.from("posted_events").update(payload).eq("id", eventId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("posted_events").insert([{ ...payload, verified: false }]);
+        const { data: inserted, error } = await supabase.from("posted_events").insert([{ ...payload, verified: false }]).select("id").single();
         if (error) throw error;
+        eventId = inserted.id;
       }
+
+      const { error: locError } = await supabase.from("event_locations").upsert([{ event_id: eventId, venue, lat, lng }]);
+      if (locError) throw locError;
 
       setSuccess(true);
       setTimeout(() => { setSuccess(false); onClose(); }, 2000);

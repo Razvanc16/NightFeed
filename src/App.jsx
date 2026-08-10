@@ -164,7 +164,7 @@ export default function App() {
 
   const loadPostedEvents = async () => {
     const { data, error } = await supabase
-      .from("posted_events")
+      .from("posted_events_feed")
       .select("*")
       .order("created_at", { ascending: false });
     if (data) setPostedEvents(filterActiveEvents(data).map(convertPostedEvent));
