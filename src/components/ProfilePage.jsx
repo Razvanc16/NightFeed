@@ -6,12 +6,13 @@ import PostPage from "./PostPage";
 import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
 import LegalPage from "./LegalPage";
+import SettingsPage from "./SettingsPage";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  DocumentIcon, TrashIcon, WarningIcon, BellIcon, BellOffIcon,
+  WarningIcon, GearIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -71,6 +72,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const [showRequests, setShowRequests] = useState(false);
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const [showLegal, setShowLegal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -85,13 +87,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   useEffect(() => {
     getPushStatus().then(setPushStatus);
   }, []);
-
-  const NOTIF_PREF_TYPES = [
-    { key: "notif_likes", label: "Like-uri" },
-    { key: "notif_comments", label: "Comentarii" },
-    { key: "notif_requests", label: "Cereri de participare" },
-    { key: "notif_followers", label: "Urmăritori noi" },
-  ];
 
   const toggleNotifPref = async (key) => {
     if (!profile) return;
@@ -363,9 +358,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
               {user?.email && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}><EnvelopeIcon size={11} /> {user.email}</div>}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <button onClick={() => setEditing(true)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Editează</button>
               <button onClick={() => setShowRequests(true)} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 10, padding: "7px 12px", color: "#FFB800", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><EnvelopeIcon size={12} /> Cereri</button>
-              {onLogout && <button onClick={onLogout} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 10, padding: "7px 12px", color: "#FF3366", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Ieși</button>}
+              <button onClick={() => setShowSettings(true)} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><GearIcon size={13} /> Setări</button>
             </div>
           </div>
 
@@ -467,52 +461,23 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
             )}
           </div>
 
-          <div style={{ padding: "8px 16px 30px", display: "flex", flexDirection: "column", gap: 8 }}>
-            {pushStatus !== "unsupported" && (
-              <button
-                onClick={handleTogglePush}
-                disabled={pushBusy || pushStatus === "denied" || pushStatus === "checking"}
-                style={{
-                  width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8,
-                  background: pushStatus === "subscribed" ? "rgba(0,200,100,0.08)" : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${pushStatus === "subscribed" ? "rgba(0,200,100,0.25)" : "rgba(255,255,255,0.07)"}`,
-                  color: pushStatus === "subscribed" ? "#00C864" : "rgba(255,255,255,0.5)",
-                  fontSize: 13, fontFamily: "'DM Sans', sans-serif",
-                  cursor: (pushBusy || pushStatus === "denied" || pushStatus === "checking") ? "default" : "pointer",
-                  opacity: pushStatus === "denied" ? 0.5 : 1,
-                }}
-              >
-                {pushStatus === "subscribed" ? <BellIcon size={15} /> : <BellOffIcon size={15} />}
-                {pushStatus === "subscribed" ? "Notificări activate" : pushStatus === "denied" ? "Notificări blocate din browser" : "Activează notificările"}
-              </button>
-            )}
-            {pushStatus === "subscribed" && profile && (
-              <div style={{ padding: "4px 4px 4px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
-                {NOTIF_PREF_TYPES.map(({ key, label }) => {
-                  const on = profile[key] ?? true;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => toggleNotifPref(key)}
-                      style={{ width: "100%", padding: "8px 6px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "none", border: "none", cursor: "pointer" }}
-                    >
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
-                      <div style={{ width: 34, height: 19, borderRadius: 10, background: on ? "#00C864" : "rgba(255,255,255,0.12)", position: "relative", transition: "background 0.2s" }}>
-                        <div style={{ position: "absolute", top: 2, left: on ? 17 : 2, width: 15, height: 15, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            <button onClick={() => setShowLegal(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-              <DocumentIcon size={15} /> Confidențialitate & Termeni
-            </button>
-            <button onClick={() => setShowDeleteConfirm(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8, background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", color: "#FF3366", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-              <TrashIcon size={15} /> Șterge contul
-            </button>
-          </div>
         </div>
+      )}
+
+      {showSettings && createPortal(
+        <SettingsPage
+          onClose={() => setShowSettings(false)}
+          onEditProfile={() => { setShowSettings(false); setEditing(true); }}
+          onShowLegal={() => setShowLegal(true)}
+          onDeleteAccount={() => setShowDeleteConfirm(true)}
+          onLogout={onLogout}
+          profile={profile}
+          pushStatus={pushStatus}
+          pushBusy={pushBusy}
+          onTogglePush={handleTogglePush}
+          onToggleNotifPref={toggleNotifPref}
+        />,
+        document.body
       )}
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
