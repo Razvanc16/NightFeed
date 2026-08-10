@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { LightningIcon, MapIcon, HouseIcon } from "./Icons";
 
 export default function LandingPage({ onNewUser, onExistingUser }) {
   const orbsRef = useRef(null);
@@ -46,7 +47,6 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
       background: "#060608", overflowY: "auto", overflowX: "hidden",
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500;1,600&family=Inter:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap');
         @keyframes lpFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-30px) scale(1.1)} }
         @keyframes lpFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,40px) scale(1.06)} }
         @keyframes lpFloat3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,30px) scale(1.12)} }
@@ -162,12 +162,12 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, marginBottom: 100 }}>
           {[
-            { icon: "⚡", title: "Feed vertical", desc: "Descoperă evenimente în stil TikTok — swipe, like, participă. Un flux nesfârșit de noapte." },
-            { icon: "🗺️", title: "Hartă interactivă", desc: "Vezi ce se întâmplă în jurul tău pe o hartă de noapte, cu locații și zone de petrecere." },
-            { icon: "🏠", title: "Evenimente homemade", desc: "Organizează-ți propria petrecere. Adresa rămâne privată până accepți invitații." },
+            { icon: LightningIcon, title: "Feed vertical", desc: "Descoperă evenimente în stil TikTok — swipe, like, participă. Un flux nesfârșit de noapte." },
+            { icon: MapIcon, title: "Hartă interactivă", desc: "Vezi ce se întâmplă în jurul tău pe o hartă de noapte, cu locații și zone de petrecere." },
+            { icon: HouseIcon, title: "Evenimente homemade", desc: "Organizează-ți propria petrecere. Adresa rămâne privată până accepți invitații." },
           ].map((f, i) => (
             <div key={i} className="lp-reveal" style={{ ...card, transitionDelay: `${i * 0.1}s` }}>
-              <div style={{ fontSize: 38, marginBottom: 18 }}>{f.icon}</div>
+              <div style={{ marginBottom: 18, color: "#FF3366" }}><f.icon size={34} /></div>
               <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 22, color: "#fff", marginBottom: 10 }}>{f.title}</div>
               <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>{f.desc}</div>
             </div>

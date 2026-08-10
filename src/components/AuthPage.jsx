@@ -4,6 +4,7 @@ import { validatePassword } from "../utils/passwordValidation";
 import PasswordChecklist from "./PasswordChecklist";
 import PasswordInput from "./PasswordInput";
 import LegalPage from "./LegalPage";
+import { EnvelopeIcon, KeyIcon, RocketIcon } from "./Icons";
 
 export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [mode, setMode] = useState(initialMode || "login"); // login | register | verify | forgot | forgot-sent
@@ -198,7 +199,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       {/* Verify email screen */}
       {mode === "verify" && (
         <div style={{ width: "100%", maxWidth: 340, textAlign: "center" }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>📧</div>
+          <div style={{ marginBottom: 16, color: "rgba(255,255,255,0.6)", display: "flex", justifyContent: "center" }}><EnvelopeIcon size={56} /></div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Playfair Display', serif", marginBottom: 8 }}>
             Verifică emailul!
           </div>
@@ -224,7 +225,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       {mode === "forgot" && (
         <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ textAlign: "center", marginBottom: 4 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Playfair Display', serif" }}>Resetează parola 🔑</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Playfair Display', serif", display: "inline-flex", alignItems: "center", gap: 6 }}>Resetează parola <KeyIcon size={15} /></div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'Instrument Sans', sans-serif", marginTop: 6 }}>
               Îți trimitem un link de resetare pe email.
             </div>
@@ -275,7 +276,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       {/* Forgot password: confirmation screen */}
       {mode === "forgot-sent" && (
         <div style={{ width: "100%", maxWidth: 340, textAlign: "center" }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>📬</div>
+          <div style={{ marginBottom: 16, color: "rgba(255,255,255,0.6)", display: "flex", justifyContent: "center" }}><EnvelopeIcon size={56} /></div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Playfair Display', serif", marginBottom: 8 }}>
             Verifică emailul!
           </div>
@@ -301,8 +302,8 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       {(mode === "login" || mode === "register") && (
         <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ textAlign: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Playfair Display', serif" }}>
-              {mode === "login" ? "Bine ai revenit 👋" : "Cont nou 🚀"}
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Playfair Display', serif", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              {mode === "login" ? "Bine ai revenit" : <>Cont nou <RocketIcon size={15} /></>}
             </div>
           </div>
 

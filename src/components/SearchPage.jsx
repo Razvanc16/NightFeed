@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { filterActiveEvents } from "../utils/eventTime";
+import { KeyIcon, SearchIcon, MoonIcon, LightningIcon, HouseIcon } from "./Icons";
 
 const convertPostedEvent = (e, organizerMap = {}) => {
   const organizer = organizerMap[e.user_id] || {};
@@ -91,7 +92,7 @@ export default function SearchPage({ onOpenEvent }) {
 
         {/* Acces direct cu cod */}
         <div style={{ background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 16, padding: "16px", marginBottom: 20 }}>
-          <div style={{ fontSize: 11, color: "#FF3366", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>🔑 Acces direct cu cod</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#FF3366", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}><KeyIcon size={12} /> Acces direct cu cod</div>
           <div style={{ display: "flex", gap: 8 }}>
             <input
               value={code}
@@ -108,7 +109,7 @@ export default function SearchPage({ onOpenEvent }) {
 
         {/* Căutare text */}
         <div style={{ position: "relative", marginBottom: 20 }}>
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, opacity: 0.4 }}>🔍</span>
+          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", opacity: 0.4, display: "flex" }}><SearchIcon size={16} /></span>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -119,18 +120,18 @@ export default function SearchPage({ onOpenEvent }) {
 
         {/* Rezultate */}
         {loading ? (
-          <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.3)", fontSize: 32, animation: "pulse 1.5s ease-in-out infinite" }}>🌙</div>
+          <div style={{ display: "flex", justifyContent: "center", padding: "40px", color: "rgba(255,255,255,0.3)", animation: "pulse 1.5s ease-in-out infinite" }}><MoonIcon size={32} /></div>
         ) : results.length === 0 ? (
           <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+            <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}><SearchIcon size={36} /></div>
             <div style={{ fontSize: 14 }}>{q ? "Niciun rezultat pentru căutarea ta." : "Niciun eveniment încă."}</div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {results.map(event => (
               <button key={event.id} onClick={() => onOpenEvent(event)} style={{ textAlign: "left", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 46, height: 46, borderRadius: 12, background: event.cover_url ? "transparent" : `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0, overflow: "hidden" }}>
-                  {event.cover_url ? <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.type === "official" ? "⚡" : "🏠")}
+                <div style={{ width: 46, height: 46, borderRadius: 12, background: event.cover_url ? "transparent" : `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", color: event.color, flexShrink: 0, overflow: "hidden" }}>
+                  {event.cover_url ? <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>

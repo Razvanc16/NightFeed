@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
 import PostPage from "./PostPage";
@@ -6,6 +7,18 @@ import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
 import LegalPage from "./LegalPage";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
+import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
+import {
+  CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
+  TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
+  DocumentIcon, TrashIcon, WarningIcon, BellIcon, BellOffIcon,
+} from "./Icons";
+
+// Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
+// majuscule/minuscule (ex: "sterge", "STERGE", "șterge" trec toate la fel).
+const ROMANIAN_DIACRITICS = { "Ă": "A", "Â": "A", "Î": "I", "Ș": "S", "Ş": "S", "Ț": "T", "Ţ": "T" };
+const normalizeConfirmText = (s) =>
+  s.trim().toUpperCase().split("").map(ch => ROMANIAN_DIACRITICS[ch] || ch).join("");
 
 // Extrage din URL-ul public Supabase Storage doar calea fișierului (ex: "abc.jpg"),
 // ca să-l putem șterge cu storage.remove([path]).
@@ -61,10 +74,30 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const isDeleteConfirmMatch = normalizeConfirmText(deleteConfirmText) === "STERGE";
+  const [pushStatus, setPushStatus] = useState("checking"); // unsupported | denied | not-subscribed | subscribed
+  const [pushBusy, setPushBusy] = useState(false);
   const fileRef = useRef(null);
   const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", avatar_url: "" });
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+
+  useEffect(() => {
+    getPushStatus().then(setPushStatus);
+  }, []);
+
+  const handleTogglePush = async () => {
+    setPushBusy(true);
+    if (pushStatus === "subscribed") {
+      await unsubscribeFromPush();
+      setPushStatus("not-subscribed");
+    } else {
+      const { error } = await subscribeToPush(user.id);
+      setPushStatus(await getPushStatus());
+      if (error) alert(error);
+    }
+    setPushBusy(false);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -195,29 +228,24 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     setMyPostedEvents(prev => prev.filter(e => e.id !== id));
   };
 
-  // Șterge definitiv contul: încearcă întâi ștergerea completă a autentificării
-  // (email + parolă) prin Edge Function — funcționează doar după ce e deployuită
-  // (vezi supabase/functions/delete-account). Indiferent de rezultatul ăsta,
-  // ștergem oricum toate datele proprii din tabele + storage și te delogăm, ca
-  // să nu rămână conținutul tău vizibil în aplicație.
+  // Șterge definitiv contul. ORDINEA CONTEAZĂ: ștergem întâi datele proprii
+  // (storage + tabele), cât timp sesiunea curentă e încă validă. Abia la final
+  // apelăm Edge Function-ul care șterge rândul din auth.users — asta invalidează
+  // sesiunea, deci orice cerere ulterioară cu ea ar eșua (silențios, fiindcă
+  // .delete() din Supabase nu aruncă eroare, doar o returnează necitit — dacă
+  // ștergeam contul de autentificare primul, tot ce urma mai jos părea că merge,
+  // dar nu ștergea de fapt nimic).
   const handleDeleteAccount = async () => {
-    if (deleteConfirmText.trim().toUpperCase() !== "ȘTERGE") return;
+    if (normalizeConfirmText(deleteConfirmText) !== "STERGE") return;
     setDeletingAccount(true);
     try {
-      try {
-        await supabase.functions.invoke("delete-account");
-      } catch {
-        // Edge Function nu e încă deployuită sau a eșuat — continuăm oricum cu
-        // ștergerea datelor, contul de autentificare rămâne pentru moment.
-      }
-
       const avatarPath = extractStoragePath(profile?.avatar_url, "avatars");
       if (avatarPath) await supabase.storage.from("avatars").remove([avatarPath]);
 
       const coverPaths = myPostedEvents.map(e => extractStoragePath(e.cover_url, "covers")).filter(Boolean);
       if (coverPaths.length) await supabase.storage.from("covers").remove(coverPaths);
 
-      await Promise.all([
+      const results = await Promise.all([
         supabase.from("posted_events").delete().eq("user_id", user.id),
         supabase.from("attendances").delete().eq("user_id", user.id),
         supabase.from("likes").delete().eq("user_id", user.id),
@@ -226,6 +254,15 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
         supabase.from("usernames").delete().eq("user_id", user.id),
         supabase.from("profiles").delete().eq("user_id", user.id),
       ]);
+      const firstError = results.find(r => r.error)?.error;
+      if (firstError) throw firstError;
+
+      try {
+        await supabase.functions.invoke("delete-account");
+      } catch {
+        // Edge Function nu e încă deployuită sau a eșuat — datele tot au fost
+        // șterse mai sus; doar contul de autentificare rămâne pentru moment.
+      }
 
       await supabase.auth.signOut();
       onLogout && onLogout();
@@ -239,7 +276,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
 
   if (view === "loading") return (
     <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#080808" }}>
-      <div style={{ fontSize: 32, animation: "pulse 1.5s ease-in-out infinite" }}>🌙</div>
+      <div style={{ color: "rgba(255,255,255,0.6)", animation: "pulse 1.5s ease-in-out infinite" }}><MoonIcon size={32} /></div>
     </div>
   );
 
@@ -257,7 +294,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
 
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 28 }}>
             <div onClick={() => fileRef.current?.click()} style={{ width: 90, height: 90, borderRadius: "50%", background: avatarSrc ? "transparent" : "rgba(255,51,102,0.15)", border: "2px dashed rgba(255,51,102,0.4)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" }}>
-              {avatarSrc ? <img src={avatarSrc} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 32 }}>📷</span>}
+              {avatarSrc ? <img src={avatarSrc} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ color: "rgba(255,51,102,0.6)" }}><CameraIcon size={30} /></span>}
             </div>
             <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 8 }}>Apasă pentru poză</div>
@@ -288,7 +325,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
           </div>
 
           <button onClick={handleSave} disabled={saving} style={{ width: "100%", padding: "14px", background: saving ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: saving ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
-            {saving ? "Se salvează..." : editing ? "Salvează modificările" : "Creează profilul 🚀"}
+            {saving ? "Se salvează..." : editing ? "Salvează modificările" : <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Creează profilul <RocketIcon size={16} /></span>}
           </button>
           {editing && (
             <button onClick={() => { setEditing(false); setAvatarPreview(null); }} style={{ width: "100%", padding: "12px", background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.4)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", marginTop: 10 }}>Anulează</button>
@@ -300,19 +337,19 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
         <div style={{ animation: "slideUp 0.3s ease-out" }}>
           <div style={{ padding: "50px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ width: 70, height: 70, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #FF6B35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, overflow: "hidden", flexShrink: 0, border: "2px solid rgba(255,51,102,0.4)" }}>
-              {profile.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🌙"}
+              {profile.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MoonIcon size={26} style={{ color: "#fff" }} />}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{profile.prenume} {profile.nume}</div>
               <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
                 {profile.varsta ? `${profile.varsta} ani` : ""}{profile.gen ? ` · ${profile.gen}` : ""}
               </div>
-              {profile.hobby && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>🎯 {profile.hobby}</div>}
-              {user?.email && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>📧 {user.email}</div>}
+              {profile.hobby && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}><TargetIcon size={12} /> {profile.hobby}</div>}
+              {user?.email && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}><EnvelopeIcon size={11} /> {user.email}</div>}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <button onClick={() => setEditing(true)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Editează</button>
-              <button onClick={() => setShowRequests(true)} style={{ background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 10, padding: "7px 12px", color: "#FFB800", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>📬 Cereri</button>
+              <button onClick={() => setShowRequests(true)} style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 10, padding: "7px 12px", color: "#FFB800", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><EnvelopeIcon size={12} /> Cereri</button>
               {onLogout && <button onClick={onLogout} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 10, padding: "7px 12px", color: "#FF3366", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Ieși</button>}
             </div>
           </div>
@@ -331,57 +368,48 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
 
           <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[
-              { label: "Particip", value: attendingEvents.length, icon: "✅" },
-              { label: "Apreciate", value: likedEvents.length, icon: "❤️" },
-              { label: "Postate", value: myPostedEvents.length, icon: "📤" },
-            ].map(stat => (
-              <div key={stat.label} style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "10px", textAlign: "center" }}>
-                <div style={{ fontSize: 18, marginBottom: 3 }}>{stat.icon}</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: "flex", padding: "14px 16px 8px", gap: 6 }}>
-            {[
-              { id: "attending", label: "Particip", icon: "✅" },
-              { id: "liked", label: "Apreciate", icon: "❤️" },
-              { id: "posted", label: "Postate", icon: "📤" },
-            ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ flex: 1, padding: "8px", borderRadius: 20, border: `1px solid ${activeTab === tab.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.08)"}`, background: activeTab === tab.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)", cursor: "pointer", color: activeTab === tab.id ? "#FF3366" : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>
-                {tab.icon} {tab.label}
-              </button>
-            ))}
+              { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={18} /> },
+              { id: "liked", label: "Apreciate", value: likedEvents.length, icon: <HeartOutlineIcon size={18} /> },
+              { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={18} /> },
+            ].map(stat => {
+              const isActive = activeTab === stat.id;
+              return (
+                <button key={stat.id} onClick={() => setActiveTab(stat.id)} style={{ flex: 1, background: isActive ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${isActive ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer" }}>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.5)" }}>{stat.icon}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
+                  <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
+                </button>
+              );
+            })}
           </div>
 
           <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
             {activeTab === "posted" ? (
               myPostedEvents.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
-                  <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>📤</div>
+                  <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}><OutboxIcon size={28} /></div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>Niciun eveniment postat</div>
                   <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Creează primul tău eveniment din butonul + de jos.</div>
                 </div>
               ) : myPostedEvents.map(event => (
                 <div key={event.id} style={{ borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 10, background: event.type === "official" ? "rgba(255,51,102,0.2)" : "rgba(255,184,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-                      {event.type === "official" ? "⚡" : "🏠"}
+                    <div style={{ width: 44, height: 44, borderRadius: 10, background: event.type === "official" ? "rgba(255,51,102,0.2)" : "rgba(255,184,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: event.type === "official" ? "#FF3366" : "#FFB800", flexShrink: 0 }}>
+                      {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {event.price || "Gratuit"}</div>
                       <div style={{ marginTop: 4, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                        <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 10, background: event.verified ? "rgba(0,200,100,0.15)" : "rgba(255,184,0,0.15)", border: `1px solid ${event.verified ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, fontSize: 10, color: event.verified ? "#00C864" : "#FFB800", fontFamily: "'DM Mono', monospace" }}>
-                          {event.verified ? "✅ Verificat" : "⏳ În așteptare"}
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 8px", borderRadius: 10, background: event.verified ? "rgba(0,200,100,0.15)" : "rgba(255,184,0,0.15)", border: `1px solid ${event.verified ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, fontSize: 10, color: event.verified ? "#00C864" : "#FFB800", fontFamily: "'DM Mono', monospace" }}>
+                          {event.verified ? <><CheckCircleIcon size={11} /> Verificat</> : <><ClockIcon size={11} /> În așteptare</>}
                         </span>
                         {event.code && (
                           <button
                             onClick={() => copyCode(event.code)}
                             style={{ padding: "2px 8px", borderRadius: 10, background: copiedCode === event.code ? "rgba(0,200,100,0.15)" : "rgba(255,51,102,0.12)", border: `1px solid ${copiedCode === event.code ? "rgba(0,200,100,0.3)" : "rgba(255,51,102,0.25)"}`, fontSize: 10, color: copiedCode === event.code ? "#00C864" : "#FF3366", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
                           >
-                            {copiedCode === event.code ? "✓ Copiat!" : `🔑 ${event.code}`}
+                            {copiedCode === event.code ? <><CheckCircleIcon size={11} /> Copiat!</> : <><KeyIcon size={11} /> {event.code}</>}
                           </button>
                         )}
                       </div>
@@ -396,7 +424,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
             ) : (
               (activeTab === "attending" ? attendingEvents : likedEvents).length === 0 ? (
                 <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
-                  <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>{activeTab === "attending" ? "🎉" : "🤍"}</div>
+                  <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}>{activeTab === "attending" ? <ConfettiIcon size={28} /> : <HeartOutlineIcon size={28} />}</div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>
                     {activeTab === "attending" ? "Încă nu participi nicăieri" : "Nimic apreciat încă"}
                   </div>
@@ -408,8 +436,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
                 <div key={event.id} style={{ borderRadius: 14, background: event.bgColor, border: `1px solid ${event.color}30`, padding: "14px", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at top left, ${event.color}15 0%, transparent 60%)`, pointerEvents: "none" }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 10, background: `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-                      {event.type === "official" ? "⚡" : "🏠"}
+                    <div style={{ width: 44, height: 44, borderRadius: 10, background: `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", color: event.color, flexShrink: 0 }}>
+                      {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
@@ -425,25 +453,43 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
           </div>
 
           <div style={{ padding: "8px 16px 30px", display: "flex", flexDirection: "column", gap: 8 }}>
-            <button onClick={() => setShowLegal(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-              📄 Confidențialitate & Termeni
+            {pushStatus !== "unsupported" && (
+              <button
+                onClick={handleTogglePush}
+                disabled={pushBusy || pushStatus === "denied" || pushStatus === "checking"}
+                style={{
+                  width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8,
+                  background: pushStatus === "subscribed" ? "rgba(0,200,100,0.08)" : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${pushStatus === "subscribed" ? "rgba(0,200,100,0.25)" : "rgba(255,255,255,0.07)"}`,
+                  color: pushStatus === "subscribed" ? "#00C864" : "rgba(255,255,255,0.5)",
+                  fontSize: 13, fontFamily: "'DM Sans', sans-serif",
+                  cursor: (pushBusy || pushStatus === "denied" || pushStatus === "checking") ? "default" : "pointer",
+                  opacity: pushStatus === "denied" ? 0.5 : 1,
+                }}
+              >
+                {pushStatus === "subscribed" ? <BellIcon size={15} /> : <BellOffIcon size={15} />}
+                {pushStatus === "subscribed" ? "Notificări activate" : pushStatus === "denied" ? "Notificări blocate din browser" : "Activează notificările"}
+              </button>
+            )}
+            <button onClick={() => setShowLegal(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+              <DocumentIcon size={15} /> Confidențialitate & Termeni
             </button>
-            <button onClick={() => setShowDeleteConfirm(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", color: "#FF3366", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-              🗑️ Șterge contul
+            <button onClick={() => setShowDeleteConfirm(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8, background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", color: "#FF3366", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+              <TrashIcon size={15} /> Șterge contul
             </button>
           </div>
         </div>
       )}
 
-      {showLegal && <LegalPage onClose={() => setShowLegal(false)} />}
+      {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 
-      {showDeleteConfirm && (
+      {showDeleteConfirm && createPortal(
         <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end" }} onClick={() => !deletingAccount && setShowDeleteConfirm(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: "100%", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "22px 20px 32px", borderTop: "1px solid rgba(255,51,102,0.2)", animation: "slideUp 0.25s ease-out" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxHeight: "85vh", overflowY: "auto", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "22px 20px 32px", borderTop: "1px solid rgba(255,51,102,0.2)", animation: "slideUp 0.25s ease-out" }}>
+            <div style={{ marginBottom: 12, color: "#FFB800" }}><WarningIcon size={36} /></div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 8 }}>Ștergi contul definitiv?</div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 18, fontFamily: "'DM Sans', sans-serif" }}>
-              Se șterg permanent profilul, evenimentele postate, like-urile, participările și urmăritorii tăi. Acțiunea nu poate fi anulată. Scrie <strong style={{ color: "#FF3366" }}>ȘTERGE</strong> ca să confirmi.
+              Se șterg permanent profilul, evenimentele postate, like-urile, participările și urmăritorii tăi. Acțiunea nu poate fi anulată. Scrie <strong style={{ color: "#FF3366" }}>STERGE</strong> ca să confirmi.
             </div>
             <input
               value={deleteConfirmText}
@@ -455,30 +501,32 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
               <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }} disabled={deletingAccount} style={{ flex: 1, padding: "13px", borderRadius: 14, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>Anulează</button>
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleteConfirmText.trim().toUpperCase() !== "ȘTERGE" || deletingAccount}
+                disabled={!isDeleteConfirmMatch || deletingAccount}
                 style={{
                   flex: 1, padding: "13px", borderRadius: 14, border: "none",
-                  background: deleteConfirmText.trim().toUpperCase() === "ȘTERGE" ? "linear-gradient(135deg, #FF3366, #B44FFF)" : "rgba(255,51,102,0.25)",
+                  background: isDeleteConfirmMatch ? "linear-gradient(135deg, #FF3366, #B44FFF)" : "rgba(255,51,102,0.25)",
                   color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif",
-                  cursor: (deleteConfirmText.trim().toUpperCase() === "ȘTERGE" && !deletingAccount) ? "pointer" : "not-allowed",
+                  cursor: (isDeleteConfirmMatch && !deletingAccount) ? "pointer" : "not-allowed",
                 }}
               >
                 {deletingAccount ? "Se șterge..." : "Șterge definitiv"}
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {showRequests && <RequestsPage user={user} onClose={() => setShowRequests(false)} />}
+      {showRequests && createPortal(<RequestsPage user={user} onClose={() => setShowRequests(false)} />, document.body)}
 
-      {followSheet && (
+      {followSheet && createPortal(
         <FollowListSheet
           userId={user.id}
           mode={followSheet}
           onClose={() => setFollowSheet(null)}
           onViewProfile={(uid) => onViewProfile && onViewProfile(uid)}
-        />
+        />,
+        document.body
       )}
 
       {editingEvent && (

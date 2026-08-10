@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { formatEventDateTime, toDateInputValue, toTimeInputValue } from "../utils/eventTime";
+import { CheckCircleIcon, ConfettiIcon, CameraIcon, LightningIcon, HouseIcon, NoEntryIcon, PinIcon, LockIcon, RocketIcon } from "./Icons";
 
 const searchAddress = async (query) => {
   if (!query || query.length < 3) return [];
@@ -120,7 +121,7 @@ export default function PostPage({ user, onClose, editEvent }) {
 
   if (success) return (
     <div style={{ width: "100%", height: "100%", background: "#080808", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-      <div style={{ fontSize: 64 }}>{isEdit ? "✅" : "🎉"}</div>
+      <div style={{ color: "#00C864" }}>{isEdit ? <CheckCircleIcon size={56} /> : <ConfettiIcon size={56} />}</div>
       <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{isEdit ? "Eveniment actualizat!" : "Eveniment trimis!"}</div>
       <div style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", textAlign: "center", padding: "0 32px" }}>
         {isEdit ? "Modificările au fost salvate." : "Va apărea în feed după verificare."}
@@ -146,7 +147,7 @@ export default function PostPage({ user, onClose, editEvent }) {
         <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: coverPreview ? "transparent" : "rgba(255,51,102,0.08)", border: `2px dashed ${coverPreview ? "transparent" : "rgba(255,51,102,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: 20, overflow: "hidden" }}>
           {coverPreview ? <img src={coverPreview} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (
             <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)" }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>📸</div>
+              <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}><CameraIcon size={30} /></div>
               <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace" }}>Adaugă poză cover</div>
             </div>
           )}
@@ -157,8 +158,8 @@ export default function PostPage({ user, onClose, editEvent }) {
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Tip eveniment</div>
           <div style={{ display: "flex", gap: 8 }}>
-            {[{ id: "official", label: "⚡ Oficial" }, { id: "homemade", label: "🏠 Homemade" }].map(t => (
-              <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))} style={{ flex: 1, padding: "10px", borderRadius: 12, background: form.type === t.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.type === t.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.type === t.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: form.type === t.id ? 700 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>{t.label}</button>
+            {[{ id: "official", label: "Oficial", icon: LightningIcon }, { id: "homemade", label: "Homemade", icon: HouseIcon }].map(t => (
+              <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))} style={{ flex: 1, padding: "10px", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: form.type === t.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.type === t.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.type === t.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: form.type === t.id ? 700 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}><t.icon size={14} /> {t.label}</button>
             ))}
           </div>
         </div>
@@ -174,8 +175,8 @@ export default function PostPage({ user, onClose, editEvent }) {
               border: `1px solid ${form.age_restricted ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`,
             }}
           >
-            <span style={{ fontSize: 13, color: form.age_restricted ? "#FF3366" : "rgba(255,255,255,0.6)", fontFamily: "'DM Sans', sans-serif", fontWeight: form.age_restricted ? 700 : 400 }}>
-              🔞 Eveniment 18+
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: form.age_restricted ? "#FF3366" : "rgba(255,255,255,0.6)", fontFamily: "'DM Sans', sans-serif", fontWeight: form.age_restricted ? 700 : 400 }}>
+              <NoEntryIcon size={15} /> Eveniment 18+
             </span>
             <div style={{ width: 40, height: 22, borderRadius: 11, background: form.age_restricted ? "#FF3366" : "rgba(255,255,255,0.15)", position: "relative", transition: "background 0.2s" }}>
               <div style={{ position: "absolute", top: 2, left: form.age_restricted ? 20 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
@@ -193,7 +194,7 @@ export default function PostPage({ user, onClose, editEvent }) {
         {/* Locație cu search */}
         <div style={{ marginBottom: 14, position: "relative" }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Locație * {form.lat ? <span style={{ color: "#00C864" }}>📍 Localizat</span> : ""}
+            Locație * {form.lat ? <span style={{ display: "inline-flex", alignItems: "center", gap: 3, color: "#00C864" }}><PinIcon size={12} /> Localizat</span> : ""}
           </div>
           <div style={{ position: "relative" }}>
             <input
@@ -217,7 +218,7 @@ export default function PostPage({ user, onClose, editEvent }) {
                   onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                 >
-                  <div style={{ fontSize: 13, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 2 }}>📍 {r.short}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 2 }}><PinIcon size={12} /> {r.short}</div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</div>
                 </div>
               ))}
@@ -226,8 +227,8 @@ export default function PostPage({ user, onClose, editEvent }) {
 
           {/* Privacy note for homemade */}
           {form.type === "homemade" && form.lat && (
-            <div style={{ marginTop: 8, padding: "8px 12px", background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 10, fontSize: 11, color: "#FFB800", fontFamily: "'DM Sans', sans-serif" }}>
-              🔒 Pe hartă se va afișa doar o zonă aproximativă. Adresa exactă e vizibilă doar participanților acceptați.
+            <div style={{ marginTop: 8, padding: "8px 12px", background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 10, fontSize: 11, color: "#FFB800", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "flex-start", gap: 6 }}>
+              <LockIcon size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Pe hartă se va afișa doar o zonă aproximativă. Adresa exactă e vizibilă doar participanților acceptați.
             </div>
           )}
         </div>
@@ -276,8 +277,8 @@ export default function PostPage({ user, onClose, editEvent }) {
             style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }} />
         </div>
 
-        <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "14px", background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
-          {loading ? "Se salvează..." : isEdit ? "Salvează modificările ✅" : "Trimite evenimentul 🚀"}
+        <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
+          {loading ? "Se salvează..." : isEdit ? <><CheckCircleIcon size={17} /> Salvează modificările</> : <><RocketIcon size={17} /> Trimite evenimentul</>}
         </button>
       </div>
     </div>

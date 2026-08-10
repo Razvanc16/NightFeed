@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
+import { SpeechBubbleIcon } from "./Icons";
 
 export default function CommentsSheet({ event, user, open, onClose }) {
   const [comments, setComments] = useState([]);
@@ -102,7 +103,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
             <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: 13, padding: "20px 0" }}>Se încarcă...</div>
           ) : comments.length === 0 ? (
             <div style={{ textAlign: "center", padding: "30px 0" }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
+              <div style={{ marginBottom: 8, display: "flex", justifyContent: "center", color: "rgba(255,255,255,0.3)" }}><SpeechBubbleIcon size={28} /></div>
               <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>Fii primul care comentează!</div>
             </div>
           ) : (

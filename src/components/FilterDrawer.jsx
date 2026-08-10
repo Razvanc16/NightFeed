@@ -1,10 +1,12 @@
+import { SparkleIcon, LightningIcon, HouseIcon, FireIcon, ConfettiIcon, TagIcon } from "./Icons";
+
 const filters = [
-  { id: "all", label: "Toate", icon: "✦" },
-  { id: "official", label: "Oficial", icon: "⚡" },
-  { id: "homemade", label: "Homemade", icon: "🏠" },
-  { id: "today", label: "Azi", icon: "🔥" },
-  { id: "weekend", label: "Weekend", icon: "🎉" },
-  { id: "free", label: "Gratuit", icon: "💸" },
+  { id: "all", label: "Toate", icon: SparkleIcon },
+  { id: "official", label: "Oficial", icon: LightningIcon },
+  { id: "homemade", label: "Homemade", icon: HouseIcon },
+  { id: "today", label: "Azi", icon: FireIcon },
+  { id: "weekend", label: "Weekend", icon: ConfettiIcon },
+  { id: "free", label: "Gratuit", icon: TagIcon },
 ];
 
 export default function FilterDrawer({ open, onClose, active, onChange }) {
@@ -109,7 +111,7 @@ export default function FilterDrawer({ open, onClose, active, onChange }) {
                   width: "100%",
                 }}
               >
-                <span style={{ fontSize: 18, width: 24, textAlign: "center" }}>{f.icon}</span>
+                <span style={{ width: 24, display: "flex", justifyContent: "center", color: active === f.id ? "#FF3366" : "rgba(255,255,255,0.7)" }}><f.icon size={17} /></span>
                 <span
                   style={{
                     fontSize: 14,

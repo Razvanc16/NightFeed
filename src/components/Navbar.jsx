@@ -1,9 +1,11 @@
+import { SearchIcon, PersonIcon, MapIcon } from "./Icons";
+
 const tabs = [
   { id: "feed", icon: "▶", label: "Feed" },
-  { id: "search", icon: "◎", label: "Caută" },
+  { id: "search", icon: SearchIcon, label: "Caută" },
   { id: "post", icon: "✚", label: "Post" },
-  { id: "map", icon: "◈", label: "Hartă" },
-  { id: "profile", icon: "◉", label: "Profil" },
+  { id: "map", icon: MapIcon, label: "Hartă" },
+  { id: "profile", icon: PersonIcon, label: "Profil" },
 ];
 
 export default function Navbar({ active, onChange }) {
@@ -82,7 +84,7 @@ export default function Navbar({ active, onChange }) {
                 lineHeight: 1,
               }}
             >
-              {tab.icon}
+              {typeof tab.icon === "string" ? tab.icon : <tab.icon size={18} />}
             </span>
             {!isPost && (
               <span

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
 import { filterActiveEvents } from "../utils/eventTime";
+import { MoonIcon, LightningIcon, HouseIcon } from "./Icons";
 
 const convertPostedEvent = (e) => ({
   id: `posted_${e.id}`,
@@ -90,7 +91,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   if (loading) {
     return (
       <div style={{ width: "100%", height: "100%", background: "#080808", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ fontSize: 32, animation: "pulse 1.5s ease-in-out infinite" }}>🌙</div>
+        <div style={{ color: "rgba(255,255,255,0.6)", animation: "pulse 1.5s ease-in-out infinite" }}><MoonIcon size={32} /></div>
       </div>
     );
   }
@@ -148,15 +149,15 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
         </div>
         {events.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,0.35)" }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>🌙</div>
+            <div style={{ marginBottom: 10, display: "flex", justifyContent: "center" }}><MoonIcon size={32} /></div>
             <div style={{ fontSize: 13 }}>Niciun eveniment încă</div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {events.map(event => (
               <button key={event.id} onClick={() => onOpenEvent && onOpenEvent(event)} style={{ textAlign: "left", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 46, height: 46, borderRadius: 12, background: event.cover_url ? "transparent" : `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0, overflow: "hidden" }}>
-                  {event.cover_url ? <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.type === "official" ? "⚡" : "🏠")}
+                <div style={{ width: 46, height: 46, borderRadius: 12, background: event.cover_url ? "transparent" : `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", color: event.color, flexShrink: 0, overflow: "hidden" }}>
+                  {event.cover_url ? <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>

@@ -3,6 +3,7 @@ import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
 import PasswordChecklist from "./PasswordChecklist";
 import PasswordInput from "./PasswordInput";
+import { CheckCircleIcon } from "./Icons";
 
 export default function ResetPasswordPage({ onDone }) {
   const [password, setPassword] = useState("");
@@ -70,7 +71,7 @@ export default function ResetPasswordPage({ onDone }) {
 
       {success ? (
         <div style={{ width: "100%", maxWidth: 340, textAlign: "center" }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>✅</div>
+          <div style={{ marginBottom: 16, color: "#00C864", display: "flex", justifyContent: "center" }}><CheckCircleIcon size={48} /></div>
           <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 8 }}>
             Parola a fost schimbată!
           </div>

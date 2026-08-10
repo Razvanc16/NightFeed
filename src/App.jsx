@@ -16,6 +16,7 @@ import CommentsSheet from "./components/CommentsSheet";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
 import { filterActiveEvents } from "./utils/eventTime";
+import { MoonIcon } from "./components/Icons";
 
 const filterFn = (event, filter) => {
   if (filter === "all") return true;
@@ -269,7 +270,7 @@ export default function App() {
 
           {authLoading && !showSplash && (
             <div style={{ position: "fixed", inset: 0, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9998 }}>
-              <div style={{ fontSize: 32, animation: "pulse 1s ease-in-out infinite" }}>🌙</div>
+              <div style={{ color: "rgba(255,255,255,0.6)", animation: "pulse 1s ease-in-out infinite" }}><MoonIcon size={32} /></div>
             </div>
           )}
 
@@ -333,8 +334,8 @@ export default function App() {
                     <div style={{
                       width: 80, height: 80, borderRadius: 24, margin: "0 auto 24px",
                       background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38,
-                    }}>🌙</div>
+                      display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.5)",
+                    }}><MoonIcon size={36} /></div>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
                       Liniște deocamdată
                     </div>

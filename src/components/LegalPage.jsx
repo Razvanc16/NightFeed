@@ -3,6 +3,8 @@
 // Trebuie revizuit de un avocat înainte de lansarea publică, mai ales după ce
 // NightFeed SRL este efectiv înregistrată (CUI, sediu social, date complete).
 
+import { WarningIcon } from "./Icons";
+
 const Section = ({ title, children }) => (
   <div style={{ marginBottom: 22 }}>
     <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 8 }}>{title}</div>
@@ -19,8 +21,8 @@ export default function LegalPage({ onClose }) {
       </div>
 
       <div style={{ height: "calc(100% - 76px)", overflowY: "auto", padding: "20px 20px 60px" }}>
-        <div style={{ padding: "10px 14px", background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, fontSize: 12, color: "#FFB800", fontFamily: "'DM Sans', sans-serif", marginBottom: 24, lineHeight: 1.5 }}>
-          ⚠️ Document draft, generat ca punct de plecare. Nu înlocuiește sfatul unui avocat — recomandăm revizuire juridică înainte de lansarea publică a aplicației.
+        <div style={{ padding: "10px 14px", background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, fontSize: 12, color: "#FFB800", fontFamily: "'DM Sans', sans-serif", marginBottom: 24, lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: 8 }}>
+          <WarningIcon size={16} style={{ flexShrink: 0, marginTop: 1 }} /> Document draft, generat ca punct de plecare. Nu înlocuiește sfatul unui avocat — recomandăm revizuire juridică înainte de lansarea publică a aplicației.
         </div>
 
         <Section title="1. Cine suntem">

@@ -1,16 +1,12 @@
 import JoinRequestSheet from "./JoinRequestSheet";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
+import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon } from "./Icons";
+import { notifyUser } from "../utils/pushNotifications";
 
 const HeartIcon = ({ filled, color }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={filled ? color : "rgba(255,255,255,0.8)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-  </svg>
-);
-
-const StarIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
   </svg>
 );
 
@@ -24,6 +20,12 @@ const ShareIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>
+);
+
+const PlusIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
   </svg>
 );
 
@@ -212,7 +214,11 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       return;
     }
     if (newLiked === liked) return; // deja în starea cerută — evită operații redundante
-    setLiked(newLiked); // optimistic, doar pentru inima ta — count-ul vine din realtime
+    setLiked(newLiked);
+    // Optimistic și pe count, nu doar pe inimă — altfel numărul rămâne neschimbat
+    // până vine evenimentul realtime (sau deloc, dacă realtime are vreo problemă).
+    // refreshCount recorectează oricum, autoritar, la evenimentul din canal.
+    setLikeCount(c => c + (newLiked ? 1 : -1));
     try {
       if (newLiked) {
         // upsert cu ignoreDuplicates: dacă cumva există deja, nu creează duplicate
@@ -221,12 +227,20 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           { onConflict: "event_id,user_id", ignoreDuplicates: true }
         );
         if (error) throw error;
+        if (event.organizer_id && event.organizer_id !== user.id) {
+          notifyUser({
+            targetUserId: event.organizer_id,
+            title: "Cineva ți-a dat like!",
+            body: `${event.title} a primit un like nou.`,
+          });
+        }
       } else {
         const { error } = await supabase.from("likes").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
         if (error) throw error;
       }
     } catch (err) {
       setLiked(!newLiked); // revert dacă a eșuat
+      setLikeCount(c => c + (newLiked ? -1 : 1));
       showToast("Eroare la like. Încearcă din nou.", "#FF3366");
     }
   };
@@ -269,7 +283,8 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       showToast("Autentifică-te ca să participi!", "rgba(255,255,255,0.5)");
       return;
     }
-    setAttending(newAttending); // optimistic — count-ul vine din realtime
+    setAttending(newAttending);
+    setAttendCount(c => c + (newAttending ? 1 : -1)); // optimistic, corectat de refreshCount la realtime
     try {
       if (newAttending) {
         const { error } = await supabase.from("attendances").insert([{ event_id: String(event.id), user_id: user.id }]);
@@ -282,6 +297,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       }
     } catch (err) {
       setAttending(!newAttending);
+      setAttendCount(c => c + (newAttending ? -1 : 1));
       showToast("Eroare. Încearcă din nou.", "#FF3366");
     }
   };
@@ -313,13 +329,26 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
   const formatNum = (n) => n >= 1000 ? (n / 1000).toFixed(1) + "k" : n;
 
+  // Nu poți da "Particip" la propriul eveniment.
+  const isOwnEvent = !!(user && event.organizer_id && event.organizer_id === user.id);
+
   const buttons = [
     { key: "like", onClick: handleLike, active: liked, label: formatNum(likeCount), icon: <HeartIcon filled={liked} color={event.color} /> },
     event.isPosted && event.type === "homemade"
-      ? { key: "attend", onClick: (e) => { e.stopPropagation(); animateBtn("attend"); setShowJoinRequest(true); }, active: attending, label: "Particip", icon: attending ? <CheckIcon color={event.color} /> : <StarIcon /> }
-      : { key: "attend", onClick: handleAttend, active: attending, label: formatNum(attendCount), icon: attending ? <CheckIcon color={event.color} /> : <StarIcon /> },
-    { key: "share", onClick: handleShare, active: false, label: "Share", icon: <ShareIcon /> },
-    { key: "comment", onClick: handleComment, active: false, label: "Chat", icon: <CommentIcon /> },
+      ? {
+          key: "attend",
+          onClick: isOwnEvent ? undefined : (e) => { e.stopPropagation(); animateBtn("attend"); setShowJoinRequest(true); },
+          active: attending, disabled: isOwnEvent,
+          title: isOwnEvent ? "Nu poți participa la propriul eveniment" : undefined,
+          icon: attending ? <CheckIcon color={event.color} /> : <PlusIcon />,
+        }
+      : {
+          key: "attend", onClick: isOwnEvent ? undefined : handleAttend, active: attending, disabled: isOwnEvent,
+          title: isOwnEvent ? "Nu poți participa la propriul eveniment" : undefined,
+          label: formatNum(attendCount), icon: attending ? <CheckIcon color={event.color} /> : <PlusIcon />,
+        },
+    { key: "comment", onClick: handleComment, active: false, icon: <CommentIcon /> },
+    { key: "share", onClick: handleShare, active: false, icon: <ShareIcon /> },
   ];
 
   return (
@@ -338,8 +367,8 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       {!event.cover_url && (
         <>
           <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: 220, height: 220, borderRadius: "50%", background: `radial-gradient(circle, ${event.color}30 0%, transparent 70%)`, filter: "blur(40px)", animation: isActive ? "pulse 3s ease-in-out infinite" : "none" }} />
-          <div style={{ position: "absolute", top: "18%", left: "50%", transform: "translateX(-50%)", width: 120, height: 120, borderRadius: 28, background: `${event.color}20`, border: `1.5px solid ${event.color}50`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 52 }}>
-            {event.type === "official" ? "⚡" : "🏠"}
+          <div style={{ position: "absolute", top: "18%", left: "50%", transform: "translateX(-50%)", width: 120, height: 120, borderRadius: 28, background: `${event.color}20`, border: `1.5px solid ${event.color}50`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", color: event.color }}>
+            {event.type === "official" ? <LightningIcon size={52} /> : <HouseIcon size={52} />}
           </div>
         </>
       )}
@@ -347,7 +376,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
       <div style={{ position: "absolute", top: 20, left: 16, display: "flex", alignItems: "center", gap: 6 }}>
         <div style={{ padding: "4px 10px", borderRadius: 20, background: event.type === "official" ? `${event.color}30` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "80" : "rgba(255,255,255,0.2)"}`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ fontSize: 11 }}>{event.type === "official" ? "⚡" : "🏠"}</span>
+          <span style={{ display: "flex", color: event.type === "official" ? event.color : "rgba(255,255,255,0.85)" }}>{event.type === "official" ? <LightningIcon size={12} /> : <HouseIcon size={12} />}</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: event.type === "official" ? event.color : "rgba(255,255,255,0.85)", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>
             {event.type === "official" ? "Oficial" : "Homemade"}
           </span>
@@ -368,11 +397,12 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8, fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
-            📍 {event.type === "homemade" ? "Zonă aproximativă 🔒" : event.venue}
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
+            <PinIcon size={13} />
+            {event.type === "homemade" ? <>Zonă aproximativă <LockIcon size={12} /></> : event.venue}
           </span>
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>·</span>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>🕐 {event.date}</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}><ClockIcon size={13} /> {event.date}</span>
         </div>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, margin: 0, marginBottom: 12 }}>{event.description}</p>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -386,7 +416,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
               title="Apasă pentru a copia codul"
             >
-              🔑 {event.code}
+              <KeyIcon size={12} /> {event.code}
             </span>
           )}
         </div>
@@ -394,7 +424,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
       <div style={{ position: "absolute", right: 12, bottom: 90, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
         {buttons.map(btn => (
-          <button key={btn.key} onClick={btn.onClick} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: 0 }}>
+          <button key={btn.key} onClick={btn.onClick} disabled={btn.disabled} title={btn.title} style={{ background: "none", border: "none", cursor: btn.disabled ? "default" : "pointer", opacity: btn.disabled ? 0.4 : 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: 0 }}>
             <div style={{
               width: 46, height: 46, borderRadius: "50%",
               background: btn.active ? `${event.color}25` : "rgba(255,255,255,0.08)",
@@ -407,9 +437,11 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             }}>
               {btn.icon}
             </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: btn.active ? event.color : "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace", transition: "color 0.2s" }}>
-              {btn.label}
-            </span>
+            {btn.label && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: btn.active ? event.color : "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace", transition: "color 0.2s" }}>
+                {btn.label}
+              </span>
+            )}
           </button>
         ))}
       </div>

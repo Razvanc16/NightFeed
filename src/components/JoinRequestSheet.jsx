@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../supabase";
+import { CheckCircleIcon, RocketIcon } from "./Icons";
 
 export default function JoinRequestSheet({ event, user, open, onClose, alreadyRequested }) {
   const [message, setMessage] = useState("");
@@ -42,7 +43,7 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
 
         {sent ? (
           <div style={{ textAlign: "center", padding: "20px 0" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+            <div style={{ marginBottom: 12, color: "#00C864", display: "flex", justifyContent: "center" }}><CheckCircleIcon size={44} /></div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Cerere trimisă!</div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 8 }}>Host-ul te va notifica după ce decide.</div>
           </div>
@@ -66,8 +67,8 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
 
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>Anulează</button>
-              <button onClick={handleSend} disabled={sending} style={{ flex: 2, padding: "12px", background: sending ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: sending ? "not-allowed" : "pointer" }}>
-                {sending ? "Se trimite..." : "Trimite cererea 🚀"}
+              <button onClick={handleSend} disabled={sending} style={{ flex: 2, padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: sending ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: sending ? "not-allowed" : "pointer" }}>
+                {sending ? "Se trimite..." : <>Trimite cererea <RocketIcon size={15} /></>}
               </button>
             </div>
           </>

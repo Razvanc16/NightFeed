@@ -2,13 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
 import { filterActiveEvents } from "../utils/eventTime";
+import {
+  SparkleIcon, LightningIcon, HouseIcon, FireIcon, TagIcon, PinIcon, LockIcon,
+  ClockIcon, CheckCircleIcon, CrossCircleIcon, PlusIcon, MapIcon,
+  houseIconSvg, lightningIconSvg,
+} from "./Icons";
 
 const filters = [
-  { id: "all", label: "Toate", icon: "✦" },
-  { id: "official", label: "Oficial", icon: "⚡" },
-  { id: "homemade", label: "Homemade", icon: "🏠" },
-  { id: "today", label: "Azi", icon: "🔥" },
-  { id: "free", label: "Gratuit", icon: "💸" },
+  { id: "all", label: "Toate", icon: SparkleIcon },
+  { id: "official", label: "Oficial", icon: LightningIcon },
+  { id: "homemade", label: "Homemade", icon: HouseIcon },
+  { id: "today", label: "Azi", icon: FireIcon },
+  { id: "free", label: "Gratuit", icon: TagIcon },
 ];
 
 const filterFn = (event, filter) => {
@@ -268,7 +273,7 @@ export default function MapPage({ user }) {
           html: `
             <div style="display:flex;flex-direction:column;align-items:center;">
               <div style="width:36px;height:36px;border-radius:50%;background:${color};border:3px solid ${isMarkedActive ? '#fff' : color + 'b0'};display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 18px ${color}90, 0 4px 16px rgba(0,0,0,0.5);cursor:pointer;">
-                🏠
+                ${houseIconSvg("#fff")}
               </div>
               <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${color};margin-top:-2px;"></div>
             </div>
@@ -291,7 +296,7 @@ export default function MapPage({ user }) {
         html: `
           <div style="display:flex;flex-direction:column;align-items:center;">
             <div style="width:36px;height:36px;border-radius:50%;background:${color};border:3px solid ${isMarkedActive ? '#fff' : color + 'b0'};display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 18px ${color}90, 0 4px 16px rgba(0,0,0,0.5);cursor:pointer;">
-              ⚡
+              ${lightningIconSvg("#fff")}
             </div>
             <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${color};margin-top:-2px;"></div>
           </div>
@@ -338,7 +343,7 @@ export default function MapPage({ user }) {
         const { error } = await supabase.from("attendances").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
         if (error) throw error;
       }
-      setToast(newVal ? `✅ Înscris la ${event.title}!` : "Ai renunțat");
+      setToast(newVal ? `Înscris la ${event.title}!` : "Ai renunțat");
     } catch (err) {
       setAttending(prev => ({ ...prev, [event.id]: !newVal }));
       setToast("Eroare. Încearcă din nou.");
@@ -404,7 +409,7 @@ export default function MapPage({ user }) {
       <div style={{ position: "absolute", top: 16, left: 0, right: 0, display: "flex", gap: 6, padding: "0 12px", overflowX: "auto", zIndex: 500, scrollbarWidth: "none" }}>
         {filters.map(f => (
           <button key={f.id} onClick={() => setActiveFilter(f.id)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 20, background: activeFilter === f.id ? "rgba(255,51,102,0.9)" : "rgba(8,8,10,0.92)", border: `1px solid ${activeFilter === f.id ? "#FF3366" : "rgba(255,255,255,0.25)"}`, color: activeFilter === f.id ? "#fff" : "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", cursor: "pointer", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5, transition: "all 0.2s", boxShadow: activeFilter === f.id ? "0 0 16px rgba(255,51,102,0.5)" : "none" }}>
-            <span>{f.icon}</span> {f.label}
+            <f.icon size={13} /> {f.label}
           </button>
         ))}
       </div>
@@ -415,13 +420,13 @@ export default function MapPage({ user }) {
           <button onClick={() => setSelectedEvent(null)} style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: "50%", width: 28, height: 28, color: "rgba(255,255,255,0.6)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
 
           <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: `${selectedEvent.color}25`, border: `1px solid ${selectedEvent.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-              {selectedEvent.type === "official" ? "⚡" : "🏠"}
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: `${selectedEvent.color}25`, border: `1px solid ${selectedEvent.color}50`, display: "flex", alignItems: "center", justifyContent: "center", color: selectedEvent.color, flexShrink: 0 }}>
+              {selectedEvent.type === "official" ? <LightningIcon size={20} /> : <HouseIcon size={20} />}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                <div style={{ fontSize: 10, color: selectedEvent.color, fontWeight: 700, fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>
-                  {selectedEvent.type === "official" ? "⚡ Oficial" : "🏠 Homemade"}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: selectedEvent.color, fontWeight: 700, fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>
+                  {selectedEvent.type === "official" ? <><LightningIcon size={11} /> Oficial</> : <><HouseIcon size={11} /> Homemade</>}
                 </div>
                 {selectedEvent.age_restricted && (
                   <span style={{ fontSize: 10, fontWeight: 800, color: "#FF3366", background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.5)", borderRadius: 10, padding: "1px 6px", fontFamily: "'DM Mono', monospace" }}>18+</span>
@@ -432,10 +437,11 @@ export default function MapPage({ user }) {
           </div>
 
           <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>🕐 {selectedEvent.date}</span>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
-              📍 {selectedEvent.isHomemade
-                ? (canSeeExactAddress(selectedEvent) ? selectedEvent.venue : "Zonă aproximativă 🔒")
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}><ClockIcon size={13} /> {selectedEvent.date}</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
+              <PinIcon size={13} />
+              {selectedEvent.isHomemade
+                ? (canSeeExactAddress(selectedEvent) ? selectedEvent.venue : <>Zonă aproximativă <LockIcon size={12} /></>)
                 : selectedEvent.venue}
             </span>
             <span style={{ fontSize: 12, color: selectedEvent.color, fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>{selectedEvent.price}</span>
@@ -448,39 +454,39 @@ export default function MapPage({ user }) {
                 const status = myRequests[rawId];
                 if (status === "accepted") {
                   return (
-                    <button disabled style={{ flex: 2, padding: "11px", background: "rgba(0,200,100,0.2)", border: "1px solid rgba(0,200,100,0.4)", borderRadius: 12, color: "#00C864", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "default" }}>
-                      ✅ Acceptat de host
+                    <button disabled style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(0,200,100,0.2)", border: "1px solid rgba(0,200,100,0.4)", borderRadius: 12, color: "#00C864", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "default" }}>
+                      <CheckCircleIcon size={15} /> Acceptat de host
                     </button>
                   );
                 }
                 if (status === "pending") {
                   return (
-                    <button disabled style={{ flex: 2, padding: "11px", background: "rgba(255,184,0,0.15)", border: "1px solid rgba(255,184,0,0.3)", borderRadius: 12, color: "#FFB800", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "default" }}>
-                      ⏳ Aștepți răspunsul hostului
+                    <button disabled style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,184,0,0.15)", border: "1px solid rgba(255,184,0,0.3)", borderRadius: 12, color: "#FFB800", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "default" }}>
+                      <ClockIcon size={15} /> Aștepți răspunsul hostului
                     </button>
                   );
                 }
                 if (status === "rejected") {
                   return (
-                    <button disabled style={{ flex: 2, padding: "11px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.25)", borderRadius: 12, color: "#FF3366", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "default" }}>
-                      ❌ Cerere refuzată
+                    <button disabled style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.25)", borderRadius: 12, color: "#FF3366", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "default" }}>
+                      <CrossCircleIcon size={15} /> Cerere refuzată
                     </button>
                   );
                 }
                 return (
-                  <button onClick={() => handleJoinRequest(selectedEvent)} style={{ flex: 2, padding: "11px", background: `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: "none", borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                    🔒 Cer să particip
+                  <button onClick={() => handleJoinRequest(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: "none", borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                    <LockIcon size={15} /> Cer să particip
                   </button>
                 );
               })()
             ) : (
-              <button onClick={() => handleAttend(selectedEvent)} style={{ flex: 2, padding: "11px", background: attending[selectedEvent.id] ? `${selectedEvent.color}35` : `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: `1px solid ${attending[selectedEvent.id] ? selectedEvent.color : "transparent"}`, borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                {attending[selectedEvent.id] ? "✅ Participi" : "⭐ Vreau să vin"}
+              <button onClick={() => handleAttend(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: attending[selectedEvent.id] ? `${selectedEvent.color}35` : `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: `1px solid ${attending[selectedEvent.id] ? selectedEvent.color : "transparent"}`, borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                {attending[selectedEvent.id] ? <><CheckCircleIcon size={15} /> Participi</> : <><PlusIcon size={15} /> Vreau să vin</>}
               </button>
             )}
             {canSeeExactAddress(selectedEvent) && (
-              <button onClick={() => handleNavigate(selectedEvent)} style={{ flex: 1, padding: "11px", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                🗺️ Navighez
+              <button onClick={() => handleNavigate(selectedEvent)} style={{ flex: 1, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                <MapIcon size={15} /> Navighez
               </button>
             )}
           </div>

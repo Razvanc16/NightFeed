@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
+import { MoonIcon } from "./Icons";
 
 // Listă de utilizatori (urmăritori sau urmăriri) pentru un profil — deschisă
 // prin apăsare pe numărul de "Urmăritori" / "Urmărește" din ProfilePage / PublicProfilePage.
@@ -56,11 +57,11 @@ export default function FollowListSheet({ userId, mode, onClose, onViewProfile }
       <div style={{ height: "calc(100% - 76px)", overflowY: "auto", padding: "12px 16px 40px" }}>
         {loading ? (
           <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ fontSize: 30, animation: "pulse 1.5s ease-in-out infinite" }}>🌙</div>
+            <div style={{ display: "flex", justifyContent: "center", color: "rgba(255,255,255,0.5)", animation: "pulse 1.5s ease-in-out infinite" }}><MoonIcon size={28} /></div>
           </div>
         ) : people.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 24px", color: "rgba(255,255,255,0.4)" }}>
-            <div style={{ fontSize: 36, marginBottom: 14 }}>🌙</div>
+            <div style={{ marginBottom: 14, display: "flex", justifyContent: "center" }}><MoonIcon size={32} /></div>
             <div style={{ fontSize: 14 }}>{mode === "followers" ? "Niciun urmăritor încă." : "Nu urmărește pe nimeni încă."}</div>
           </div>
         ) : (
