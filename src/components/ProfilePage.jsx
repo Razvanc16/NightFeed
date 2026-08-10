@@ -354,7 +354,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
 
       {!isSetup && profile && (
         <div style={{ position: "relative", animation: "slideUp 0.3s ease-out" }}>
-          <button onClick={() => setShowSettings(true)} style={{ position: "absolute", top: 14, left: 16, zIndex: 6, width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
+          <button onClick={() => setShowSettings(true)} style={{ position: "absolute", top: 14, right: 16, zIndex: 6, width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
             <GearIcon size={15} />
           </button>
           <div style={{ padding: "50px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
