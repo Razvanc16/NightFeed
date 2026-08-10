@@ -70,9 +70,15 @@ export default function RequestsPage({ user, onClose }) {
         targetUserId: req.requester_id,
         title: status === "accepted" ? "Cerere acceptată!" : "Cerere refuzată",
         body: status === "accepted" ? `Ai fost acceptat la ${eventTitle}.` : `Cererea ta pentru ${eventTitle} a fost refuzată.`,
+        type: "request",
       });
     }
     loadRequests();
+  };
+
+  const handleCancel = async (requestId) => {
+    await supabase.from("attendance_requests").delete().eq("id", requestId);
+    setMyRequests(prev => prev.filter(r => r.id !== requestId));
   };
 
   const statusBadge = (status) => {
@@ -181,6 +187,12 @@ export default function RequestsPage({ user, onClose }) {
                   <div style={{ marginTop: 6 }}>{statusBadge(req.status)}</div>
                 </div>
               </div>
+
+              {req.status === "pending" && (
+                <button onClick={() => handleCancel(req.id)} style={{ marginTop: 10, width: "100%", padding: "9px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                  <CrossCircleIcon size={13} /> Anulează cererea
+                </button>
+              )}
 
               {req.status === "accepted" && req.posted_events?.venue && (
                 <div style={{ marginTop: 10, padding: "10px 14px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.2)", borderRadius: 10 }}>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../supabase";
 import { CheckCircleIcon, RocketIcon } from "./Icons";
+import { notifyUser } from "../utils/pushNotifications";
 
 export default function JoinRequestSheet({ event, user, open, onClose, alreadyRequested }) {
   const [message, setMessage] = useState("");
@@ -23,6 +24,14 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
 
     if (!error) {
       setSent(true);
+      if (event.organizer_id) {
+        notifyUser({
+          targetUserId: event.organizer_id,
+          title: "Cerere nouă de participare",
+          body: `${username} vrea să participe la ${event.title}.`,
+          type: "request",
+        });
+      }
       setTimeout(() => onClose(), 1500);
     } else {
       alert("Eroare: " + error.message);

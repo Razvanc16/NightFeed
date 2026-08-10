@@ -430,7 +430,11 @@ export default function App() {
             )}
             <div ref={feedRef} style={{
               width: "100%", height: "calc(100dvh - 64px)", overflowY: "scroll", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
-              transform: `translateY(${pullDistance}px)`,
+              // transform: "none" cât timp nu tragem — orice valoare de transform
+              // (chiar translateY(0px)) creează un nou "containing block" pentru
+              // copiii cu position:fixed din interior (ex: sheet-ul "Cer să
+              // particip" din EventCard), rupându-le poziționarea pe tot ecranul.
+              transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : "none",
               transition: pullStartY.current ? "none" : "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}>
               {filtered.length === 0 ? (

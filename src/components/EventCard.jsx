@@ -232,6 +232,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             targetUserId: event.organizer_id,
             title: "Cineva ți-a dat like!",
             body: `${event.title} a primit un like nou.`,
+            type: "like",
           });
         }
       } else {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { SpeechBubbleIcon } from "./Icons";
+import { notifyUser } from "../utils/pushNotifications";
 
 export default function CommentsSheet({ event, user, open, onClose }) {
   const [comments, setComments] = useState([]);
@@ -42,7 +43,17 @@ export default function CommentsSheet({ event, user, open, onClose }) {
     const { error } = await supabase.from("comments").insert([{
       event_id: event.id, user_id: user.id, username, text: text.trim(),
     }]);
-    if (!error) setText("");
+    if (!error) {
+      setText("");
+      if (event.organizer_id && event.organizer_id !== user.id) {
+        notifyUser({
+          targetUserId: event.organizer_id,
+          title: "Comentariu nou",
+          body: `${username} a comentat la ${event.title}: „${text.trim().slice(0, 80)}”`,
+          type: "comment",
+        });
+      }
+    }
     setSending(false);
   };
 

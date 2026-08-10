@@ -7,6 +7,7 @@ import {
   ClockIcon, CheckCircleIcon, CrossCircleIcon, PlusIcon, MapIcon,
   houseIconSvg, lightningIconSvg,
 } from "./Icons";
+import { notifyUser } from "../utils/pushNotifications";
 
 const filters = [
   { id: "all", label: "Toate", icon: SparkleIcon },
@@ -370,6 +371,14 @@ export default function MapPage({ user }) {
       }]);
       if (error) throw error;
       setMyRequests(prev => ({ ...prev, [rawId]: "pending" }));
+      if (event.hostId) {
+        notifyUser({
+          targetUserId: event.hostId,
+          title: "Cerere nouă de participare",
+          body: `${username} vrea să participe la ${event.title}.`,
+          type: "request",
+        });
+      }
       setToast("Cerere trimisă! Aștepți răspunsul hostului.");
     } catch (err) {
       setToast("Eroare la trimiterea cererii.");

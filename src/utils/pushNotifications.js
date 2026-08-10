@@ -59,9 +59,10 @@ export async function unsubscribeFromPush() {
 }
 
 // Best-effort — nu aruncă niciodată, ca o notificare eșuată să nu strice
-// fluxul principal (accept cerere, like etc.).
-export function notifyUser({ targetUserId, title, body, url }) {
+// fluxul principal (accept cerere, like etc.). `type`: "like" | "comment" |
+// "request" | "follower" — decide ce preferință a userului țintă se verifică.
+export function notifyUser({ targetUserId, title, body, url, type }) {
   return supabase.functions
-    .invoke("send-push", { body: { targetUserId, title, body, url } })
+    .invoke("send-push", { body: { targetUserId, title, body, url, type } })
     .catch(() => {});
 }

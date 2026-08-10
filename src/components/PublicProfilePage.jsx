@@ -3,6 +3,7 @@ import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
 import { filterActiveEvents } from "../utils/eventTime";
 import { MoonIcon, LightningIcon, HouseIcon } from "./Icons";
+import { notifyUser } from "../utils/pushNotifications";
 
 const convertPostedEvent = (e) => ({
   id: `posted_${e.id}`,
@@ -82,6 +83,13 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
       await supabase.from("follows").insert([{ follower_id: currentUser.id, following_id: profileUserId }]);
       setIsFollowing(true);
       setFollowers(f => f + 1);
+      const followerName = currentUser.user_metadata?.username || currentUser.email?.split("@")[0] || "Cineva";
+      notifyUser({
+        targetUserId: profileUserId,
+        title: "Urmăritor nou",
+        body: `${followerName} a început să te urmărească.`,
+        type: "follower",
+      });
     }
     setBusy(false);
   };

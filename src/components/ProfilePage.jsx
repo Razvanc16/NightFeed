@@ -86,6 +86,21 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     getPushStatus().then(setPushStatus);
   }, []);
 
+  const NOTIF_PREF_TYPES = [
+    { key: "notif_likes", label: "Like-uri" },
+    { key: "notif_comments", label: "Comentarii" },
+    { key: "notif_requests", label: "Cereri de participare" },
+    { key: "notif_followers", label: "Urmăritori noi" },
+  ];
+
+  const toggleNotifPref = async (key) => {
+    if (!profile) return;
+    const next = !(profile[key] ?? true);
+    setProfile(p => ({ ...p, [key]: next })); // optimist
+    const { error } = await supabase.from("profiles").update({ [key]: next }).eq("id", profile.id);
+    if (error) setProfile(p => ({ ...p, [key]: !next })); // revert dacă a eșuat
+  };
+
   const handleTogglePush = async () => {
     setPushBusy(true);
     if (pushStatus === "subscribed") {
@@ -470,6 +485,25 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
                 {pushStatus === "subscribed" ? <BellIcon size={15} /> : <BellOffIcon size={15} />}
                 {pushStatus === "subscribed" ? "Notificări activate" : pushStatus === "denied" ? "Notificări blocate din browser" : "Activează notificările"}
               </button>
+            )}
+            {pushStatus === "subscribed" && profile && (
+              <div style={{ padding: "4px 4px 4px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
+                {NOTIF_PREF_TYPES.map(({ key, label }) => {
+                  const on = profile[key] ?? true;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => toggleNotifPref(key)}
+                      style={{ width: "100%", padding: "8px 6px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "none", border: "none", cursor: "pointer" }}
+                    >
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
+                      <div style={{ width: 34, height: 19, borderRadius: 10, background: on ? "#00C864" : "rgba(255,255,255,0.12)", position: "relative", transition: "background 0.2s" }}>
+                        <div style={{ position: "absolute", top: 2, left: on ? 17 : 2, width: 15, height: 15, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             )}
             <button onClick={() => setShowLegal(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
               <DocumentIcon size={15} /> Confidențialitate & Termeni

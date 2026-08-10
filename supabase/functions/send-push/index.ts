@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { targetUserId, title, body, url } = await req.json();
+    const { targetUserId, title, body, url, type } = await req.json();
     if (!targetUserId || !title) {
       return new Response(JSON.stringify({ error: "Missing targetUserId or title" }), {
         status: 400,
@@ -65,6 +65,20 @@ Deno.serve(async (req) => {
     }
 
     const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    // Respectăm preferința userului țintă pentru acest tip de notificare
+    // (likes / comments / requests / followers). Fără tip specificat, trimitem oricum.
+    const prefColumn = { like: "notif_likes", comment: "notif_comments", request: "notif_requests", follower: "notif_followers" }[type];
+    if (prefColumn) {
+      const { data: profile } = await adminClient.from("profiles").select(prefColumn).eq("user_id", targetUserId).maybeSingle();
+      if (profile && profile[prefColumn] === false) {
+        return new Response(JSON.stringify({ sent: 0, total: 0, skipped: "preference_disabled" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const { data: subs, error: subsError } = await adminClient
       .from("push_subscriptions")
       .select("endpoint, p256dh, auth")
