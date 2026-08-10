@@ -4,7 +4,17 @@ import { events as staticEvents } from "../data/events";
 import PostPage from "./PostPage";
 import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
+import LegalPage from "./LegalPage";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
+
+// Extrage din URL-ul public Supabase Storage doar calea fișierului (ex: "abc.jpg"),
+// ca să-l putem șterge cu storage.remove([path]).
+const extractStoragePath = (url, bucket) => {
+  if (!url) return null;
+  const marker = `/object/public/${bucket}/`;
+  const idx = url.indexOf(marker);
+  return idx === -1 ? null : url.slice(idx + marker.length);
+};
 
 // Format minimal pentru evenimentele postate, ca să apară în listele "Particip" / "Apreciate"
 const convertPostedEventMinimal = (e) => ({
@@ -47,6 +57,10 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   };
   const [showRequests, setShowRequests] = useState(false);
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
+  const [showLegal, setShowLegal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const fileRef = useRef(null);
   const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", avatar_url: "" });
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -179,6 +193,46 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const handleDeletePosted = async (id) => {
     await supabase.from("posted_events").delete().eq("id", id);
     setMyPostedEvents(prev => prev.filter(e => e.id !== id));
+  };
+
+  // Șterge definitiv contul: încearcă întâi ștergerea completă a autentificării
+  // (email + parolă) prin Edge Function — funcționează doar după ce e deployuită
+  // (vezi supabase/functions/delete-account). Indiferent de rezultatul ăsta,
+  // ștergem oricum toate datele proprii din tabele + storage și te delogăm, ca
+  // să nu rămână conținutul tău vizibil în aplicație.
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText.trim().toUpperCase() !== "ȘTERGE") return;
+    setDeletingAccount(true);
+    try {
+      try {
+        await supabase.functions.invoke("delete-account");
+      } catch {
+        // Edge Function nu e încă deployuită sau a eșuat — continuăm oricum cu
+        // ștergerea datelor, contul de autentificare rămâne pentru moment.
+      }
+
+      const avatarPath = extractStoragePath(profile?.avatar_url, "avatars");
+      if (avatarPath) await supabase.storage.from("avatars").remove([avatarPath]);
+
+      const coverPaths = myPostedEvents.map(e => extractStoragePath(e.cover_url, "covers")).filter(Boolean);
+      if (coverPaths.length) await supabase.storage.from("covers").remove(coverPaths);
+
+      await Promise.all([
+        supabase.from("posted_events").delete().eq("user_id", user.id),
+        supabase.from("attendances").delete().eq("user_id", user.id),
+        supabase.from("likes").delete().eq("user_id", user.id),
+        supabase.from("follows").delete().eq("follower_id", user.id),
+        supabase.from("follows").delete().eq("following_id", user.id),
+        supabase.from("usernames").delete().eq("user_id", user.id),
+        supabase.from("profiles").delete().eq("user_id", user.id),
+      ]);
+
+      await supabase.auth.signOut();
+      onLogout && onLogout();
+    } catch (err) {
+      alert("Eroare la ștergerea contului: " + err.message);
+      setDeletingAccount(false);
+    }
   };
 
   const avatarSrc = avatarPreview || profile?.avatar_url;
@@ -368,6 +422,50 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
                 </div>
               ))
             )}
+          </div>
+
+          <div style={{ padding: "8px 16px 30px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <button onClick={() => setShowLegal(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+              📄 Confidențialitate & Termeni
+            </button>
+            <button onClick={() => setShowDeleteConfirm(true)} style={{ width: "100%", textAlign: "left", padding: "12px 14px", borderRadius: 12, background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", color: "#FF3366", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+              🗑️ Șterge contul
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showLegal && <LegalPage onClose={() => setShowLegal(false)} />}
+
+      {showDeleteConfirm && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end" }} onClick={() => !deletingAccount && setShowDeleteConfirm(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: "100%", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "22px 20px 32px", borderTop: "1px solid rgba(255,51,102,0.2)", animation: "slideUp 0.25s ease-out" }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 8 }}>Ștergi contul definitiv?</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 18, fontFamily: "'DM Sans', sans-serif" }}>
+              Se șterg permanent profilul, evenimentele postate, like-urile, participările și urmăritorii tăi. Acțiunea nu poate fi anulată. Scrie <strong style={{ color: "#FF3366" }}>ȘTERGE</strong> ca să confirmi.
+            </div>
+            <input
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="ȘTERGE"
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", outline: "none", marginBottom: 14, textTransform: "uppercase" }}
+            />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }} disabled={deletingAccount} style={{ flex: 1, padding: "13px", borderRadius: 14, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>Anulează</button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText.trim().toUpperCase() !== "ȘTERGE" || deletingAccount}
+                style={{
+                  flex: 1, padding: "13px", borderRadius: 14, border: "none",
+                  background: deleteConfirmText.trim().toUpperCase() === "ȘTERGE" ? "linear-gradient(135deg, #FF3366, #B44FFF)" : "rgba(255,51,102,0.25)",
+                  color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif",
+                  cursor: (deleteConfirmText.trim().toUpperCase() === "ȘTERGE" && !deletingAccount) ? "pointer" : "not-allowed",
+                }}
+              >
+                {deletingAccount ? "Se șterge..." : "Șterge definitiv"}
+              </button>
+            </div>
           </div>
         </div>
       )}

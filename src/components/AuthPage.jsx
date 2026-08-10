@@ -3,6 +3,7 @@ import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
 import PasswordChecklist from "./PasswordChecklist";
 import PasswordInput from "./PasswordInput";
+import LegalPage from "./LegalPage";
 
 export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [mode, setMode] = useState(initialMode || "login"); // login | register | verify | forgot | forgot-sent
@@ -21,6 +22,8 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [loginFails, setLoginFails] = useState(0);
   const [loginCooldown, setLoginCooldown] = useState(0); // secunde rămase
   const [resetCooldown, setResetCooldown] = useState(0); // secunde rămase
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showLegal, setShowLegal] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -57,6 +60,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     if (mode === "register" && !username) { setError("Completează username-ul!"); return; }
     if (mode === "register" && usernameStatus === "taken") { setError("Acest username este deja folosit!"); return; }
     if (mode === "register" && usernameStatus === "checking") { setError("Se verifică username-ul, mai așteaptă puțin..."); return; }
+    if (mode === "register" && !acceptedTerms) { setError("Trebuie să accepți Termenii și Politica de Confidențialitate!"); return; }
     if (mode === "register" && !validatePassword(password)) {
       setError("Parola nu îndeplinește toate condițiile de mai jos!");
       return;
@@ -350,6 +354,23 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
             </button>
           )}
 
+          {mode === "register" && (
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "2px 0" }}>
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={e => setAcceptedTerms(e.target.checked)}
+                style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0, cursor: "pointer" }}
+              />
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.5 }}>
+                Am citit și accept{" "}
+                <span onClick={(e) => { e.preventDefault(); setShowLegal(true); }} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>
+                  Termenii și Politica de Confidențialitate
+                </span>
+              </span>
+            </label>
+          )}
+
           {error && (
             <div style={{ padding: "10px 14px", background: "rgba(255,51,102,0.15)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontFamily: "'Instrument Sans', sans-serif" }}>
               {error}
@@ -358,7 +379,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
           <button
             onClick={handleSubmit}
-            disabled={loading || (mode === "login" && loginCooldown > 0) || (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken"))}
+            disabled={loading || (mode === "login" && loginCooldown > 0) || (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken" || !acceptedTerms))}
             style={{
               width: "100%", padding: "14px",
               background: (loading || (mode === "login" && loginCooldown > 0)) ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
@@ -368,7 +389,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
               cursor: (loading || (mode === "login" && loginCooldown > 0)) ? "not-allowed" : "pointer",
               boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
               marginTop: 4,
-              opacity: (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken")) ? 0.6 : 1,
+              opacity: (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken" || !acceptedTerms)) ? 0.6 : 1,
             }}
           >
             {loading
@@ -392,6 +413,8 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
         </div>
       )}
       </div>
+
+      {showLegal && <LegalPage onClose={() => setShowLegal(false)} />}
     </div>
   );
 }
