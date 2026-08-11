@@ -370,12 +370,14 @@ export default function App() {
             </div>
           )}
 
-          {/* MAP PAGE */}
-          {activeTab === "map" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
-              <MapPage user={user} />
-            </div>
-          )}
+          {/* MAP PAGE — rămâne montată (doar ascunsă), nu demontată la schimbarea
+              tab-ului: altfel, la fiecare vizită se distrugea și recrea de la zero
+              harta Leaflet (re-cerea locația GPS, redescărca toate tile-urile de pe
+              internet, reconstruia toate marker-ele), ceea ce o făcea să se simtă
+              foarte lentă. Exact ca la Feed, care are același tipar. */}
+          <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10 }}>
+            <MapPage user={user} />
+          </div>
 
           {/* PROFILE PAGE */}
           {activeTab === "profile" && (

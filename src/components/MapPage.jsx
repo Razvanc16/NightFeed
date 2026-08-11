@@ -177,6 +177,14 @@ export default function MapPage({ user }) {
         L.marker([latitude, longitude], { icon: userIcon }).addTo(map);
       });
     }
+
+    // Plasă de siguranță: dacă totuși componenta se demontează vreodată (ex.
+    // logout), distrugem instanța Leaflet — altfel rămâne "vie" în memorie
+    // (listenere, tile-uri) chiar și după ce nu mai există în pagină.
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
   }, [leafletLoaded]);
 
   useEffect(() => {
