@@ -524,23 +524,34 @@ export default function App() {
 
             {filtered.length > 1 && <ProgressDots total={filtered.length} current={currentIndex} color={filtered[currentIndex]?.color} />}
 
-            <button onClick={() => setDrawerOpen(true)} style={{ position: "fixed", top: 20, right: 16, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", zIndex: 50, padding: 0, color: "rgba(255,255,255,0.8)" }}>
-              <FilterIcon size={18} />
-            </button>
+            <div style={{
+              position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, paddingTop: "env(safe-area-inset-top, 0px)",
+              background: "linear-gradient(180deg, rgba(0,0,0,0.55), transparent)", pointerEvents: "none",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px 0" }}>
+                <button onClick={() => setDrawerOpen(true)} style={{ pointerEvents: "auto", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", padding: 0, color: "rgba(255,255,255,0.8)" }}>
+                  <FilterIcon size={18} />
+                </button>
 
-            {user && (
-              <button onClick={() => setShowNotifications(true)} style={{ position: "fixed", top: 20, left: 16, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", zIndex: 50, padding: 0, color: "rgba(255,255,255,0.8)" }}>
-                <BellIcon size={18} />
-                {unreadNotifCount > 0 && (
-                  <div style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: "#FF3366", border: "2px solid #050506", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace", padding: "0 3px" }}>
-                    {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
-                  </div>
-                )}
-              </button>
-            )}
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 19, letterSpacing: "-0.01em", background: "linear-gradient(120deg, #FF3366, #B44FFF)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                  NightFeed
+                </div>
+
+                {user ? (
+                  <button onClick={() => setShowNotifications(true)} style={{ pointerEvents: "auto", position: "relative", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", padding: 0, color: "rgba(255,255,255,0.8)" }}>
+                    <BellIcon size={18} />
+                    {unreadNotifCount > 0 && (
+                      <div style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: "#FF3366", border: "2px solid #050506", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace", padding: "0 3px" }}>
+                        {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
+                      </div>
+                    )}
+                  </button>
+                ) : <div style={{ width: 40, height: 40 }} />}
+              </div>
+            </div>
 
             {activeFilter !== "all" && (
-              <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", padding: "5px 14px", borderRadius: 20, background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.4)", backdropFilter: "blur(10px)", zIndex: 50, display: "flex", alignItems: "center", gap: 6, animation: "fadeIn 0.3s ease-out" }}>
+              <div style={{ position: "fixed", top: 68, left: "50%", transform: "translateX(-50%)", padding: "5px 14px", borderRadius: 20, background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.4)", backdropFilter: "blur(10px)", zIndex: 50, display: "flex", alignItems: "center", gap: 6, animation: "fadeIn 0.3s ease-out" }}>
                 <span style={{ fontSize: 10, color: "#FF3366", fontWeight: 700, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>{activeFilter}</span>
                 <button onClick={() => setActiveFilter("all")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,51,102,0.7)", fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
               </div>
