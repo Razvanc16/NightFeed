@@ -7,12 +7,13 @@ import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
 import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
+import NotificationsPage from "./NotificationsPage";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon,
+  WarningIcon, GearIcon, BellIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -56,6 +57,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [usernameRow, setUsernameRow] = useState(null); // { username, updated_at }
 
   const copyCode = (code) => {
     navigator.clipboard?.writeText(code);
@@ -76,7 +79,66 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     const { count } = await supabase.from("attendance_requests").select("*", { count: "exact", head: true }).eq("host_id", user.id).eq("status", "pending");
     setPendingRequestsCount(count || 0);
   };
+
+  const loadUnreadNotifCount = async () => {
+    if (!user) return;
+    const { count } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("read", false);
+    setUnreadNotifCount(count || 0);
+  };
+
+  const loadUsername = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("usernames").select("username, updated_at").eq("user_id", user.id).maybeSingle();
+    setUsernameRow(data || null);
+  };
   const [showRequests, setShowRequests] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUsernameEdit, setShowUsernameEdit] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [usernameCheckStatus, setUsernameCheckStatus] = useState(null); // null | "checking" | "available" | "taken" | "same"
+  const [savingUsername, setSavingUsername] = useState(false);
+  const usernameCheckTimer = useRef(null);
+
+  const USERNAME_COOLDOWN_DAYS = 30;
+  const daysSinceUsernameChange = usernameRow?.updated_at
+    ? Math.floor((Date.now() - new Date(usernameRow.updated_at).getTime()) / 86400000)
+    : Infinity;
+  const usernameCooldownDaysLeft = Math.max(0, USERNAME_COOLDOWN_DAYS - daysSinceUsernameChange);
+
+  const openUsernameEdit = () => {
+    setNewUsername(usernameRow?.username || "");
+    setUsernameCheckStatus(null);
+    setShowUsernameEdit(true);
+  };
+
+  const handleNewUsernameChange = (val) => {
+    setNewUsername(val);
+    clearTimeout(usernameCheckTimer.current);
+    const trimmed = val.trim();
+    if (trimmed.length < 3) { setUsernameCheckStatus(null); return; }
+    if (trimmed.toLowerCase() === (usernameRow?.username || "").toLowerCase()) { setUsernameCheckStatus("same"); return; }
+    setUsernameCheckStatus("checking");
+    usernameCheckTimer.current = setTimeout(async () => {
+      const { data } = await supabase.from("usernames").select("username_lower").eq("username_lower", trimmed.toLowerCase()).maybeSingle();
+      setUsernameCheckStatus(data ? "taken" : "available");
+    }, 500);
+  };
+
+  const handleSaveUsername = async () => {
+    if (usernameCheckStatus !== "available") return;
+    setSavingUsername(true);
+    const trimmed = newUsername.trim();
+    const { error } = await supabase.from("usernames")
+      .update({ username: trimmed, username_lower: trimmed.toLowerCase(), updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
+    setSavingUsername(false);
+    if (error) {
+      alert("Nu am putut schimba username-ul: " + error.message);
+      return;
+    }
+    setUsernameRow({ username: trimmed, updated_at: new Date().toISOString() });
+    setShowUsernameEdit(false);
+  };
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const [showLegal, setShowLegal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -123,12 +185,16 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     loadMyPostedEvents();
     loadFollowCounts();
     loadPendingRequestsCount();
+    loadUnreadNotifCount();
+    loadUsername();
 
-    // Realtime: actualizează numărul de urmăritori/urmăriri și cereri instant
+    // Realtime: actualizează numărul de urmăritori/urmăriri, cereri și
+    // notificări necitite instant
     const channel = supabase
       .channel(`my_follows_${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "follows" }, () => loadFollowCounts())
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance_requests", filter: `host_id=eq.${user.id}` }, () => loadPendingRequestsCount())
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => loadUnreadNotifCount())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
@@ -361,9 +427,20 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
             <div style={{ width: 70, height: 70, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #FF6B35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, overflow: "hidden", flexShrink: 0, border: "2px solid rgba(255,51,102,0.4)" }}>
               {profile.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MoonIcon size={26} style={{ color: "#fff" }} />}
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{profile.prenume} {profile.nume}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+              {usernameRow?.username && <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>@{usernameRow.username}</div>}
+              <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
+                <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmăritori</span>
+                </button>
+                <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmărește</span>
+                </button>
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 6 }}>
                 {profile.varsta ? `${profile.varsta} ani` : ""}{profile.gen ? ` · ${profile.gen}` : ""}
               </div>
               {profile.hobby && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}><TargetIcon size={12} /> {profile.hobby}</div>}
@@ -371,30 +448,22 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
             </div>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "center", gap: 40, padding: "8px 20px 16px" }}>
-            <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.05em" }}>Urmăritori</div>
-            </button>
-            <div style={{ width: 1, background: "rgba(255,255,255,0.1)" }} />
-            <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.05em" }}>Urmărește</div>
-            </button>
-          </div>
-
-          <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", padding: "16px 20px", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[
-              { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={18} /> },
-              { id: "requests", label: "Cereri", value: pendingRequestsCount, icon: <EnvelopeIcon size={18} /> },
-              { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={18} /> },
+              { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={17} /> },
+              { id: "requests", label: "Cereri", value: pendingRequestsCount, icon: <EnvelopeIcon size={17} /> },
+              { id: "notifications", label: "Notif.", value: unreadNotifCount, icon: <BellIcon size={17} /> },
+              { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={17} /> },
             ].map(stat => {
-              const isActive = stat.id !== "requests" && activeTab === stat.id;
+              const isActive = (stat.id === "attending" || stat.id === "posted") && activeTab === stat.id;
+              const onClick = stat.id === "requests" ? () => setShowRequests(true)
+                : stat.id === "notifications" ? () => setShowNotifications(true)
+                : () => setActiveTab(stat.id);
               return (
-                <button key={stat.id} onClick={() => stat.id === "requests" ? setShowRequests(true) : setActiveTab(stat.id)} style={{ flex: 1, background: isActive ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${isActive ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer" }}>
+                <button key={stat.id} onClick={onClick} style={{ flex: 1, background: isActive ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${isActive ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "8px 4px", textAlign: "center", cursor: "pointer" }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.5)" }}>{stat.icon}</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
-                  <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
+                  <div style={{ fontSize: 9, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
                 </button>
               );
             })}
@@ -477,6 +546,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
           onClose={() => setShowSettings(false)}
           onEditProfile={() => { setShowSettings(false); setEditing(true); }}
           onShowLiked={() => { setShowSettings(false); setActiveTab("liked"); }}
+          onChangeUsername={() => { setShowSettings(false); openUsernameEdit(); }}
+          username={usernameRow?.username}
           onShowLegal={() => setShowLegal(true)}
           onDeleteAccount={() => setShowDeleteConfirm(true)}
           onLogout={onLogout}
@@ -526,6 +597,55 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
       )}
 
       {showRequests && createPortal(<RequestsPage user={user} onClose={() => setShowRequests(false)} />, document.body)}
+
+      {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} />, document.body)}
+
+      {showUsernameEdit && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end" }} onClick={() => !savingUsername && setShowUsernameEdit(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxHeight: "85vh", overflowY: "auto", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "22px 20px 32px", borderTop: "1px solid rgba(255,51,102,0.2)", animation: "slideUp 0.25s ease-out" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>Schimbă username-ul</div>
+            {usernameCooldownDaysLeft > 0 ? (
+              <div style={{ fontSize: 13, color: "#FFB800", lineHeight: 1.6, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 12, padding: "12px 14px" }}>
+                Ai schimbat deja username-ul recent. Mai poți schimba din nou peste {usernameCooldownDaysLeft} {usernameCooldownDaysLeft === 1 ? "zi" : "zile"}.
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 16 }}>
+                  Poți schimba username-ul o dată la {USERNAME_COOLDOWN_DAYS} de zile.
+                </div>
+                <input
+                  value={newUsername}
+                  onChange={e => handleNewUsernameChange(e.target.value)}
+                  placeholder="username nou"
+                  style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${usernameCheckStatus === "taken" ? "rgba(255,51,102,0.5)" : usernameCheckStatus === "available" ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", marginBottom: 8 }}
+                />
+                <div style={{ minHeight: 18, marginBottom: 14 }}>
+                  {usernameCheckStatus === "checking" && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Se verifică...</div>}
+                  {usernameCheckStatus === "available" && <div style={{ fontSize: 12, color: "#00C864" }}>Disponibil</div>}
+                  {usernameCheckStatus === "taken" && <div style={{ fontSize: 12, color: "#FF3366" }}>Deja folosit, alege altul</div>}
+                  {usernameCheckStatus === "same" && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>E deja username-ul tău</div>}
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => setShowUsernameEdit(false)} disabled={savingUsername} style={{ flex: 1, padding: "13px", borderRadius: 14, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>Anulează</button>
+                  <button
+                    onClick={handleSaveUsername}
+                    disabled={usernameCheckStatus !== "available" || savingUsername}
+                    style={{
+                      flex: 1, padding: "13px", borderRadius: 14, border: "none",
+                      background: usernameCheckStatus === "available" ? "linear-gradient(135deg, #FF3366, #B44FFF)" : "rgba(255,51,102,0.25)",
+                      color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif",
+                      cursor: (usernameCheckStatus === "available" && !savingUsername) ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    {savingUsername ? "Se salvează..." : "Salvează"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
 
       {followSheet && createPortal(
         <FollowListSheet

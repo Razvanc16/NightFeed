@@ -44,7 +44,7 @@ const filterFn = (event, filter) => {
 };
 
 // Convert Supabase posted_event to same format as static events
-const convertPostedEvent = (e) => ({
+const convertPostedEvent = (e, organizerMap = {}) => ({
   id: `posted_${e.id}`,
   type: e.type || "homemade",
   title: e.title,
@@ -59,7 +59,7 @@ const convertPostedEvent = (e) => ({
   color: e.type === "official" ? "#FF3366" : "#FFB800",
   bgColor: e.type === "official" ? "#1a0010" : "#110d00",
   description: e.description || "",
-  organizer: "Utilizator NightFeed",
+  organizer: organizerMap[e.user_id] || "Utilizator NightFeed",
   cover_url: e.cover_url,
   ticket_link: e.ticket_link,
   code: e.code,
@@ -177,7 +177,25 @@ export default function App() {
       .from("posted_events_feed")
       .select("*")
       .order("created_at", { ascending: false });
-    if (data) setPostedEvents(filterActiveEvents(data).map(convertPostedEvent));
+    if (!data) return;
+
+    // Numele reale ale organizatorilor, ca să nu mai arate generic "Utilizator
+    // NightFeed" pe fiecare card — la fel cum se face deja în Căutare.
+    const hostIds = [...new Set(data.map(e => e.user_id).filter(Boolean))];
+    let organizerMap = {};
+    if (hostIds.length > 0) {
+      const [{ data: profiles }, { data: usernames }] = await Promise.all([
+        supabase.from("profiles").select("user_id, nume, prenume").in("user_id", hostIds),
+        supabase.from("usernames").select("user_id, username").in("user_id", hostIds),
+      ]);
+      const unameMap = Object.fromEntries((usernames || []).map(u => [u.user_id, u.username]));
+      organizerMap = Object.fromEntries((profiles || []).map(p => [
+        p.user_id,
+        [p.prenume, p.nume].filter(Boolean).join(" ") || unameMap[p.user_id] || "",
+      ]));
+    }
+
+    setPostedEvents(filterActiveEvents(data).map(e => convertPostedEvent(e, organizerMap)));
   };
 
   useEffect(() => { refreshingRef.current = refreshing; }, [refreshing]);
