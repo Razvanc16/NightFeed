@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import EventCard from "./components/EventCard";
 import FilterDrawer from "./components/FilterDrawer";
 import Navbar from "./components/Navbar";
@@ -13,10 +14,11 @@ import PublicProfilePage from "./components/PublicProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import PostPage from "./components/PostPage";
 import CommentsSheet from "./components/CommentsSheet";
+import NotificationsPage from "./components/NotificationsPage";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
 import { filterActiveEvents } from "./utils/eventTime";
-import { MoonIcon } from "./components/Icons";
+import { MoonIcon, BellIcon, FilterIcon } from "./components/Icons";
 
 const filterFn = (event, filter) => {
   if (filter === "all") return true;
@@ -97,6 +99,8 @@ export default function App() {
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [postedEvents, setPostedEvents] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const feedRef = useRef(null);
   const recoveryModeRef = useRef(false);
 
@@ -197,6 +201,28 @@ export default function App() {
 
     setPostedEvents(filterActiveEvents(data).map(e => convertPostedEvent(e, organizerMap)));
   };
+
+  const loadUnreadNotifCount = async (uid) => {
+    const { count } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", uid)
+      .eq("read", false);
+    setUnreadNotifCount(count || 0);
+  };
+
+  useEffect(() => {
+    if (!user) { setUnreadNotifCount(0); return; }
+    loadUnreadNotifCount(user.id);
+
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => setUnreadNotifCount(c => c + 1)
+      )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [user]);
 
   useEffect(() => { refreshingRef.current = refreshing; }, [refreshing]);
 
@@ -498,9 +524,20 @@ export default function App() {
 
             {filtered.length > 1 && <ProgressDots total={filtered.length} current={currentIndex} color={filtered[currentIndex]?.color} />}
 
-            <button onClick={() => setDrawerOpen(true)} style={{ position: "fixed", top: 20, right: 16, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5, backdropFilter: "blur(10px)", zIndex: 50, padding: 0 }}>
-              {[0,1,2].map(i => <div key={i} style={{ width: i===1?14:18, height: 2, borderRadius: 2, background: "rgba(255,255,255,0.8)" }} />)}
+            <button onClick={() => setDrawerOpen(true)} style={{ position: "fixed", top: 20, right: 16, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", zIndex: 50, padding: 0, color: "rgba(255,255,255,0.8)" }}>
+              <FilterIcon size={18} />
             </button>
+
+            {user && (
+              <button onClick={() => setShowNotifications(true)} style={{ position: "fixed", top: 20, left: 16, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", zIndex: 50, padding: 0, color: "rgba(255,255,255,0.8)" }}>
+                <BellIcon size={18} />
+                {unreadNotifCount > 0 && (
+                  <div style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: "#FF3366", border: "2px solid #050506", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace", padding: "0 3px" }}>
+                    {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
+                  </div>
+                )}
+              </button>
+            )}
 
             {activeFilter !== "all" && (
               <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", padding: "5px 14px", borderRadius: 20, background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.4)", backdropFilter: "blur(10px)", zIndex: 50, display: "flex", alignItems: "center", gap: 6, animation: "fadeIn 0.3s ease-out" }}>
@@ -513,6 +550,10 @@ export default function App() {
           </div>
 
           <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => setCommentsEvent(null)} />
+          {showNotifications && user && createPortal(
+            <NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(user.id); }} />,
+            document.body
+          )}
           <Navbar active={activeTab} onChange={handleTabChange} />
         </>
       )}

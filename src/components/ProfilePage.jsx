@@ -7,13 +7,12 @@ import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
 import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
-import NotificationsPage from "./NotificationsPage";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon, BellIcon,
+  WarningIcon, GearIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -57,7 +56,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [usernameRow, setUsernameRow] = useState(null); // { username, updated_at }
 
   const copyCode = (code) => {
@@ -80,19 +78,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     setPendingRequestsCount(count || 0);
   };
 
-  const loadUnreadNotifCount = async () => {
-    if (!user) return;
-    const { count } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("read", false);
-    setUnreadNotifCount(count || 0);
-  };
-
   const loadUsername = async () => {
     if (!user) return;
     const { data } = await supabase.from("usernames").select("username, updated_at").eq("user_id", user.id).maybeSingle();
     setUsernameRow(data || null);
   };
   const [showRequests, setShowRequests] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showUsernameEdit, setShowUsernameEdit] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [usernameCheckStatus, setUsernameCheckStatus] = useState(null); // null | "checking" | "available" | "taken" | "same"
@@ -185,16 +176,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     loadMyPostedEvents();
     loadFollowCounts();
     loadPendingRequestsCount();
-    loadUnreadNotifCount();
     loadUsername();
 
-    // Realtime: actualizează numărul de urmăritori/urmăriri, cereri și
-    // notificări necitite instant
+    // Realtime: actualizează numărul de urmăritori/urmăriri și cereri instant
     const channel = supabase
       .channel(`my_follows_${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "follows" }, () => loadFollowCounts())
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance_requests", filter: `host_id=eq.${user.id}` }, () => loadPendingRequestsCount())
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => loadUnreadNotifCount())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
@@ -429,7 +417,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{profile.prenume} {profile.nume}</div>
-              {usernameRow?.username && <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>@{usernameRow.username}</div>}
+              {usernameRow?.username ? (
+                <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>@{usernameRow.username}</div>
+              ) : (
+                <button onClick={openUsernameEdit} style={{ background: "none", border: "none", padding: 0, marginTop: 2, cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", textDecoration: "underline" }}>
+                  + Setează username
+                </button>
+              )}
               <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
                 <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
                   <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
@@ -448,22 +442,18 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
             </div>
           </div>
 
-          <div style={{ display: "flex", padding: "16px 20px", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[
-              { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={17} /> },
-              { id: "requests", label: "Cereri", value: pendingRequestsCount, icon: <EnvelopeIcon size={17} /> },
-              { id: "notifications", label: "Notif.", value: unreadNotifCount, icon: <BellIcon size={17} /> },
-              { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={17} /> },
+              { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={18} /> },
+              { id: "requests", label: "Cereri", value: pendingRequestsCount, icon: <EnvelopeIcon size={18} /> },
+              { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={18} /> },
             ].map(stat => {
-              const isActive = (stat.id === "attending" || stat.id === "posted") && activeTab === stat.id;
-              const onClick = stat.id === "requests" ? () => setShowRequests(true)
-                : stat.id === "notifications" ? () => setShowNotifications(true)
-                : () => setActiveTab(stat.id);
+              const isActive = stat.id !== "requests" && activeTab === stat.id;
               return (
-                <button key={stat.id} onClick={onClick} style={{ flex: 1, background: isActive ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${isActive ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "8px 4px", textAlign: "center", cursor: "pointer" }}>
+                <button key={stat.id} onClick={() => stat.id === "requests" ? setShowRequests(true) : setActiveTab(stat.id)} style={{ flex: 1, background: isActive ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${isActive ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer" }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.5)" }}>{stat.icon}</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
-                  <div style={{ fontSize: 9, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
+                  <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
                 </button>
               );
             })}
@@ -597,8 +587,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
       )}
 
       {showRequests && createPortal(<RequestsPage user={user} onClose={() => setShowRequests(false)} />, document.body)}
-
-      {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} />, document.body)}
 
       {showUsernameEdit && createPortal(
         <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end" }} onClick={() => !savingUsername && setShowUsernameEdit(false)}>
