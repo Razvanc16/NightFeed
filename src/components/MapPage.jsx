@@ -522,9 +522,6 @@ export default function MapPage({ user }) {
            margine/linie albă peste harta noastră întunecată. */
         .leaflet-container { background: #050506 !important; }
         .leaflet-tile-pane { filter: brightness(1.75) contrast(1.1) saturate(1.25); }
-        /* Suprapunem tile-urile cu puțin, ca micile goluri de rotunjire dintre
-           ele (vizibile mai ales în timpul animației de zoom) să dispară. */
-        .leaflet-tile { width: 257px !important; height: 257px !important; }
         .leaflet-control-attribution { display: none !important; }
         .leaflet-control-zoom { border: 1px solid rgba(255,255,255,0.2) !important; background: rgba(10,10,12,0.92) !important; }
         .leaflet-control-zoom a { color: rgba(255,255,255,0.85) !important; background: transparent !important; border-color: rgba(255,255,255,0.15) !important; }
