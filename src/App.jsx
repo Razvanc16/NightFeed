@@ -376,7 +376,7 @@ export default function App() {
               internet, reconstruia toate marker-ele), ceea ce o făcea să se simtă
               foarte lentă. Exact ca la Feed, care are același tipar. */}
           <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10 }}>
-            <MapPage user={user} />
+            <MapPage user={user} isActive={activeTab === "map"} />
           </div>
 
           {/* PROFILE PAGE */}

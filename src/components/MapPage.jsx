@@ -55,7 +55,7 @@ const applyOffset = (lat, lng, id) => {
   return [lat + dLat, lng + dLng];
 };
 
-export default function MapPage({ user }) {
+export default function MapPage({ user, isActive }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -73,6 +73,18 @@ export default function MapPage({ user }) {
   useEffect(() => {
     loadPostedEvents();
   }, []);
+
+  // Harta rămâne montată (ascunsă cu display:none) și cât timp nu ești pe tab-ul
+  // ei — dar Leaflet calculează dimensiunea containerului la inițializare, iar
+  // un container ascuns are dimensiune 0. Rezultatul: doar câteva tile-uri se
+  // încarcă (pentru o zonă practic goală), iar restul hărții rămâne albă/goală
+  // chiar și după ce tab-ul devine vizibil. invalidateSize() îi spune lui
+  // Leaflet să recalculeze exact în momentul în care harta chiar devine vizibilă.
+  useEffect(() => {
+    if (isActive && mapInstanceRef.current) {
+      mapInstanceRef.current.invalidateSize();
+    }
+  }, [isActive]);
 
   // Scoate live de pe hartă evenimentele care expiră cât timp userul are ecranul deschis.
   useEffect(() => {
