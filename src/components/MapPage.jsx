@@ -169,7 +169,15 @@ export default function MapPage({ user, isActive }) {
     if (!leafletLoaded || !mapRef.current || mapInstanceRef.current || !window.L) return;
     const L = window.L;
     const map = L.map(mapRef.current, { center: [44.4268, 26.1025], zoom: 12, zoomControl: false });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(map);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19,
+      // Ține încărcate mai multe tile-uri din jurul zonei vizibile, ca la
+      // deplasare să fie deja acolo (nu pătrate goale care apar cu întârziere).
+      keepBuffer: 4,
+      // Pe touch (telefon), Leaflet încarcă implicit tile-uri noi abia după ce
+      // te oprești din deplasat — cu asta, începe să le ceară cât încă tragi.
+      updateWhenIdle: false,
+    }).addTo(map);
     L.control.zoom({ position: "bottomright" }).addTo(map);
     mapInstanceRef.current = map;
     map.on("zoomend", () => setZoom(map.getZoom()));
