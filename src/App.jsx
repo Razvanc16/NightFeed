@@ -117,6 +117,14 @@ export default function App() {
   const PULL_THRESHOLD = 70;
   const PULL_MAX = 110;
 
+  // Simetric, la capătul feed-ului: tragi în sus după ultimul eveniment,
+  // apare un indicator "asta e tot" care se retrage când eliberezi degetul —
+  // nu declanșează nimic, e doar feedback că ai ajuns la capăt.
+  const [endPull, setEndPull] = useState(0);
+  const endPullStartY = useRef(null);
+  const endPullDistanceRef = useRef(0);
+  const END_PULL_MAX = 90;
+
   // Combine static + posted events
   const allEvents = [...staticEvents, ...postedEvents];
   const filtered = allEvents.filter(e => filterFn(e, activeFilter));
@@ -287,6 +295,7 @@ export default function App() {
   useEffect(() => { refreshingRef.current = refreshing; }, [refreshing]);
 
   const setPull = (v) => { pullDistanceRef.current = v; setPullDistance(v); };
+  const setEndPullValue = (v) => { endPullDistanceRef.current = v; setEndPull(v); };
 
   const doRefresh = async () => {
     setRefreshing(true);
@@ -306,32 +315,56 @@ export default function App() {
     const feed = feedRef.current;
     if (!feed) return;
 
+    const atBottom = () => feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 2;
+
     const onTouchStart = (e) => {
       if (feed.scrollTop <= 0 && !refreshingRef.current) {
         pullStartY.current = e.touches[0].clientY;
       } else {
         pullStartY.current = null;
       }
+      if (atBottom()) {
+        endPullStartY.current = e.touches[0].clientY;
+      } else {
+        endPullStartY.current = null;
+      }
     };
     const onTouchMove = (e) => {
-      if (pullStartY.current === null) return;
-      const delta = e.touches[0].clientY - pullStartY.current;
-      if (delta > 6 && feed.scrollTop <= 0) {
-        e.preventDefault();
-        setPull(Math.min(delta * 0.5, PULL_MAX));
-      } else if (delta <= 0) {
-        pullStartY.current = null;
-        setPull(0);
+      if (pullStartY.current !== null) {
+        const delta = e.touches[0].clientY - pullStartY.current;
+        if (delta > 6 && feed.scrollTop <= 0) {
+          e.preventDefault();
+          setPull(Math.min(delta * 0.5, PULL_MAX));
+        } else if (delta <= 0) {
+          pullStartY.current = null;
+          setPull(0);
+        }
+        return;
+      }
+      if (endPullStartY.current !== null) {
+        const delta = endPullStartY.current - e.touches[0].clientY;
+        if (delta > 6 && atBottom()) {
+          e.preventDefault();
+          setEndPullValue(Math.min(delta * 0.5, END_PULL_MAX));
+        } else if (delta <= 0) {
+          endPullStartY.current = null;
+          setEndPullValue(0);
+        }
       }
     };
     const onTouchEnd = () => {
-      if (pullStartY.current === null) return;
-      pullStartY.current = null;
-      if (pullDistanceRef.current >= PULL_THRESHOLD) {
-        setPull(PULL_THRESHOLD);
-        doRefresh();
-      } else {
-        setPull(0);
+      if (pullStartY.current !== null) {
+        pullStartY.current = null;
+        if (pullDistanceRef.current >= PULL_THRESHOLD) {
+          setPull(PULL_THRESHOLD);
+          doRefresh();
+        } else {
+          setPull(0);
+        }
+      }
+      if (endPullStartY.current !== null) {
+        endPullStartY.current = null;
+        setEndPullValue(0);
       }
     };
 
@@ -540,14 +573,43 @@ export default function App() {
                 </div>
               </div>
             )}
+            {endPull > 0 && (
+              <div style={{
+                position: "absolute", bottom: 0, left: 0, right: 0, height: 110, zIndex: 5, pointerEvents: "none",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: 18, gap: 8,
+                opacity: Math.min(endPull / 24, 1),
+              }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: "50%", position: "relative",
+                  background: "rgba(10,10,12,0.9)", border: "1px solid rgba(255,255,255,0.1)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 4px 20px rgba(180,79,255,0.25)",
+                  animation: endPull >= END_PULL_MAX * 0.9 ? "ptrPop 0.4s ease-out" : "none",
+                }}>
+                  <div style={{
+                    display: "flex", color: "rgba(255,255,255,0.6)",
+                    transform: `scale(${0.6 + Math.min(endPull / END_PULL_MAX, 1) * 0.4})`,
+                    transition: endPullStartY.current ? "none" : "transform 0.25s ease-out",
+                  }}>
+                    <MoonIcon size={18} />
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace",
+                  letterSpacing: "0.02em", textAlign: "center",
+                }}>
+                  Asta e tot pentru acum ✨
+                </div>
+              </div>
+            )}
             <div ref={feedRef} style={{
               width: "100%", height: "calc(100dvh - 64px)", overflowY: "scroll", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
-              // transform: "none" cât timp nu tragem — orice valoare de transform
-              // (chiar translateY(0px)) creează un nou "containing block" pentru
-              // copiii cu position:fixed din interior (ex: sheet-ul "Cer să
-              // particip" din EventCard), rupându-le poziționarea pe tot ecranul.
-              transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : "none",
-              transition: pullStartY.current ? "none" : "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              // transform: "none" cât timp nu tragem în niciun sens — orice valoare
+              // de transform (chiar translateY(0px)) creează un nou "containing
+              // block" pentru copiii cu position:fixed din interior (ex: sheet-ul
+              // "Cer să particip" din EventCard), rupându-le poziționarea pe tot ecranul.
+              transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : endPull > 0 ? `translateY(-${endPull}px)` : "none",
+              transition: (pullStartY.current || endPullStartY.current) ? "none" : "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}>
               {filtered.length === 0 ? (
                 <div style={{ height: "100%", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px", textAlign: "center", overflow: "hidden" }}>
