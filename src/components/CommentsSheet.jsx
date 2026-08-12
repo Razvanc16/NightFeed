@@ -76,10 +76,11 @@ export default function CommentsSheet({ event, user, open, onClose }) {
     } else {
       await supabase.from("comment_likes").insert([{ comment_id: comment.id, user_id: user.id }]);
       if (comment.user_id && comment.user_id !== user.id) {
+        const likerName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
         notifyUser({
           targetUserId: comment.user_id,
           title: "Apreciere nouă",
-          body: `Cineva ți-a apreciat comentariul la ${event.title}`,
+          body: `${likerName} ți-a apreciat comentariul la ${event.title}`,
           type: "like",
         });
       }

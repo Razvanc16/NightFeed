@@ -228,10 +228,11 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         );
         if (error) throw error;
         if (event.organizer_id && event.organizer_id !== user.id) {
+          const likerName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
           notifyUser({
             targetUserId: event.organizer_id,
-            title: "Cineva ți-a dat like!",
-            body: `${event.title} a primit un like nou.`,
+            title: "Like nou!",
+            body: `${likerName} a apreciat ${event.title}.`,
             type: "like",
           });
         }
