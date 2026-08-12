@@ -4,8 +4,8 @@ import { supabase } from "../supabase";
 import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 
-const HeartIcon = ({ filled, color }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={filled ? color : "rgba(255,255,255,0.8)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const HeartIcon = ({ filled, color, size = 22 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={filled ? color : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))" }}>
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
   </svg>
 );
@@ -44,8 +44,8 @@ const HeartParticle = ({ x, y, id, color }) => (
 );
 
 const BigHeart = ({ show, color }) => (
-  <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", opacity: show ? 1 : 0, animation: show ? "bigHeartPop 0.7s ease-out forwards" : "none", pointerEvents: "none", zIndex: 99, filter: `drop-shadow(0 0 30px ${color}80)` }}>
-    <svg width="100" height="100" viewBox="0 0 24 24" fill={color}>
+  <div style={{ position: "absolute", top: "50%", left: "50%", opacity: show ? 1 : 0, animation: show ? "heartFlyColor 0.9s cubic-bezier(0.2, 0.75, 0.3, 1) forwards" : "none", pointerEvents: "none", zIndex: 99 }}>
+    <svg width="100" height="100" viewBox="0 0 24 24" fill={color} style={{ filter: `drop-shadow(0 6px 24px ${color}90)` }}>
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
     </svg>
   </div>
@@ -259,7 +259,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       setLikeInSupabase(true);
     }
     setBigHeart(true);
-    setTimeout(() => setBigHeart(false), 700);
+    setTimeout(() => setBigHeart(false), 900);
     const rect = cardRef.current?.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -336,7 +336,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   const isOwnEvent = !!(user && event.organizer_id && event.organizer_id === user.id);
 
   const buttons = [
-    { key: "like", onClick: handleLike, active: liked, label: formatNum(likeCount), icon: <HeartIcon filled={liked} color={event.color} /> },
+    { key: "like", onClick: handleLike, active: liked, label: formatNum(likeCount), icon: <HeartIcon filled={liked} color={event.color} size={32} /> },
     event.isPosted && event.type === "homemade"
       ? {
           key: "attend",
@@ -356,7 +356,15 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
   return (
     <div ref={cardRef} onClick={handleDoubleTap} style={{ width: "100%", height: "100%", position: "relative", background: event.bgColor, overflow: "hidden", userSelect: "none", WebkitUserSelect: "none", cursor: "pointer", flexShrink: 0 }}>
-      <style>{`@keyframes btnBounce { 0%{transform:scale(1)} 30%{transform:scale(0.85)} 60%{transform:scale(1.2)} 80%{transform:scale(0.95)} 100%{transform:scale(1)} }`}</style>
+      <style>{`
+        @keyframes btnBounce { 0%{transform:scale(1)} 30%{transform:scale(0.85)} 60%{transform:scale(1.2)} 80%{transform:scale(0.95)} 100%{transform:scale(1)} }
+        @keyframes heartFlyColor {
+          0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; filter: brightness(1) saturate(1) hue-rotate(0deg); }
+          18% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; filter: brightness(1.3) saturate(1.5) hue-rotate(18deg); }
+          35% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: brightness(1) saturate(1) hue-rotate(0deg); }
+          100% { transform: translate(-50%, -160%) scale(0.7); opacity: 0; filter: brightness(1.15) saturate(1.3) hue-rotate(-25deg); }
+        }
+      `}</style>
 
       {event.cover_url && (
         <img
@@ -421,18 +429,27 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       <div style={{ position: "absolute", right: 12, bottom: 90, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
         {buttons.map(btn => (
           <button key={btn.key} onClick={btn.onClick} disabled={btn.disabled} title={btn.title} style={{ background: "none", border: "none", cursor: btn.disabled ? "default" : "pointer", opacity: btn.disabled ? 0.4 : 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: 0 }}>
-            <div style={{
-              width: 46, height: 46, borderRadius: "50%",
-              background: btn.active ? `${event.color}25` : "rgba(255,255,255,0.08)",
-              border: `1.5px solid ${btn.active ? event.color : "rgba(255,255,255,0.15)"}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: btn.active ? `0 0 20px ${event.color}50` : "none",
-              backdropFilter: "blur(10px)",
-              animation: btnAnim[btn.key] ? "btnBounce 0.4s ease-out" : "none",
-              transition: "background 0.2s, border 0.2s, box-shadow 0.2s",
-            }}>
-              {btn.icon}
-            </div>
+            {btn.key === "like" ? (
+              <div style={{
+                width: 46, height: 46, display: "flex", alignItems: "center", justifyContent: "center",
+                animation: btnAnim[btn.key] ? "btnBounce 0.4s ease-out" : "none",
+              }}>
+                {btn.icon}
+              </div>
+            ) : (
+              <div style={{
+                width: 46, height: 46, borderRadius: "50%",
+                background: btn.active ? `${event.color}25` : "rgba(255,255,255,0.08)",
+                border: `1.5px solid ${btn.active ? event.color : "rgba(255,255,255,0.15)"}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: btn.active ? `0 0 20px ${event.color}50` : "none",
+                backdropFilter: "blur(10px)",
+                animation: btnAnim[btn.key] ? "btnBounce 0.4s ease-out" : "none",
+                transition: "background 0.2s, border 0.2s, box-shadow 0.2s",
+              }}>
+                {btn.icon}
+              </div>
+            )}
             {btn.label && (
               <span style={{ fontSize: 11, fontWeight: 700, color: btn.active ? event.color : "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace", transition: "color 0.2s" }}>
                 {btn.label}

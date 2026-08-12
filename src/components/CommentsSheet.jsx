@@ -195,7 +195,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
   const repliesOf = (id) => comments.filter(c => c.parent_id === id);
 
   const CommentRow = ({ c, isReply }) => (
-    <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
+    <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", animation: "slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
       <div style={{
         width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
         background: avatars[c.user_id] ? "transparent" : `${displayEvent.color}30`, border: `1px solid ${displayEvent.color}50`,
