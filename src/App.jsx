@@ -17,6 +17,7 @@ import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
 import { filterActiveEvents } from "./utils/eventTime";
 import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
+import { setAppVisible } from "./utils/appVisibility";
 import { MoonIcon, FilterIcon, BellIcon } from "./components/Icons";
 
 const filterLabels = { all: "Toate", official: "Oficial", homemade: "Homemade", today: "Azi", weekend: "Weekend", free: "Gratuit" };
@@ -100,10 +101,12 @@ export default function App() {
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [postedEvents, setPostedEvents] = useState([]);
-  const [notifToast, setNotifToast] = useState(null); // { title, body }
+  const [notifToast, setNotifToast] = useState(null); // { title, body } — rămâne montat în timpul ieșirii
+  const [notifToastShow, setNotifToastShow] = useState(false); // controlează animația de intrare/ieșire
   const feedRef = useRef(null);
   const recoveryModeRef = useRef(false);
   const notifToastTimer = useRef(null);
+  const notifToastHideTimer = useRef(null);
 
   // Pull-to-refresh pe feed: trage în jos cât ești pe primul eveniment (scrollTop 0)
   const [pullDistance, setPullDistance] = useState(0);
@@ -186,25 +189,51 @@ export default function App() {
     return () => document.removeEventListener("pointerdown", unlock);
   }, []);
 
-  // Anunțăm service worker-ul dacă tab-ul e vizibil chiar acum — sw.js
-  // folosește semnalul ăsta (plus verificarea proprie prin clients.matchAll)
-  // ca să nu mai arate bannerul de sistem cât timp notificarea oricum
-  // apare deja ca toast în aplicație.
+  // Scriem în IndexedDB dacă tab-ul e vizibil chiar acum — sw.js citește de
+  // acolo la fiecare push, ca să nu mai arate bannerul de sistem cât timp
+  // notificarea oricum apare deja ca toast în aplicație. Nu ne bazăm doar pe
+  // postMessage/clients.matchAll: service worker-ul poate fi repornit de
+  // browser între timp (își pierde orice variabilă ținută în memorie), iar
+  // clients.matchAll().visibilityState nu raportează corect peste tot (mai
+  // ales pe PWA instalat standalone pe Android) — IndexedDB supraviețuiește
+  // repornirii SW-ului și e citit direct, nu memorat.
+  //
+  // Trimitem din nou periodic (heartbeat) cât timp ești vizibil, ca sw.js să
+  // poată ignora un semnal prea vechi (tab uitat deschis, dar de fapt închis
+  // de mult) fără să rateze un tab chiar activ.
   useEffect(() => {
-    const sendVisibility = () => {
-      navigator.serviceWorker?.controller?.postMessage({ type: "visibility", visible: document.visibilityState === "visible" });
-    };
-    sendVisibility();
-    navigator.serviceWorker?.ready?.then(sendVisibility).catch(() => {});
-    document.addEventListener("visibilitychange", sendVisibility);
-    window.addEventListener("focus", sendVisibility);
-    window.addEventListener("blur", sendVisibility);
+    const sync = () => setAppVisible(document.visibilityState === "visible");
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("focus", sync);
+    window.addEventListener("blur", sync);
+    window.addEventListener("pagehide", () => setAppVisible(false));
+    const heartbeat = setInterval(() => {
+      if (document.visibilityState === "visible") sync();
+    }, 15000);
     return () => {
-      document.removeEventListener("visibilitychange", sendVisibility);
-      window.removeEventListener("focus", sendVisibility);
-      window.removeEventListener("blur", sendVisibility);
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("focus", sync);
+      window.removeEventListener("blur", sync);
+      clearInterval(heartbeat);
     };
   }, []);
+
+  const dismissNotifToast = () => {
+    clearTimeout(notifToastTimer.current);
+    clearTimeout(notifToastHideTimer.current);
+    setNotifToastShow(false);
+    notifToastHideTimer.current = setTimeout(() => setNotifToast(null), 350);
+  };
+
+  const showNotifToast = (data) => {
+    clearTimeout(notifToastTimer.current);
+    clearTimeout(notifToastHideTimer.current);
+    setNotifToast(data);
+    setNotifToastShow(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setNotifToastShow(true)));
+    notifToastTimer.current = setTimeout(dismissNotifToast, 4000);
+  };
 
   // Cât timp ai tab-ul NightFeed deschis și vizibil, notificările noi apar
   // direct în aplicație (toast + sunet propriu) — service worker-ul (sw.js)
@@ -217,9 +246,7 @@ export default function App() {
         (payload) => {
           if (document.visibilityState !== "visible") return;
           playNotificationSound();
-          setNotifToast({ title: payload.new.title, body: payload.new.body });
-          clearTimeout(notifToastTimer.current);
-          notifToastTimer.current = setTimeout(() => setNotifToast(null), 4000);
+          showNotifToast({ title: payload.new.title, body: payload.new.body });
         }
       )
       .subscribe();
@@ -382,6 +409,8 @@ export default function App() {
         @keyframes tabEnter { from{opacity:0;transform:translateY(12px) scale(0.99)} to{opacity:1;transform:translateY(0) scale(1)} }
         @keyframes ptrSpin { to { transform: rotate(360deg); } }
         @keyframes ptrPop { 0%{transform:scale(1)} 50%{transform:scale(1.22)} 100%{transform:scale(1)} }
+        @keyframes toastGlow { 0%,100%{box-shadow:0 10px 34px rgba(255,51,102,0.22), 0 0 0 1px rgba(255,51,102,0.18) inset} 50%{box-shadow:0 10px 34px rgba(180,79,255,0.3), 0 0 0 1px rgba(180,79,255,0.25) inset} }
+        @keyframes toastIconPop { 0%{transform:scale(0.3) rotate(-25deg);opacity:0} 55%{transform:scale(1.15) rotate(6deg);opacity:1} 100%{transform:scale(1) rotate(0deg)} }
       `}</style>
 
       {recoveryMode ? (
@@ -591,23 +620,41 @@ export default function App() {
 
           {notifToast && (
             <div
-              onClick={() => setNotifToast(null)}
+              onClick={dismissNotifToast}
               style={{
-                position: "fixed", top: "calc(16px + env(safe-area-inset-top, 0px))", left: "50%", transform: "translateX(-50%)",
-                zIndex: 9998, maxWidth: "88vw", width: 340, display: "flex", alignItems: "center", gap: 10,
-                background: "rgba(15,15,18,0.97)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 16,
-                padding: "12px 14px", boxShadow: "0 8px 30px rgba(0,0,0,0.45)", backdropFilter: "blur(20px)",
-                cursor: "pointer", animation: "slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                position: "fixed", top: "calc(16px + env(safe-area-inset-top, 0px))", left: "50%",
+                zIndex: 9998, maxWidth: "88vw", width: 340, cursor: "pointer",
+                opacity: notifToastShow ? 1 : 0,
+                transform: `translateX(-50%) translateY(${notifToastShow ? 0 : -28}px) scale(${notifToastShow ? 1 : 0.9})`,
+                transition: "opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
               }}
             >
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #B44FFF)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff" }}>
-                <BellIcon size={16} />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{notifToast.title}</div>
-                {notifToast.body && (
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{notifToast.body}</div>
-                )}
+              <div style={{
+                position: "relative", overflow: "hidden", display: "flex", alignItems: "center", gap: 10,
+                background: "rgba(15,15,18,0.97)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16,
+                padding: "12px 14px", backdropFilter: "blur(20px)",
+                animation: notifToastShow ? "toastGlow 2.2s ease-in-out infinite" : "none",
+              }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #B44FFF)",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff",
+                  animation: notifToastShow ? "toastIconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s both" : "none",
+                }}>
+                  <BellIcon size={16} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{notifToast.title}</div>
+                  {notifToast.body && (
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{notifToast.body}</div>
+                  )}
+                </div>
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "rgba(255,255,255,0.06)" }}>
+                  <div style={{
+                    height: "100%", background: "linear-gradient(90deg, #FF3366, #B44FFF)",
+                    width: notifToastShow ? "0%" : "100%",
+                    transition: notifToastShow ? "width 4s linear" : "none",
+                  }} />
+                </div>
               </div>
             </div>
           )}
