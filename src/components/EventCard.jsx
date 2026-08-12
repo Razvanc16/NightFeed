@@ -399,9 +399,6 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, margin: 0, marginBottom: 12 }}>{event.description}</p>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {event.tags.map(tag => (
-            <span key={tag} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 12, background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace" }}>#{tag}</span>
-          ))}
           <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: event.type === "official" ? `${event.color}25` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "50" : "rgba(255,255,255,0.15)"}`, color: event.type === "official" ? event.color : "rgba(255,255,255,0.75)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", display: "inline-flex", alignItems: "center", gap: 4 }}>
             {event.type === "official" ? <LightningIcon size={11} /> : <HouseIcon size={11} />}
             {event.type === "official" ? "Oficial" : "Homemade"}

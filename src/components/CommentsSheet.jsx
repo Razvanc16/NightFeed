@@ -3,12 +3,22 @@ import { supabase } from "../supabase";
 import { SpeechBubbleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 
+const HeartIcon = ({ filled, size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "#FF3366" : "none"} stroke={filled ? "#FF3366" : "rgba(255,255,255,0.5)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+
 export default function CommentsSheet({ event, user, open, onClose }) {
   const [comments, setComments] = useState([]);
+  const [likeCounts, setLikeCounts] = useState({});
+  const [myLikes, setMyLikes] = useState(new Set());
   const [text, setText] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null); // { id, username }
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (!open || !event) return;
@@ -33,6 +43,43 @@ export default function CommentsSheet({ event, user, open, onClose }) {
     const { data } = await supabase.from("comments").select("*").eq("event_id", event.id).order("created_at", { ascending: true });
     setComments(data || []);
     setLoading(false);
+
+    const ids = (data || []).map(c => c.id);
+    if (!ids.length) { setLikeCounts({}); setMyLikes(new Set()); return; }
+    const { data: likes } = await supabase.from("comment_likes").select("comment_id, user_id").in("comment_id", ids);
+    const counts = {};
+    const mine = new Set();
+    (likes || []).forEach(l => {
+      counts[l.comment_id] = (counts[l.comment_id] || 0) + 1;
+      if (l.user_id === user?.id) mine.add(l.comment_id);
+    });
+    setLikeCounts(counts);
+    setMyLikes(mine);
+  };
+
+  const toggleLike = async (comment) => {
+    if (!user) { alert("Trebuie să fii autentificat pentru a aprecia!"); return; }
+    const isLiked = myLikes.has(comment.id);
+    setMyLikes(prev => { const s = new Set(prev); isLiked ? s.delete(comment.id) : s.add(comment.id); return s; });
+    setLikeCounts(prev => ({ ...prev, [comment.id]: Math.max(0, (prev[comment.id] || 0) + (isLiked ? -1 : 1)) }));
+    if (isLiked) {
+      await supabase.from("comment_likes").delete().eq("comment_id", comment.id).eq("user_id", user.id);
+    } else {
+      await supabase.from("comment_likes").insert([{ comment_id: comment.id, user_id: user.id }]);
+      if (comment.user_id && comment.user_id !== user.id) {
+        notifyUser({
+          targetUserId: comment.user_id,
+          title: "Apreciere nouă",
+          body: `Cineva ți-a apreciat comentariul la ${event.title}`,
+          type: "like",
+        });
+      }
+    }
+  };
+
+  const startReply = (comment) => {
+    setReplyingTo({ id: comment.parent_id || comment.id, username: comment.username || "User" });
+    inputRef.current?.focus();
   };
 
   const handleSend = async () => {
@@ -40,19 +87,32 @@ export default function CommentsSheet({ event, user, open, onClose }) {
     if (!user) { alert("Trebuie să fii autentificat pentru a comenta!"); return; }
     setSending(true);
     const username = user.user_metadata?.username || user.email?.split("@")[0] || "User";
+    const parent_id = replyingTo?.id || null;
     const { error } = await supabase.from("comments").insert([{
-      event_id: event.id, user_id: user.id, username, text: text.trim(),
+      event_id: event.id, user_id: user.id, username, text: text.trim(), parent_id,
     }]);
     if (!error) {
       setText("");
       if (event.organizer_id && event.organizer_id !== user.id) {
         notifyUser({
           targetUserId: event.organizer_id,
-          title: "Comentariu nou",
+          title: parent_id ? "Răspuns nou" : "Comentariu nou",
           body: `${username} a comentat la ${event.title}: „${text.trim().slice(0, 80)}”`,
           type: "comment",
         });
       }
+      if (parent_id) {
+        const parentComment = comments.find(c => c.id === parent_id);
+        if (parentComment?.user_id && parentComment.user_id !== user.id && parentComment.user_id !== event.organizer_id) {
+          notifyUser({
+            targetUserId: parentComment.user_id,
+            title: "Răspuns nou",
+            body: `${username} ți-a răspuns la ${event.title}: „${text.trim().slice(0, 80)}”`,
+            type: "comment",
+          });
+        }
+      }
+      setReplyingTo(null);
     }
     setSending(false);
   };
@@ -60,6 +120,40 @@ export default function CommentsSheet({ event, user, open, onClose }) {
   const formatTime = (ts) => new Date(ts).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
 
   if (!event) return null;
+
+  const topLevel = comments.filter(c => !c.parent_id);
+  const repliesOf = (id) => comments.filter(c => c.parent_id === id);
+
+  const CommentRow = ({ c, isReply }) => (
+    <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", marginLeft: isReply ? 42 : 0 }}>
+      <div style={{
+        width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0,
+        background: `${event.color}30`, border: `1px solid ${event.color}50`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: isReply ? 11 : 13, fontWeight: 700, color: event.color, fontFamily: "'DM Mono', monospace",
+      }}>
+        {(c.username || "U")[0].toUpperCase()}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif" }}>{c.username || "User"}</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace" }}>{formatTime(c.created_at)}</span>
+        </div>
+        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>{c.text}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 6 }}>
+          <button onClick={() => toggleLike(c)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+            <HeartIcon filled={myLikes.has(c.id)} size={13} />
+            {likeCounts[c.id] > 0 && (
+              <span style={{ fontSize: 11, color: myLikes.has(c.id) ? "#FF3366" : "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{likeCounts[c.id]}</span>
+            )}
+          </button>
+          <button onClick={() => startReply(c)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>
+            Răspunde
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -118,33 +212,29 @@ export default function CommentsSheet({ event, user, open, onClose }) {
               <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>Fii primul care comentează!</div>
             </div>
           ) : (
-            comments.map(c => (
-              <div key={c.id} style={{ marginBottom: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                  background: `${event.color}30`, border: `1px solid ${event.color}50`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 13, fontWeight: 700, color: event.color, fontFamily: "'DM Mono', monospace",
-                }}>
-                  {(c.username || "U")[0].toUpperCase()}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif" }}>{c.username || "User"}</span>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace" }}>{formatTime(c.created_at)}</span>
-                  </div>
-                  <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>{c.text}</div>
-                </div>
+            topLevel.map(c => (
+              <div key={c.id}>
+                <CommentRow c={c} isReply={false} />
+                {repliesOf(c.id).map(r => <CommentRow key={r.id} c={r} isReply={true} />)}
               </div>
             ))
           )}
           <div ref={bottomRef} />
         </div>
 
+        {/* Banner de răspuns */}
+        {replyingTo && (
+          <div style={{ padding: "6px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.04)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace" }}>Răspunzi lui @{replyingTo.username}</span>
+            <button onClick={() => setReplyingTo(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
+          </div>
+        )}
+
         {/* Input — cu padding pentru navbar */}
-        <div style={{ padding: "10px 16px 78px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ padding: "10px 16px 78px", borderTop: replyingTo ? "none" : "1px solid rgba(255,255,255,0.06)", display: "flex", gap: 10, alignItems: "center" }}>
           <input
-            placeholder={user ? "Scrie un comentariu..." : "Autentifică-te pentru a comenta"}
+            ref={inputRef}
+            placeholder={user ? (replyingTo ? `Răspunde lui @${replyingTo.username}...` : "Scrie un comentariu...") : "Autentifică-te pentru a comenta"}
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleSend()}

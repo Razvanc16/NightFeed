@@ -40,7 +40,6 @@ export default function PostPage({ user, onClose, editEvent }) {
     type: editEvent?.type || "homemade",
     age_restricted: editEvent?.age_restricted || false,
     description: editEvent?.description || "",
-    tags: editEvent?.tags || "",
     ticket_link: editEvent?.ticket_link || "",
     lat: editEvent?.lat || null,
     lng: editEvent?.lng || null,
@@ -305,7 +304,6 @@ export default function PostPage({ user, onClose, editEvent }) {
 
         {/* Restul câmpurilor */}
         {[
-          { key: "tags", label: "Tag-uri", placeholder: "ex: techno, club, party", type: "text" },
           { key: "ticket_link", label: "Link bilete", placeholder: "https://...", type: "url" },
         ].map(field => (
           <div key={field.key} style={{ marginBottom: 14 }}>
