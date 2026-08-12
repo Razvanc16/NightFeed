@@ -7,12 +7,13 @@ import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
 import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
+import NotificationsPage from "./NotificationsPage";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon,
+  WarningIcon, GearIcon, BellIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -83,6 +84,15 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     const { data } = await supabase.from("usernames").select("username, updated_at").eq("user_id", user.id).maybeSingle();
     setUsernameRow(data || null);
   };
+
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const loadUnreadNotifCount = async () => {
+    if (!user) return;
+    const { count } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("read", false);
+    setUnreadNotifCount(count || 0);
+  };
+
   const [showRequests, setShowRequests] = useState(false);
   const [showUsernameEdit, setShowUsernameEdit] = useState(false);
   const [newUsername, setNewUsername] = useState("");
@@ -177,12 +187,15 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     loadFollowCounts();
     loadPendingRequestsCount();
     loadUsername();
+    loadUnreadNotifCount();
 
-    // Realtime: actualizează numărul de urmăritori/urmăriri și cereri instant
+    // Realtime: actualizează numărul de urmăritori/urmăriri, cereri și
+    // notificări necitite instant
     const channel = supabase
       .channel(`my_follows_${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "follows" }, () => loadFollowCounts())
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance_requests", filter: `host_id=eq.${user.id}` }, () => loadPendingRequestsCount())
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => loadUnreadNotifCount())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
@@ -410,6 +423,9 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
         <div style={{ position: "relative", animation: "slideUp 0.3s ease-out" }}>
           <button onClick={() => setShowSettings(true)} style={{ position: "absolute", top: 14, right: 16, zIndex: 6, width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
             <GearIcon size={15} />
+            {unreadNotifCount > 0 && (
+              <div style={{ position: "absolute", top: -3, right: -3, width: 10, height: 10, borderRadius: "50%", background: "#FF3366", border: "2px solid #080808" }} />
+            )}
           </button>
           <div style={{ padding: "50px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ width: 70, height: 70, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #FF6B35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, overflow: "hidden", flexShrink: 0, border: "2px solid rgba(255,51,102,0.4)" }}>
@@ -539,6 +555,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
           onChangeUsername={() => { setShowSettings(false); openUsernameEdit(); }}
           username={usernameRow?.username}
           onShowLegal={() => setShowLegal(true)}
+          onShowNotifications={() => { setShowSettings(false); setShowNotifications(true); }}
+          unreadNotifCount={unreadNotifCount}
           onDeleteAccount={() => setShowDeleteConfirm(true)}
           onLogout={onLogout}
           profile={profile}
@@ -549,6 +567,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
         />,
         document.body
       )}
+
+      {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} />, document.body)}
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import EventCard from "./components/EventCard";
 import FilterDrawer from "./components/FilterDrawer";
 import Navbar from "./components/Navbar";
@@ -14,11 +13,12 @@ import PublicProfilePage from "./components/PublicProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import PostPage from "./components/PostPage";
 import CommentsSheet from "./components/CommentsSheet";
-import NotificationsPage from "./components/NotificationsPage";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
 import { filterActiveEvents } from "./utils/eventTime";
-import { MoonIcon, BellIcon, FilterIcon } from "./components/Icons";
+import { MoonIcon, FilterIcon } from "./components/Icons";
+
+const filterLabels = { all: "Toate", official: "Oficial", homemade: "Homemade", today: "Azi", weekend: "Weekend", free: "Gratuit" };
 
 const filterFn = (event, filter) => {
   if (filter === "all") return true;
@@ -99,8 +99,6 @@ export default function App() {
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [postedEvents, setPostedEvents] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const feedRef = useRef(null);
   const recoveryModeRef = useRef(false);
 
@@ -201,28 +199,6 @@ export default function App() {
 
     setPostedEvents(filterActiveEvents(data).map(e => convertPostedEvent(e, organizerMap)));
   };
-
-  const loadUnreadNotifCount = async (uid) => {
-    const { count } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", uid)
-      .eq("read", false);
-    setUnreadNotifCount(count || 0);
-  };
-
-  useEffect(() => {
-    if (!user) { setUnreadNotifCount(0); return; }
-    loadUnreadNotifCount(user.id);
-
-    const channel = supabase
-      .channel(`notifications:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        () => setUnreadNotifCount(c => c + 1)
-      )
-      .subscribe();
-    return () => supabase.removeChannel(channel);
-  }, [user]);
 
   useEffect(() => { refreshingRef.current = refreshing; }, [refreshing]);
 
@@ -524,47 +500,41 @@ export default function App() {
 
             {filtered.length > 1 && <ProgressDots total={filtered.length} current={currentIndex} color={filtered[currentIndex]?.color} />}
 
-            <div style={{
-              position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, paddingTop: "env(safe-area-inset-top, 0px)",
-              background: "linear-gradient(180deg, rgba(0,0,0,0.55), transparent)", pointerEvents: "none",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px 0" }}>
-                <button onClick={() => setDrawerOpen(true)} style={{ pointerEvents: "auto", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", padding: 0, color: "rgba(255,255,255,0.8)" }}>
-                  <FilterIcon size={18} />
-                </button>
-
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 19, letterSpacing: "-0.01em", background: "linear-gradient(120deg, #FF3366, #B44FFF)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
-                  NightFeed
-                </div>
-
-                {user ? (
-                  <button onClick={() => setShowNotifications(true)} style={{ pointerEvents: "auto", position: "relative", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, width: 40, height: 40, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", padding: 0, color: "rgba(255,255,255,0.8)" }}>
-                    <BellIcon size={18} />
-                    {unreadNotifCount > 0 && (
-                      <div style={{ position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, background: "#FF3366", border: "2px solid #050506", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace", padding: "0 3px" }}>
-                        {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
-                      </div>
-                    )}
-                  </button>
-                ) : <div style={{ width: 40, height: 40 }} />}
-              </div>
-            </div>
-
-            {activeFilter !== "all" && (
-              <div style={{ position: "fixed", top: 68, left: "50%", transform: "translateX(-50%)", padding: "5px 14px", borderRadius: 20, background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.4)", backdropFilter: "blur(10px)", zIndex: 50, display: "flex", alignItems: "center", gap: 6, animation: "fadeIn 0.3s ease-out" }}>
-                <span style={{ fontSize: 10, color: "#FF3366", fontWeight: 700, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>{activeFilter}</span>
-                <button onClick={() => setActiveFilter("all")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,51,102,0.7)", fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
-              </div>
-            )}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              style={{
+                position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", left: 16, zIndex: 50,
+                display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
+                padding: activeFilter !== "all" ? "9px 10px 9px 14px" : "10px",
+                borderRadius: 22,
+                background: activeFilter !== "all" ? "linear-gradient(120deg, rgba(255,51,102,0.25), rgba(180,79,255,0.25))" : "rgba(255,255,255,0.08)",
+                border: `1px solid ${activeFilter !== "all" ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.14)"}`,
+                boxShadow: activeFilter !== "all" ? "0 6px 22px rgba(255,51,102,0.3)" : "0 2px 12px rgba(0,0,0,0.25)",
+                backdropFilter: "blur(14px)",
+                transition: "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              }}
+            >
+              <FilterIcon size={17} style={{ color: activeFilter !== "all" ? "#fff" : "rgba(255,255,255,0.85)", flexShrink: 0 }} />
+              {activeFilter !== "all" && (
+                <>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap" }}>
+                    {filterLabels[activeFilter] || activeFilter}
+                  </span>
+                  <span
+                    role="button"
+                    onClick={(e) => { e.stopPropagation(); setActiveFilter("all"); }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 18, height: 18, borderRadius: "50%", background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 12, lineHeight: 1, marginLeft: 2 }}
+                  >
+                    ×
+                  </span>
+                </>
+              )}
+            </button>
 
             <FilterDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} active={activeFilter} onChange={setActiveFilter} />
           </div>
 
           <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => setCommentsEvent(null)} />
-          {showNotifications && user && createPortal(
-            <NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(user.id); }} />,
-            document.body
-          )}
           <Navbar active={activeTab} onChange={handleTabChange} />
         </>
       )}
