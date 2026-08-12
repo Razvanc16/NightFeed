@@ -398,7 +398,11 @@ export default function App() {
   return (
     <>
       <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        /* touch-action nu se moștenește din body pe copii — de-asta e pe *,
+           nu doar pe body, ca să blocheze pinch/dublu-tap zoom oriunde atingi
+           pagina. Harta din MapPage rămâne intactă: .leaflet-container din
+           leaflet.css are un selector mai specific, deci câștigă local. */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: pan-x pan-y; }
         body { background: #000; overflow: hidden; font-family: 'DM Sans', 'Inter', sans-serif; }
         #root { width: 100vw; height: 100dvh; position: relative; overflow: hidden; }
 
