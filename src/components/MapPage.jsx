@@ -405,6 +405,7 @@ export default function MapPage({ user, isActive }) {
           title: "Cerere nouă de participare",
           body: `${username} vrea să participe la ${event.title}.`,
           type: "request",
+          actorId: user.id,
         });
       }
       setToast("Cerere trimisă! Aștepți răspunsul hostului.");

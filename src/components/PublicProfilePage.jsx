@@ -89,6 +89,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
         title: "Urmăritor nou",
         body: `${followerName} a început să te urmărească.`,
         type: "follower",
+        actorId: currentUser.id,
       });
     }
     setBusy(false);

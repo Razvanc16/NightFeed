@@ -71,6 +71,7 @@ export default function RequestsPage({ user, onClose }) {
         title: status === "accepted" ? "Cerere acceptată!" : "Cerere refuzată",
         body: status === "accepted" ? `Ai fost acceptat la ${eventTitle}.` : `Cererea ta pentru ${eventTitle} a fost refuzată.`,
         type: "request",
+        actorId: user.id,
       });
     }
     loadRequests();

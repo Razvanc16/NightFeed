@@ -19,6 +19,7 @@ const timeAgo = (iso) => {
 
 export default function NotificationsPage({ user, onClose }) {
   const [notifications, setNotifications] = useState([]);
+  const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +40,12 @@ export default function NotificationsPage({ user, onClose }) {
     const { data } = await supabase.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
     setNotifications(data || []);
     setLoading(false);
+
+    const actorIds = [...new Set((data || []).map(n => n.actor_id).filter(Boolean))];
+    if (actorIds.length) {
+      const { data: profiles } = await supabase.from("profiles").select("user_id, avatar_url").in("user_id", actorIds);
+      setAvatars(Object.fromEntries((profiles || []).map(p => [p.user_id, p.avatar_url])));
+    }
 
     // Le marcăm ca citite după ce le-ai văzut — badge-ul de pe Profil se
     // resetează data viitoare când deschizi lista.
@@ -66,10 +73,18 @@ export default function NotificationsPage({ user, onClose }) {
         ) : notifications.map(n => {
           const Icon = ICONS[n.type] || EnvelopeIcon;
           const color = COLORS[n.type] || "#FF3366";
+          const avatarUrl = n.actor_id ? avatars[n.actor_id] : null;
           return (
             <div key={n.id} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", borderRadius: 14, background: n.read ? "rgba(255,255,255,0.03)" : `${color}0d`, border: `1px solid ${n.read ? "rgba(255,255,255,0.07)" : color + "30"}` }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${color}20`, border: `1px solid ${color}40`, display: "flex", alignItems: "center", justifyContent: "center", color, flexShrink: 0 }}>
-                <Icon size={16} />
+              <div style={{ position: "relative", flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden", background: avatarUrl ? "transparent" : `${color}20`, border: `1px solid ${color}40`, display: "flex", alignItems: "center", justifyContent: "center", color }}>
+                  {avatarUrl ? <img src={avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Icon size={16} />}
+                </div>
+                {avatarUrl && (
+                  <div style={{ position: "absolute", bottom: -3, right: -3, width: 18, height: 18, borderRadius: "50%", background: color, border: "2px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                    <Icon size={9} />
+                  </div>
+                )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{n.title}</div>

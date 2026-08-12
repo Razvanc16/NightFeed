@@ -234,6 +234,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             title: "Like nou!",
             body: `${likerName} a apreciat ${event.title}.`,
             type: "like",
+            actorId: user.id,
           });
         }
       } else {

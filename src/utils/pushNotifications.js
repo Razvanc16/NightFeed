@@ -61,13 +61,15 @@ export async function unsubscribeFromPush() {
 // Best-effort — nu aruncă niciodată, ca o notificare eșuată să nu strice
 // fluxul principal (accept cerere, like etc.). `type`: "like" | "comment" |
 // "request" | "follower" — decide ce preferință a userului țintă se verifică
-// (pentru push) și ce iconiță se arată în lista din aplicație.
+// (pentru push) și ce iconiță se arată în lista din aplicație. `actorId`:
+// id-ul celui care a declanșat acțiunea (cel care a dat like/comentat/etc.) —
+// folosit ca să arătăm poza lui de profil în loc de o iconiță generică.
 //
 // Scrie în paralel în tabelul `notifications` (istoric persistent, vizibil în
 // tab-ul de Notificări) și trimite push-ul — un singur punct de apel pentru
 // toate declanșatoarele existente din aplicație.
-export function notifyUser({ targetUserId, title, body, url, type }) {
-  supabase.from("notifications").insert([{ user_id: targetUserId, type, title, body, url }]).then(() => {});
+export function notifyUser({ targetUserId, title, body, url, type, actorId }) {
+  supabase.from("notifications").insert([{ user_id: targetUserId, type, title, body, url, actor_id: actorId || null }]).then(() => {});
   return supabase.functions
     .invoke("send-push", { body: { targetUserId, title, body, url, type } })
     .catch(() => {});

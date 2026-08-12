@@ -82,6 +82,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
           title: "Apreciere nouă",
           body: `${likerName} ți-a apreciat comentariul la ${event.title}`,
           type: "like",
+          actorId: user.id,
         });
       }
     }
@@ -109,6 +110,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
           title: parent_id ? "Răspuns nou" : "Comentariu nou",
           body: `${username} a comentat la ${event.title}: „${text.trim().slice(0, 80)}”`,
           type: "comment",
+          actorId: user.id,
         });
       }
       if (parent_id) {
@@ -119,6 +121,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
             title: "Răspuns nou",
             body: `${username} ți-a răspuns la ${event.title}: „${text.trim().slice(0, 80)}”`,
             type: "comment",
+            actorId: user.id,
           });
         }
       }

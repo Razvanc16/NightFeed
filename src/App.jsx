@@ -243,10 +243,15 @@ export default function App() {
     const channel = supabase
       .channel(`app_notifications:${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (payload) => {
+        async (payload) => {
           if (document.visibilityState !== "visible") return;
           playNotificationSound();
-          showNotifToast({ title: payload.new.title, body: payload.new.body });
+          let avatarUrl = null;
+          if (payload.new.actor_id) {
+            const { data } = await supabase.from("profiles").select("avatar_url").eq("user_id", payload.new.actor_id).maybeSingle();
+            avatarUrl = data?.avatar_url || null;
+          }
+          showNotifToast({ title: payload.new.title, body: payload.new.body, avatarUrl });
         }
       )
       .subscribe();
@@ -636,11 +641,12 @@ export default function App() {
                 animation: notifToastShow ? "toastGlow 2.2s ease-in-out infinite" : "none",
               }}>
                 <div style={{
-                  width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #B44FFF)",
+                  width: 32, height: 32, borderRadius: "50%", overflow: "hidden",
+                  background: notifToast.avatarUrl ? "transparent" : "linear-gradient(135deg, #FF3366, #B44FFF)",
                   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff",
                   animation: notifToastShow ? "toastIconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s both" : "none",
                 }}>
-                  <BellIcon size={16} />
+                  {notifToast.avatarUrl ? <img src={notifToast.avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <BellIcon size={16} />}
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{notifToast.title}</div>

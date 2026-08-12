@@ -30,6 +30,7 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
           title: "Cerere nouă de participare",
           body: `${username} vrea să participe la ${event.title}.`,
           type: "request",
+          actorId: user.id,
         });
       }
       setTimeout(() => onClose(), 1500);
