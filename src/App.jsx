@@ -16,7 +16,7 @@ import CommentsSheet from "./components/CommentsSheet";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
 import { filterActiveEvents } from "./utils/eventTime";
-import { playNotificationSound } from "./utils/notificationSound";
+import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
 import { MoonIcon, FilterIcon, BellIcon } from "./components/Icons";
 
 const filterLabels = { all: "Toate", official: "Oficial", homemade: "Homemade", today: "Azi", weekend: "Weekend", free: "Gratuit" };
@@ -175,6 +175,35 @@ export default function App() {
   // Load posted events from Supabase
   useEffect(() => {
     loadPostedEvents();
+  }, []);
+
+  // Browserele blochează sunetul până la un tap real al userului — "trezim"
+  // Web Audio la primul tap din aplicație, ca sunetul de notificare să nu
+  // rămână mut când vine un eveniment realtime (nu un tap direct).
+  useEffect(() => {
+    const unlock = () => primeNotificationAudio();
+    document.addEventListener("pointerdown", unlock, { once: true });
+    return () => document.removeEventListener("pointerdown", unlock);
+  }, []);
+
+  // Anunțăm service worker-ul dacă tab-ul e vizibil chiar acum — sw.js
+  // folosește semnalul ăsta (plus verificarea proprie prin clients.matchAll)
+  // ca să nu mai arate bannerul de sistem cât timp notificarea oricum
+  // apare deja ca toast în aplicație.
+  useEffect(() => {
+    const sendVisibility = () => {
+      navigator.serviceWorker?.controller?.postMessage({ type: "visibility", visible: document.visibilityState === "visible" });
+    };
+    sendVisibility();
+    navigator.serviceWorker?.ready?.then(sendVisibility).catch(() => {});
+    document.addEventListener("visibilitychange", sendVisibility);
+    window.addEventListener("focus", sendVisibility);
+    window.addEventListener("blur", sendVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", sendVisibility);
+      window.removeEventListener("focus", sendVisibility);
+      window.removeEventListener("blur", sendVisibility);
+    };
   }, []);
 
   // Cât timp ai tab-ul NightFeed deschis și vizibil, notificările noi apar

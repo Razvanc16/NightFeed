@@ -9,6 +9,15 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Semnal trimis explicit de pagină (App.jsx) la fiecare schimbare de
+// vizibilitate — completează clients.matchAll() de mai jos, care în unele
+// browsere (mai ales PWA instalat pe Android, în modul standalone) nu
+// raportează corect visibilityState pe WindowClient.
+let appVisible = false;
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "visibility") appVisible = !!event.data.visible;
+});
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -29,8 +38,8 @@ self.addEventListener("push", (event) => {
       // Dacă ai deja un tab NightFeed deschis și vizibil, notificarea apare
       // în aplicație (toast + sunet propriu) — nu mai dublăm cu bannerul de
       // sistem, care ar suna și ca orice altă notificare de pe telefon.
-      const appVisible = clientList.some((c) => c.visibilityState === "visible");
-      if (appVisible) return;
+      const matchAllVisible = clientList.some((c) => c.visibilityState === "visible");
+      if (appVisible || matchAllVisible) return;
       return self.registration.showNotification(title, options);
     })
   );
