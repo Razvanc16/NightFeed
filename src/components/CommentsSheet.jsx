@@ -10,6 +10,12 @@ const HeartIcon = ({ filled, size = 14 }) => (
 );
 
 export default function CommentsSheet({ event, user, open, onClose }) {
+  // Ținem ultimul event valid și cât timp se închide sheet-ul (event devine
+  // null în același render în care open devine false) — altfel componenta
+  // s-ar demonta instant, fără să apuce să joace tranziția de translateY.
+  const [displayEvent, setDisplayEvent] = useState(event);
+  useEffect(() => { if (event) setDisplayEvent(event); }, [event]);
+
   const [comments, setComments] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [likeCounts, setLikeCounts] = useState({});
@@ -20,6 +26,12 @@ export default function CommentsSheet({ event, user, open, onClose }) {
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const sheetRef = useRef(null);
+  const listRef = useRef(null);
+  const [dragY, setDragY] = useState(0);
+  const dragStartY = useRef(null);
+  const dragYRef = useRef(0);
+  const setDragYValue = (v) => { dragYRef.current = v; setDragY(v); };
 
   useEffect(() => {
     if (!open || !event) return;
@@ -38,6 +50,51 @@ export default function CommentsSheet({ event, user, open, onClose }) {
   useEffect(() => {
     if (open) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   }, [comments, open]);
+
+  // Swipe în jos ca să închizi — funcționează din handle/header oricând, sau
+  // din lista de comentarii doar când e scrolată sus (altfel s-ar bate cap în
+  // cap cu scroll-ul normal al listei).
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet || !open) return;
+
+    const onTouchStart = (e) => {
+      const withinList = listRef.current?.contains(e.target);
+      if (withinList && listRef.current.scrollTop > 0) {
+        dragStartY.current = null;
+        return;
+      }
+      dragStartY.current = e.touches[0].clientY;
+    };
+    const onTouchMove = (e) => {
+      if (dragStartY.current === null) return;
+      const delta = e.touches[0].clientY - dragStartY.current;
+      if (delta > 4) {
+        e.preventDefault();
+        setDragYValue(delta);
+      } else if (delta < 0) {
+        dragStartY.current = null;
+        setDragYValue(0);
+      }
+    };
+    const onTouchEnd = () => {
+      if (dragStartY.current === null) return;
+      dragStartY.current = null;
+      if (dragYRef.current > 90) {
+        onClose();
+      }
+      setDragYValue(0);
+    };
+
+    sheet.addEventListener("touchstart", onTouchStart, { passive: true });
+    sheet.addEventListener("touchmove", onTouchMove, { passive: false });
+    sheet.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      sheet.removeEventListener("touchstart", onTouchStart);
+      sheet.removeEventListener("touchmove", onTouchMove);
+      sheet.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [open, onClose]);
 
   const loadComments = async () => {
     setLoading(true);
@@ -132,7 +189,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
 
   const formatTime = (ts) => new Date(ts).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
 
-  if (!event) return null;
+  if (!displayEvent) return null;
 
   const topLevel = comments.filter(c => !c.parent_id);
   const repliesOf = (id) => comments.filter(c => c.parent_id === id);
@@ -141,9 +198,9 @@ export default function CommentsSheet({ event, user, open, onClose }) {
     <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
       <div style={{
         width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
-        background: avatars[c.user_id] ? "transparent" : `${event.color}30`, border: `1px solid ${event.color}50`,
+        background: avatars[c.user_id] ? "transparent" : `${displayEvent.color}30`, border: `1px solid ${displayEvent.color}50`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: isReply ? 11 : 13, fontWeight: 700, color: event.color, fontFamily: "'DM Mono', monospace",
+        fontSize: isReply ? 11 : 13, fontWeight: 700, color: displayEvent.color, fontFamily: "'DM Mono', monospace",
       }}>
         {avatars[c.user_id] ? <img src={avatars[c.user_id]} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (c.username || "U")[0].toUpperCase()}
       </div>
@@ -185,17 +242,17 @@ export default function CommentsSheet({ event, user, open, onClose }) {
       />
 
       {/* Sheet — se ridică deasupra navbar-ului */}
-      <div style={{
+      <div ref={sheetRef} style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
         height: "72vh",
         background: "rgba(10,10,12,0.98)",
-        borderTop: `2px solid ${event.color}40`,
+        borderTop: `2px solid ${displayEvent.color}40`,
         borderRadius: "24px 24px 0 0",
-        transform: open ? "translateY(0)" : "translateY(100%)",
-        transition: "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)",
+        transform: open ? `translateY(${dragY}px)` : "translateY(100%)",
+        transition: dragStartY.current ? "none" : "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)",
         zIndex: 201,
         display: "flex",
         flexDirection: "column",
@@ -210,13 +267,13 @@ export default function CommentsSheet({ event, user, open, onClose }) {
         <div style={{ padding: "10px 20px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Comentarii</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{event.title}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{displayEvent.title}</div>
           </div>
           <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "50%", width: 30, height: 30, color: "rgba(255,255,255,0.5)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
         </div>
 
         {/* Comments list */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+        <div ref={listRef} style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
           {loading ? (
             <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: 13, padding: "20px 0" }}>Se încarcă...</div>
           ) : comments.length === 0 ? (
@@ -269,7 +326,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
             disabled={!text.trim() || sending || !user}
             style={{
               width: 40, height: 40, borderRadius: "50%",
-              background: text.trim() && user ? event.color : "rgba(255,255,255,0.08)",
+              background: text.trim() && user ? displayEvent.color : "rgba(255,255,255,0.08)",
               border: "none", cursor: text.trim() && user ? "pointer" : "not-allowed",
               display: "flex", alignItems: "center", justifyContent: "center",
               transition: "all 0.2s",

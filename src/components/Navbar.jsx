@@ -55,20 +55,6 @@ export default function Navbar({ active, onChange }) {
               transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             }}
           >
-            {/* Pastila de fundal pentru tab-ul activ (nu la Post) */}
-            {isActive && !isPost && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: 14,
-                  background: "rgba(255,51,102,0.12)",
-                  border: "1px solid rgba(255,51,102,0.25)",
-                  animation: "navPill 0.35s cubic-bezier(0.16,1,0.3,1)",
-                  zIndex: 0,
-                }}
-              />
-            )}
             <span
               style={{
                 position: "relative",
@@ -78,7 +64,7 @@ export default function Navbar({ active, onChange }) {
                   ? "#fff"
                   : isActive
                   ? "#FF3366"
-                  : "rgba(255,255,255,0.4)",
+                  : "rgba(255,255,255,0.65)",
                 transition: "color 0.25s, transform 0.25s cubic-bezier(0.16,1,0.3,1)",
                 transform: isActive && !isPost ? "translateY(-1px) scale(1.1)" : "none",
                 lineHeight: 1,
@@ -92,8 +78,8 @@ export default function Navbar({ active, onChange }) {
                   position: "relative",
                   zIndex: 1,
                   fontSize: 10,
-                  color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)",
-                  fontWeight: isActive ? 700 : 400,
+                  color: isActive ? "#FF3366" : "rgba(255,255,255,0.55)",
+                  fontWeight: isActive ? 700 : 500,
                   fontFamily: "'DM Mono', monospace",
                   letterSpacing: "0.05em",
                   transition: "color 0.25s",
@@ -105,9 +91,6 @@ export default function Navbar({ active, onChange }) {
           </button>
         );
       })}
-      <style>{`
-        @keyframes navPill { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-      `}</style>
     </div>
   );
 }
