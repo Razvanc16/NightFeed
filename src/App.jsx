@@ -16,7 +16,8 @@ import CommentsSheet from "./components/CommentsSheet";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
 import { filterActiveEvents } from "./utils/eventTime";
-import { MoonIcon, FilterIcon } from "./components/Icons";
+import { playNotificationSound } from "./utils/notificationSound";
+import { MoonIcon, FilterIcon, BellIcon } from "./components/Icons";
 
 const filterLabels = { all: "Toate", official: "Oficial", homemade: "Homemade", today: "Azi", weekend: "Weekend", free: "Gratuit" };
 
@@ -99,8 +100,10 @@ export default function App() {
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [postedEvents, setPostedEvents] = useState([]);
+  const [notifToast, setNotifToast] = useState(null); // { title, body }
   const feedRef = useRef(null);
   const recoveryModeRef = useRef(false);
+  const notifToastTimer = useRef(null);
 
   // Pull-to-refresh pe feed: trage în jos cât ești pe primul eveniment (scrollTop 0)
   const [pullDistance, setPullDistance] = useState(0);
@@ -173,6 +176,26 @@ export default function App() {
   useEffect(() => {
     loadPostedEvents();
   }, []);
+
+  // Cât timp ai tab-ul NightFeed deschis și vizibil, notificările noi apar
+  // direct în aplicație (toast + sunet propriu) — service worker-ul (sw.js)
+  // știe să nu mai dubleze cu bannerul de sistem în acest caz.
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`app_notifications:${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          if (document.visibilityState !== "visible") return;
+          playNotificationSound();
+          setNotifToast({ title: payload.new.title, body: payload.new.body });
+          clearTimeout(notifToastTimer.current);
+          notifToastTimer.current = setTimeout(() => setNotifToast(null), 4000);
+        }
+      )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [user]);
 
   const loadPostedEvents = async () => {
     const { data, error } = await supabase
@@ -536,6 +559,29 @@ export default function App() {
 
           <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => setCommentsEvent(null)} />
           <Navbar active={activeTab} onChange={handleTabChange} />
+
+          {notifToast && (
+            <div
+              onClick={() => setNotifToast(null)}
+              style={{
+                position: "fixed", top: "calc(16px + env(safe-area-inset-top, 0px))", left: "50%", transform: "translateX(-50%)",
+                zIndex: 9998, maxWidth: "88vw", width: 340, display: "flex", alignItems: "center", gap: 10,
+                background: "rgba(15,15,18,0.97)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 16,
+                padding: "12px 14px", boxShadow: "0 8px 30px rgba(0,0,0,0.45)", backdropFilter: "blur(20px)",
+                cursor: "pointer", animation: "slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              }}
+            >
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #B44FFF)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff" }}>
+                <BellIcon size={16} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{notifToast.title}</div>
+                {notifToast.body && (
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{notifToast.body}</div>
+                )}
+              </div>
+            </div>
+          )}
         </>
       )}
     </>

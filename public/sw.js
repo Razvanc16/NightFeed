@@ -24,7 +24,16 @@ self.addEventListener("push", (event) => {
     data: { url: data.url || "/" },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // Dacă ai deja un tab NightFeed deschis și vizibil, notificarea apare
+      // în aplicație (toast + sunet propriu) — nu mai dublăm cu bannerul de
+      // sistem, care ar suna și ca orice altă notificare de pe telefon.
+      const appVisible = clientList.some((c) => c.visibilityState === "visible");
+      if (appVisible) return;
+      return self.registration.showNotification(title, options);
+    })
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
