@@ -11,6 +11,7 @@ const HeartIcon = ({ filled, size = 14 }) => (
 
 export default function CommentsSheet({ event, user, open, onClose }) {
   const [comments, setComments] = useState([]);
+  const [avatars, setAvatars] = useState({});
   const [likeCounts, setLikeCounts] = useState({});
   const [myLikes, setMyLikes] = useState(new Set());
   const [text, setText] = useState("");
@@ -43,6 +44,14 @@ export default function CommentsSheet({ event, user, open, onClose }) {
     const { data } = await supabase.from("comments").select("*").eq("event_id", event.id).order("created_at", { ascending: true });
     setComments(data || []);
     setLoading(false);
+
+    const userIds = [...new Set((data || []).map(c => c.user_id).filter(Boolean))];
+    if (userIds.length) {
+      const { data: profiles } = await supabase.from("profiles").select("user_id, avatar_url").in("user_id", userIds);
+      setAvatars(Object.fromEntries((profiles || []).map(p => [p.user_id, p.avatar_url])));
+    } else {
+      setAvatars({});
+    }
 
     const ids = (data || []).map(c => c.id);
     if (!ids.length) { setLikeCounts({}); setMyLikes(new Set()); return; }
@@ -125,14 +134,14 @@ export default function CommentsSheet({ event, user, open, onClose }) {
   const repliesOf = (id) => comments.filter(c => c.parent_id === id);
 
   const CommentRow = ({ c, isReply }) => (
-    <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", marginLeft: isReply ? 42 : 0 }}>
+    <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
       <div style={{
-        width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0,
-        background: `${event.color}30`, border: `1px solid ${event.color}50`,
+        width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
+        background: avatars[c.user_id] ? "transparent" : `${event.color}30`, border: `1px solid ${event.color}50`,
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: isReply ? 11 : 13, fontWeight: 700, color: event.color, fontFamily: "'DM Mono', monospace",
       }}>
-        {(c.username || "U")[0].toUpperCase()}
+        {avatars[c.user_id] ? <img src={avatars[c.user_id]} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (c.username || "U")[0].toUpperCase()}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
@@ -215,7 +224,11 @@ export default function CommentsSheet({ event, user, open, onClose }) {
             topLevel.map(c => (
               <div key={c.id}>
                 <CommentRow c={c} isReply={false} />
-                {repliesOf(c.id).map(r => <CommentRow key={r.id} c={r} isReply={true} />)}
+                {repliesOf(c.id).length > 0 && (
+                  <div style={{ marginLeft: 16, paddingLeft: 16, borderLeft: "2px solid rgba(255,255,255,0.08)", marginTop: -2 }}>
+                    {repliesOf(c.id).map(r => <CommentRow key={r.id} c={r} isReply={true} />)}
+                  </div>
+                )}
               </div>
             ))
           )}
