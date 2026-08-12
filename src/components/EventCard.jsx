@@ -375,19 +375,11 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       )}
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "65%", background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 50%, transparent 100%)" }} />
 
-      <div style={{ position: "absolute", top: 20, left: 16, display: "flex", alignItems: "center", gap: 6 }}>
-        <div style={{ padding: "4px 10px", borderRadius: 20, background: event.type === "official" ? `${event.color}30` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "80" : "rgba(255,255,255,0.2)"}`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ display: "flex", color: event.type === "official" ? event.color : "rgba(255,255,255,0.85)" }}>{event.type === "official" ? <LightningIcon size={12} /> : <HouseIcon size={12} />}</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: event.type === "official" ? event.color : "rgba(255,255,255,0.85)", letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>
-            {event.type === "official" ? "Oficial" : "Homemade"}
-          </span>
+      {event.age_restricted && (
+        <div style={{ position: "absolute", top: 20, right: 16, padding: "4px 10px", borderRadius: 20, background: "rgba(255,51,102,0.25)", border: "1px solid rgba(255,51,102,0.6)", backdropFilter: "blur(10px)" }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: "#FF3366", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace" }}>18+</span>
         </div>
-        {event.age_restricted && (
-          <div style={{ padding: "4px 10px", borderRadius: 20, background: "rgba(255,51,102,0.25)", border: "1px solid rgba(255,51,102,0.6)", backdropFilter: "blur(10px)" }}>
-            <span style={{ fontSize: 11, fontWeight: 800, color: "#FF3366", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace" }}>18+</span>
-          </div>
-        )}
-      </div>
+      )}
 
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 64, padding: "0 16px 28px" }}>
         <div
@@ -410,10 +402,14 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           {event.tags.map(tag => (
             <span key={tag} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 12, background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace" }}>#{tag}</span>
           ))}
+          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: event.type === "official" ? `${event.color}25` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "50" : "rgba(255,255,255,0.15)"}`, color: event.type === "official" ? event.color : "rgba(255,255,255,0.75)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", display: "inline-flex", alignItems: "center", gap: 4 }}>
+            {event.type === "official" ? <LightningIcon size={11} /> : <HouseIcon size={11} />}
+            {event.type === "official" ? "Oficial" : "Homemade"}
+          </span>
           <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{event.price}</span>
           {event.code && (
             <span
-              onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(event.code); }}
+              onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(event.code); showToast("Cod copiat!", "#00C864"); }}
               style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
               title="Apasă pentru a copia codul"
             >
