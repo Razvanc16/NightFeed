@@ -90,14 +90,26 @@ export default function PostPage({ user, onClose, editEvent }) {
       const url = URL.createObjectURL(file);
       const probe = document.createElement("video");
       probe.preload = "metadata";
+      probe.muted = true;
+      probe.playsInline = true;
+      // Safari pe iOS nu declanșează fiabil loadedmetadata/error pe un
+      // <video> care nu e atașat în DOM (Chrome/Firefox nu au problema asta)
+      // — de-asta clipurile de pe iPhone cădeau direct pe "nu am putut citi".
+      probe.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;";
+      document.body.appendChild(probe);
+      const cleanup = () => {
+        URL.revokeObjectURL(url);
+        probe.remove();
+      };
       const finish = (duration) => {
         if (duration > 15.5) {
           setCoverError(`Videoclipul are ${duration.toFixed(0)}s — maxim 15 secunde.`);
-          URL.revokeObjectURL(url);
+          cleanup();
           return;
         }
         setCoverFile(file);
         setCoverPreview(url);
+        probe.remove();
       };
       probe.onloadedmetadata = () => {
         // Chrome raportează duration = Infinity la unele fișiere (mai ales
@@ -115,7 +127,7 @@ export default function PostPage({ user, onClose, editEvent }) {
       };
       probe.onerror = () => {
         setCoverError("Nu am putut citi acest videoclip. Încearcă alt fișier.");
-        URL.revokeObjectURL(url);
+        cleanup();
       };
       probe.src = url;
     } else {
