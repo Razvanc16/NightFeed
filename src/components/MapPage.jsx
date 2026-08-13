@@ -133,7 +133,7 @@ export default function MapPage({ user, isActive }) {
   };
 
   const loadPostedEvents = async () => {
-    const { data } = await supabase.from("posted_events_feed").select("*").not("lat_approx", "is", null);
+    const { data } = await supabase.from("posted_events_feed").select("*").eq("archived", false).not("lat_approx", "is", null);
     setPostedEvents(filterActiveEvents(data));
   };
 

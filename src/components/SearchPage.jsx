@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { filterActiveEvents } from "../utils/eventTime";
-import { KeyIcon, SearchIcon, MoonIcon, LightningIcon, HouseIcon } from "./Icons";
+import { KeyIcon, SearchIcon, MoonIcon, LightningIcon, HouseIcon, PersonIcon } from "./Icons";
 
 const convertPostedEvent = (e, organizerMap = {}) => {
   const organizer = organizerMap[e.user_id] || {};
@@ -24,16 +24,36 @@ const convertPostedEvent = (e, organizerMap = {}) => {
   };
 };
 
-export default function SearchPage({ onOpenEvent }) {
+export default function SearchPage({ onOpenEvent, onViewProfile }) {
+  const [searchMode, setSearchMode] = useState("events"); // "events" | "people"
   const [query, setQuery] = useState("");
   const [code, setCode] = useState("");
   const [allEvents, setAllEvents] = useState([]);
+  const [people, setPeople] = useState([]);
+  const [peopleLoading, setPeopleLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [codeError, setCodeError] = useState("");
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("posted_events_feed").select("*").order("created_at", { ascending: false });
+      const [{ data: profiles }, { data: usernames }] = await Promise.all([
+        supabase.from("profiles").select("user_id, nume, prenume, avatar_url"),
+        supabase.from("usernames").select("user_id, username"),
+      ]);
+      const unameMap = Object.fromEntries((usernames || []).map(u => [u.user_id, u.username]));
+      setPeople((profiles || []).map(p => ({
+        user_id: p.user_id,
+        displayName: [p.prenume, p.nume].filter(Boolean).join(" ").trim(),
+        username: unameMap[p.user_id] || "",
+        avatar_url: p.avatar_url,
+      })).filter(p => p.displayName || p.username));
+      setPeopleLoading(false);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("posted_events_feed").select("*").eq("archived", false).order("created_at", { ascending: false });
       const active = filterActiveEvents(data);
 
       // Aducem numele/username-ul hostilor, ca să poți căuta și după numele lor,
@@ -74,6 +94,9 @@ export default function SearchPage({ onOpenEvent }) {
     e.organizerName.toLowerCase().includes(q) ||
     e.organizerUsername.toLowerCase().includes(q)
   );
+  const peopleResults = q.length === 0 ? people : people.filter(p =>
+    p.displayName.toLowerCase().includes(q) || p.username.toLowerCase().includes(q)
+  );
 
   const handleCodeSubmit = () => {
     setCodeError("");
@@ -108,44 +131,89 @@ export default function SearchPage({ onOpenEvent }) {
         </div>
 
         {/* Căutare text */}
-        <div style={{ position: "relative", marginBottom: 20 }}>
+        <div style={{ position: "relative", marginBottom: 14 }}>
           <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", opacity: 0.4, display: "flex" }}><SearchIcon size={16} /></span>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Caută după nume, host, loc, tag..."
+            placeholder={searchMode === "events" ? "Caută după nume, host, loc, tag..." : "Caută după nume sau username..."}
             style={{ width: "100%", padding: "13px 16px 13px 44px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
           />
         </div>
 
+        {/* Comutator Evenimente / Oameni */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+          {[{ id: "events", label: "Evenimente", icon: SearchIcon }, { id: "people", label: "Oameni", icon: PersonIcon }].map(m => (
+            <button
+              key={m.id}
+              onClick={() => setSearchMode(m.id)}
+              style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                padding: "9px 12px", borderRadius: 12, cursor: "pointer",
+                background: searchMode === m.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${searchMode === m.id ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.08)"}`,
+                color: searchMode === m.id ? "#FF3366" : "rgba(255,255,255,0.5)",
+                fontSize: 13, fontWeight: searchMode === m.id ? 700 : 500, fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              <m.icon size={14} /> {m.label}
+            </button>
+          ))}
+        </div>
+
         {/* Rezultate */}
-        {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: "40px", color: "rgba(255,255,255,0.3)", animation: "pulse 1.5s ease-in-out infinite" }}><MoonIcon size={32} /></div>
-        ) : results.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
-            <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}><SearchIcon size={36} /></div>
-            <div style={{ fontSize: 14 }}>{q ? "Niciun rezultat pentru căutarea ta." : "Niciun eveniment încă."}</div>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {results.map(event => (
-              <button key={event.id} onClick={() => onOpenEvent(event)} style={{ textAlign: "left", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 46, height: 46, borderRadius: 12, background: event.cover_url ? "transparent" : `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", color: event.color, flexShrink: 0, overflow: "hidden" }}>
-                  {event.cover_url ? <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />)}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {event.type === "homemade" ? "Zonă aproximativă" : event.venue} · {event.date}
-                    {event.organizerName && ` · ${event.organizerName}`}
+        {searchMode === "events" ? (
+          loading ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "40px", color: "rgba(255,255,255,0.3)", animation: "pulse 1.5s ease-in-out infinite" }}><MoonIcon size={32} /></div>
+          ) : results.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
+              <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}><SearchIcon size={36} /></div>
+              <div style={{ fontSize: 14 }}>{q ? "Niciun rezultat pentru căutarea ta." : "Niciun eveniment încă."}</div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {results.map(event => (
+                <button key={event.id} onClick={() => onOpenEvent(event)} style={{ textAlign: "left", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 46, height: 46, borderRadius: 12, background: event.cover_url ? "transparent" : `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", color: event.color, flexShrink: 0, overflow: "hidden" }}>
+                    {event.cover_url ? <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />)}
                   </div>
-                </div>
-                <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: event.color, letterSpacing: "0.1em", padding: "3px 8px", borderRadius: 8, background: `${event.color}15`, flexShrink: 0 }}>
-                  {event.code || "—"}
-                </div>
-              </button>
-            ))}
-          </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {event.type === "homemade" ? "Zonă aproximativă" : event.venue} · {event.date}
+                      {event.organizerName && ` · ${event.organizerName}`}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: event.color, letterSpacing: "0.1em", padding: "3px 8px", borderRadius: 8, background: `${event.color}15`, flexShrink: 0 }}>
+                    {event.code || "—"}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )
+        ) : (
+          peopleLoading ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "40px", color: "rgba(255,255,255,0.3)", animation: "pulse 1.5s ease-in-out infinite" }}><MoonIcon size={32} /></div>
+          ) : peopleResults.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
+              <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}><PersonIcon size={36} /></div>
+              <div style={{ fontSize: 14 }}>{q ? "Niciun om găsit pentru căutarea ta." : "Niciun profil încă."}</div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {peopleResults.map(p => (
+                <button key={p.user_id} onClick={() => onViewProfile(p.user_id)} style={{ textAlign: "left", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 46, height: 46, borderRadius: "50%", background: p.avatar_url ? "transparent" : "linear-gradient(135deg, #FF3366, #B44FFF)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", flexShrink: 0, overflow: "hidden", fontSize: 16, fontWeight: 800 }}>
+                    {p.avatar_url ? <img src={p.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (p.displayName || p.username || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName || p.username}</div>
+                    {p.username && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>@{p.username}</div>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

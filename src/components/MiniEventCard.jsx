@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { LightningIcon, HouseIcon, PlusIcon, CheckCircleIcon } from "./Icons";
 import JoinRequestSheet from "./JoinRequestSheet";
@@ -18,6 +18,7 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
   const [likeCount, setLikeCount] = useState(0);
   const [attending, setAttending] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const attendBusyRef = useRef(false);
 
   const isJoinable = event.isPosted && event.type === "homemade";
   const isOwnEvent = !!(user && event.organizer_id && event.organizer_id === user.id);
@@ -60,13 +61,16 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
     e.stopPropagation();
     if (!user || isOwnEvent) return;
     if (isJoinable) { setShowJoin(true); return; }
+    if (attendBusyRef.current) return;
     const next = !attending;
+    attendBusyRef.current = true;
     setAttending(next);
     if (next) {
-      await supabase.from("attendances").insert([{ event_id: String(event.id), user_id: user.id }]);
+      await supabase.from("attendances").upsert([{ event_id: String(event.id), user_id: user.id }], { onConflict: "event_id,user_id", ignoreDuplicates: true });
     } else {
       await supabase.from("attendances").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
     }
+    attendBusyRef.current = false;
   };
 
   return (

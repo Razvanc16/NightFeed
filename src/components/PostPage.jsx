@@ -75,11 +75,39 @@ export default function PostPage({ user, onClose, editEvent }) {
     setAddressFocused(false);
   };
 
+  const [coverError, setCoverError] = useState("");
+
   const handleCover = (e) => {
     const file = e.target.files[0];
+    e.target.value = ""; // permite reselectarea aceluiași fișier dacă ai corectat ceva
     if (!file) return;
-    setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
+    setCoverError("");
+
+    if (file.type.startsWith("video/")) {
+      // Verificăm durata înainte să acceptăm — feed-ul suportă doar clipuri
+      // scurte (max 15s), ca să rămână un format rapid de consumat, nu un
+      // upload de filmuleț întreg.
+      const url = URL.createObjectURL(file);
+      const probe = document.createElement("video");
+      probe.preload = "metadata";
+      probe.onloadedmetadata = () => {
+        if (probe.duration > 15.5) {
+          setCoverError(`Videoclipul are ${probe.duration.toFixed(0)}s — maxim 15 secunde.`);
+          URL.revokeObjectURL(url);
+          return;
+        }
+        setCoverFile(file);
+        setCoverPreview(url);
+      };
+      probe.onerror = () => {
+        setCoverError("Nu am putut citi acest videoclip. Încearcă alt fișier.");
+        URL.revokeObjectURL(url);
+      };
+      probe.src = url;
+    } else {
+      setCoverFile(file);
+      setCoverPreview(URL.createObjectURL(file));
+    }
   };
 
   const [showNoPhotoConfirm, setShowNoPhotoConfirm] = useState(false);
@@ -105,7 +133,10 @@ export default function PostPage({ user, onClose, editEvent }) {
     try {
       let cover_url = editEvent?.cover_url || null;
       if (coverFile) {
-        const path = `covers/${user.id}_${Date.now()}`;
+        // Extensia rămâne în path — e cum deosebim video de poză mai târziu în
+        // feed (fără o coloană nouă în bază: .mp4/.mov/.webm etc. = video).
+        const ext = coverFile.name.split(".").pop();
+        const path = `covers/${user.id}_${Date.now()}.${ext}`;
         const { error } = await supabase.storage.from("covers").upload(path, coverFile, { upsert: true });
         if (!error) {
           const { data } = supabase.storage.from("covers").getPublicUrl(path);
@@ -165,20 +196,28 @@ export default function PostPage({ user, onClose, editEvent }) {
 
       <div style={{ padding: "20px 20px 0" }}>
         {/* Cover */}
-        <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: coverPreview ? "transparent" : "rgba(255,51,102,0.08)", border: `2px dashed ${coverPreview ? "transparent" : "rgba(255,51,102,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: coverPreview ? 20 : 8, overflow: "hidden" }}>
-          {coverPreview ? <img src={coverPreview} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (
+        <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: coverPreview ? "transparent" : "rgba(255,51,102,0.08)", border: `2px dashed ${coverPreview ? "transparent" : "rgba(255,51,102,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: coverPreview ? 8 : 8, overflow: "hidden" }}>
+          {coverPreview ? (
+            coverFile?.type.startsWith("video/")
+              ? <video src={coverPreview} muted autoPlay loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <img src={coverPreview} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
             <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)" }}>
               <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}><CameraIcon size={30} /></div>
-              <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace" }}>Adaugă poză cover</div>
+              <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace" }}>Adaugă poză sau video cover (max 15s)</div>
             </div>
           )}
         </div>
-        {!coverPreview && (
-          <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginBottom: 20, textAlign: "center" }}>
-            📸 Evenimentele cu poză ies mult mai bine în evidență în feed
+        {coverError && (
+          <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 8, textAlign: "center" }}>{coverError}</div>
+        )}
+        {!coverPreview && !coverError && (
+          <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 8, marginBottom: 20, textAlign: "center" }}>
+            📸 Evenimentele cu poză sau video ies mult mai bine în evidență în feed
           </div>
         )}
-        <input ref={fileRef} type="file" accept="image/*" onChange={handleCover} style={{ display: "none" }} />
+        {coverPreview && <div style={{ marginBottom: 20 }} />}
+        <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleCover} style={{ display: "none" }} />
 
         {/* Tip */}
         <div style={{ marginBottom: 16 }}>

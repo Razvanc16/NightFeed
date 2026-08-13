@@ -52,6 +52,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [likedEvents, setLikedEvents] = useState([]);
   const [myPostedEvents, setMyPostedEvents] = useState([]);
+  const [archivedEvents, setArchivedEvents] = useState([]);
+  const [postedView, setPostedView] = useState("active"); // "active" | "archived"
   const [editingEvent, setEditingEvent] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
   const [followerCount, setFollowerCount] = useState(0);
@@ -179,6 +181,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     setPushBusy(false);
   };
 
+  // Arhiva se încarcă abia când o deschizi (majoritatea userilor n-o ating
+  // niciodată) — nu are rost un query în plus la fiecare vizită pe profil.
+  useEffect(() => {
+    if (postedView === "archived") loadArchivedEvents();
+  }, [postedView]);
+
   useEffect(() => {
     if (!user) return;
     loadProfileByUserId();
@@ -226,7 +234,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   // Particip / Apreciate — acum din Supabase (tabelele "attendances" și "likes"),
   // valabil pentru evenimente statice ȘI postate de alți useri, sincronizat cross-device.
   const loadAttendingAndLiked = async () => {
-    const { data: postedRaw } = await supabase.from("posted_events_feed").select("*");
+    const { data: postedRaw } = await supabase.from("posted_events_feed").select("*").eq("archived", false);
     const posted = filterActiveEvents(postedRaw).map(convertPostedEventMinimal);
     const allEvents = [...staticEvents, ...posted];
 
@@ -242,12 +250,18 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
 
   const loadMyPostedEvents = async () => {
     if (!user) return;
-    const { data } = await supabase.from("posted_events_feed").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data } = await supabase.from("posted_events_feed").select("*").eq("user_id", user.id).eq("archived", false).order("created_at", { ascending: false });
     const active = filterActiveEvents(data);
     setMyPostedEvents(active);
     // Curăță din Supabase evenimentele mele expirate (best-effort, în fundal) —
     // așa dispar efectiv din bază, nu doar din ce afișează ecranul.
     cleanupOwnExpiredEvents(supabase, data);
+  };
+
+  const loadArchivedEvents = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("posted_events_feed").select("*").eq("user_id", user.id).eq("archived", true).order("created_at", { ascending: false });
+    setArchivedEvents(data || []);
   };
 
   const handleAvatarChange = (e) => {
@@ -309,9 +323,26 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
     setAttendingEvents(prev => prev.filter(e => e.id !== eventId));
   };
 
-  const handleDeletePosted = async (id) => {
-    await supabase.from("posted_events").delete().eq("id", id);
+  // "Șterge" arhivează, nu mai șterge definitiv — evenimentul dispare din
+  // feed/căutare/hartă, dar rămâne recuperabil din Arhivă.
+  const handleArchivePosted = async (id) => {
+    const event = myPostedEvents.find(e => e.id === id);
+    await supabase.from("posted_events").update({ archived: true }).eq("id", id);
     setMyPostedEvents(prev => prev.filter(e => e.id !== id));
+    if (event) setArchivedEvents(prev => [{ ...event, archived: true }, ...prev]);
+  };
+
+  const handleRestorePosted = async (id) => {
+    const event = archivedEvents.find(e => e.id === id);
+    await supabase.from("posted_events").update({ archived: false }).eq("id", id);
+    setArchivedEvents(prev => prev.filter(e => e.id !== id));
+    if (event) setMyPostedEvents(prev => [{ ...event, archived: false }, ...prev]);
+  };
+
+  const handlePermanentDeletePosted = async (id) => {
+    if (!window.confirm("Ștergi definitiv acest eveniment? Nu mai poate fi recuperat.")) return;
+    await supabase.from("posted_events").delete().eq("id", id);
+    setArchivedEvents(prev => prev.filter(e => e.id !== id));
   };
 
   // Șterge definitiv contul. ORDINEA CONTEAZĂ: ștergem întâi datele proprii
@@ -476,7 +507,27 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
           </div>
 
           <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+            {activeTab === "posted" && (
+              <div style={{ display: "flex", gap: 8, marginBottom: 2 }}>
+                {[{ id: "active", label: "Active" }, { id: "archived", label: `Arhivă${archivedEvents.length ? ` (${archivedEvents.length})` : ""}` }].map(v => (
+                  <button
+                    key={v.id}
+                    onClick={() => setPostedView(v.id)}
+                    style={{
+                      flex: 1, padding: "8px 10px", borderRadius: 10, cursor: "pointer",
+                      background: postedView === v.id ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${postedView === v.id ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.07)"}`,
+                      color: postedView === v.id ? "#FF3366" : "rgba(255,255,255,0.5)",
+                      fontSize: 12, fontWeight: postedView === v.id ? 700 : 500, fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+            )}
             {activeTab === "posted" ? (
+              postedView === "active" ? (
               myPostedEvents.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
                   <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}><OutboxIcon size={28} /></div>
@@ -508,11 +559,36 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       <button onClick={() => setEditingEvent(event)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Editează</button>
-                      <button onClick={() => handleDeletePosted(event.id)} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 8, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Șterge</button>
+                      <button onClick={() => handleArchivePosted(event.id)} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 8, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Arhivează</button>
                     </div>
                   </div>
                 </div>
               ))
+              ) : (
+                archivedEvents.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
+                    <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}><OutboxIcon size={28} /></div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Inter', sans-serif", marginBottom: 6 }}>Arhiva e goală</div>
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Evenimentele pe care le arhivezi apar aici.</div>
+                  </div>
+                ) : archivedEvents.map(event => (
+                  <div key={event.id} style={{ borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", opacity: 0.75 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: event.type === "official" ? "rgba(255,51,102,0.2)" : "rgba(255,184,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: event.type === "official" ? "#FF3366" : "#FFB800", flexShrink: 0 }}>
+                        {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{event.title}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {event.price || "Gratuit"}</div>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <button onClick={() => handleRestorePosted(event.id)} style={{ background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.25)", borderRadius: 8, padding: "5px 10px", color: "#00C864", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Restaurează</button>
+                        <button onClick={() => handlePermanentDeletePosted(event.id)} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 8, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Șterge definitiv</button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )
             ) : (
               (activeTab === "attending" ? attendingEvents : likedEvents).length === 0 ? (
                 <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>

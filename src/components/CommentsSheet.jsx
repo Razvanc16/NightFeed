@@ -15,8 +15,8 @@ const formatTime = (ts) => new Date(ts).toLocaleTimeString("ro-RO", { hour: "2-d
 // de componentă nou la fiecare re-render al părintelui, iar React ar
 // demonta/remonta toate rândurile de fiecare dată (rulau din nou animația de
 // intrare simultan, arătând ca un glitch la fiecare actualizare de state).
-const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggleLike, onReply }) => (
-  <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", animation: "slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
+const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggleLike, onReply, animate }) => (
+  <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", animation: animate ? "slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" : "none" }}>
     <div style={{
       width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
       background: avatarUrl ? "transparent" : `${color}30`, border: `1px solid ${color}50`,
@@ -54,6 +54,11 @@ export default function CommentsSheet({ event, user, open, onClose }) {
   useEffect(() => { if (event) setDisplayEvent(event); }, [event]);
 
   const [comments, setComments] = useState([]);
+  // Comentariile din încărcarea inițială nu trebuie animate — dacă toată
+  // lista bătrână joacă slideUp simultan la fiecare deschidere/re-render,
+  // arată ca un tremur/glitch. Doar cele apărute DUPĂ ce ai deschis sheet-ul
+  // (live prin realtime sau trimise chiar de tine) intră în freshIds.
+  const [freshIds, setFreshIds] = useState(new Set());
   const [avatars, setAvatars] = useState({});
   const [likeCounts, setLikeCounts] = useState({});
   const [myLikes, setMyLikes] = useState(new Set());
@@ -72,12 +77,16 @@ export default function CommentsSheet({ event, user, open, onClose }) {
 
   useEffect(() => {
     if (!open || !event) return;
+    setFreshIds(new Set());
     loadComments();
 
     const channel = supabase
       .channel(`comments:${event.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "comments", filter: `event_id=eq.${event.id}` },
-        (payload) => setComments(prev => [...prev, payload.new])
+        (payload) => {
+          setComments(prev => [...prev, payload.new]);
+          setFreshIds(prev => new Set(prev).add(payload.new.id));
+        }
       )
       .subscribe();
 
@@ -308,7 +317,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
                 <CommentRow
                   c={c} isReply={false} color={displayEvent.color} avatarUrl={avatars[c.user_id]}
                   likeCount={likeCounts[c.id] || 0} isLiked={myLikes.has(c.id)}
-                  onToggleLike={() => toggleLike(c)} onReply={() => startReply(c)}
+                  onToggleLike={() => toggleLike(c)} onReply={() => startReply(c)} animate={freshIds.has(c.id)}
                 />
                 {repliesOf(c.id).length > 0 && (
                   <div style={{ marginLeft: 16, paddingLeft: 16, borderLeft: "2px solid rgba(255,255,255,0.08)", marginTop: -2 }}>
@@ -316,7 +325,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
                       <CommentRow
                         key={r.id} c={r} isReply={true} color={displayEvent.color} avatarUrl={avatars[r.user_id]}
                         likeCount={likeCounts[r.id] || 0} isLiked={myLikes.has(r.id)}
-                        onToggleLike={() => toggleLike(r)} onReply={() => startReply(r)}
+                        onToggleLike={() => toggleLike(r)} onReply={() => startReply(r)} animate={freshIds.has(r.id)}
                       />
                     ))}
                   </div>

@@ -309,6 +309,7 @@ export default function App() {
     const { data, error } = await supabase
       .from("posted_events_feed")
       .select("*")
+      .eq("archived", false)
       .order("created_at", { ascending: false });
     if (!data) return;
 
@@ -549,7 +550,7 @@ export default function App() {
           {/* SEARCH PAGE */}
           {activeTab === "search" && (
             <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
-              <SearchPage onOpenEvent={openSpecificEvent} />
+              <SearchPage onOpenEvent={openSpecificEvent} onViewProfile={(uid) => setViewingProfile(uid)} />
             </div>
           )}
 
