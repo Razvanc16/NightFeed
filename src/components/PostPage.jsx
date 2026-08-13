@@ -82,7 +82,9 @@ export default function PostPage({ user, onClose, editEvent }) {
     setCoverPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async () => {
+  const [showNoPhotoConfirm, setShowNoPhotoConfirm] = useState(false);
+
+  const handleSubmit = () => {
     if (!form.title || !form.venue || !form.eventDate || !form.eventTime) {
       alert("Completează titlul, locația și data/ora!"); return;
     }
@@ -91,6 +93,14 @@ export default function PostPage({ user, onClose, editEvent }) {
     }
     if (!user) { alert("Trebuie să fii autentificat!"); return; }
 
+    // Evenimentele fără poză se văd mult mai slab în feed (doar gradient) —
+    // înainte să postăm, dăm ocazia să adauge una, fără să blocăm pe cine
+    // chiar vrea să posteze fără.
+    if (!coverPreview) { setShowNoPhotoConfirm(true); return; }
+    doSubmit();
+  };
+
+  const doSubmit = async () => {
     setLoading(true);
     try {
       let cover_url = editEvent?.cover_url || null;
@@ -155,7 +165,7 @@ export default function PostPage({ user, onClose, editEvent }) {
 
       <div style={{ padding: "20px 20px 0" }}>
         {/* Cover */}
-        <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: coverPreview ? "transparent" : "rgba(255,51,102,0.08)", border: `2px dashed ${coverPreview ? "transparent" : "rgba(255,51,102,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: 20, overflow: "hidden" }}>
+        <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: coverPreview ? "transparent" : "rgba(255,51,102,0.08)", border: `2px dashed ${coverPreview ? "transparent" : "rgba(255,51,102,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: coverPreview ? 20 : 8, overflow: "hidden" }}>
           {coverPreview ? <img src={coverPreview} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (
             <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)" }}>
               <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}><CameraIcon size={30} /></div>
@@ -163,6 +173,11 @@ export default function PostPage({ user, onClose, editEvent }) {
             </div>
           )}
         </div>
+        {!coverPreview && (
+          <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginBottom: 20, textAlign: "center" }}>
+            📸 Evenimentele cu poză ies mult mai bine în evidență în feed
+          </div>
+        )}
         <input ref={fileRef} type="file" accept="image/*" onChange={handleCover} style={{ display: "none" }} />
 
         {/* Tip */}
@@ -324,6 +339,29 @@ export default function PostPage({ user, onClose, editEvent }) {
           {loading ? "Se salvează..." : isEdit ? <><CheckCircleIcon size={17} /> Salvează modificările</> : <><RocketIcon size={17} /> Trimite evenimentul</>}
         </button>
       </div>
+
+      {showNoPhotoConfirm && (
+        <>
+          <div onClick={() => setShowNoPhotoConfirm(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 500 }} />
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 501, background: "#0f0f12", borderTop: "2px solid rgba(255,51,102,0.3)", borderRadius: "24px 24px 0 0", padding: "22px 20px 40px", animation: "slideUp 0.25s ease-out" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 6, color: "#FF3366" }}><CameraIcon size={36} /></div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", textAlign: "center", marginBottom: 8 }}>
+              Postezi fără poză?
+            </div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", textAlign: "center", lineHeight: 1.5, marginBottom: 20 }}>
+              Evenimentele cu poză primesc mult mai multă atenție în feed. Poți oricând să adaugi una acum.
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button onClick={() => { setShowNoPhotoConfirm(false); fileRef.current?.click(); }} style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", cursor: "pointer" }}>
+                Adaugă o poză
+              </button>
+              <button onClick={() => { setShowNoPhotoConfirm(false); doSubmit(); }} style={{ width: "100%", padding: "13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                Postează oricum
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

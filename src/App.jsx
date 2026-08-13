@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import EventCard from "./components/EventCard";
+import MiniEventCard from "./components/MiniEventCard";
 import FilterDrawer from "./components/FilterDrawer";
 import Navbar from "./components/Navbar";
 import ProgressDots from "./components/ProgressDots";
@@ -97,6 +98,8 @@ export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("feed");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [feedMode, setFeedMode] = useState("foryou"); // "foryou" | "following"
+  const [followingIds, setFollowingIds] = useState(null); // null = încă neîncărcat
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
@@ -127,7 +130,31 @@ export default function App() {
 
   // Combine static + posted events
   const allEvents = [...staticEvents, ...postedEvents];
-  const filtered = allEvents.filter(e => filterFn(e, activeFilter));
+  const byFilter = allEvents.filter(e => filterFn(e, activeFilter));
+  // Tab-ul "Urmăriți" arată doar evenimente postate de conturi pe care le urmărești —
+  // evenimentele statice/oficiale (fără organizer_id real) nu apar niciodată acolo.
+  const filtered = feedMode === "following"
+    ? byFilter.filter(e => e.organizer_id && followingIds?.has(e.organizer_id))
+    : byFilter;
+
+  // Evenimentele fără poză de copertă arată sărac ocupând fiecare câte un
+  // slide întreg (doar un gradient) — le grupăm câte 4 pe un singur "slide"
+  // sub formă de grilă, cu acțiunile esențiale direct acolo. Evenimentele
+  // cu poză rămân neschimbate, câte unul pe slide.
+  const slides = [];
+  {
+    let buffer = [];
+    for (const e of filtered) {
+      if (e.cover_url) {
+        if (buffer.length) { slides.push({ type: "grid", events: buffer }); buffer = []; }
+        slides.push({ type: "single", event: e });
+      } else {
+        buffer.push(e);
+        if (buffer.length === 4) { slides.push({ type: "grid", events: buffer }); buffer = []; }
+      }
+    }
+    if (buffer.length) slides.push({ type: "grid", events: buffer });
+  }
 
   useEffect(() => {
     recoveryModeRef.current = recoveryMode;
@@ -242,6 +269,18 @@ export default function App() {
     requestAnimationFrame(() => requestAnimationFrame(() => setNotifToastShow(true)));
     notifToastTimer.current = setTimeout(dismissNotifToast, 4000);
   };
+
+  const loadFollowingIds = async () => {
+    if (!user) { setFollowingIds(new Set()); return; }
+    const { data } = await supabase.from("follows").select("following_id").eq("follower_id", user.id);
+    setFollowingIds(new Set((data || []).map(f => f.following_id)));
+  };
+
+  // Reîncărcăm lista de urmăriri la login și de fiecare dată când intri pe
+  // tab-ul "Urmăriți" — dacă tocmai ai urmărit pe cineva din alt ecran
+  // (profil public), să prindă imediat schimbarea.
+  useEffect(() => { loadFollowingIds(); }, [user]);
+  useEffect(() => { if (feedMode === "following") loadFollowingIds(); }, [feedMode]);
 
   // Cât timp ai tab-ul NightFeed deschis și vizibil, notificările noi apar
   // direct în aplicație (toast + sunet propriu) — service worker-ul (sw.js)
@@ -393,18 +432,18 @@ export default function App() {
     if (!feed) return;
     const handleScroll = () => {
       const index = Math.round(feed.scrollTop / feed.clientHeight);
-      setCurrentIndex(Math.min(index, filtered.length - 1));
+      setCurrentIndex(Math.min(index, slides.length - 1));
     };
     feed.addEventListener("scroll", handleScroll, { passive: true });
     return () => feed.removeEventListener("scroll", handleScroll);
-  }, [filtered.length]);
+  }, [slides.length]);
 
   useEffect(() => {
     if (feedRef.current) {
       feedRef.current.scrollTo({ top: 0, behavior: "instant" });
       setCurrentIndex(0);
     }
-  }, [activeFilter]);
+  }, [activeFilter, feedMode]);
 
   const handleTabChange = (tab) => {
     if (tab === "post") { setShowPost(true); return; }
@@ -418,7 +457,9 @@ export default function App() {
   // Deschide un eveniment specific (din Căutare sau cod) — comută pe feed și
   // derulează exact la el.
   const openSpecificEvent = (event) => {
-    const idx = filtered.findIndex(e => e.id === event.id || e.rawId === event.rawId);
+    const idx = slides.findIndex(s => s.type === "single"
+      ? (s.event.id === event.id || s.event.rawId === event.rawId)
+      : s.events.some(e => e.id === event.id || e.rawId === event.rawId));
     setActiveTab("feed");
     setTimeout(() => {
       if (feedRef.current && idx >= 0) {
@@ -533,6 +574,28 @@ export default function App() {
 
           {/* FEED */}
           <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none", position: "relative" }}>
+            <div style={{
+              position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", left: "50%", transform: "translateX(-50%)",
+              zIndex: 50, display: "flex", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
+              borderRadius: 22, padding: 3, backdropFilter: "blur(14px)", boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+            }}>
+              {[{ id: "foryou", label: "Pentru tine" }, { id: "following", label: "Urmăriți" }].map(m => (
+                <button
+                  key={m.id}
+                  onClick={() => setFeedMode(m.id)}
+                  style={{
+                    padding: "7px 14px", borderRadius: 18, border: "none", cursor: "pointer",
+                    background: feedMode === m.id ? "linear-gradient(120deg, #FF3366, #B44FFF)" : "transparent",
+                    color: feedMode === m.id ? "#fff" : "rgba(255,255,255,0.6)",
+                    fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+                    transition: "background 0.2s, color 0.2s", whiteSpace: "nowrap",
+                  }}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
             {(pullDistance > 0 || refreshing) && (
               <div style={{
                 position: "absolute", top: 0, left: 0, right: 0, height: 90, zIndex: 5, pointerEvents: "none",
@@ -622,34 +685,44 @@ export default function App() {
                       background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.5)",
                     }}><MoonIcon size={36} /></div>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
+                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
                       Liniște deocamdată
                     </div>
                     <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
-                      {activeFilter !== "all"
+                      {feedMode === "following"
+                        ? "Nu urmărești pe nimeni care a postat încă. Descoperă evenimente la Pentru tine și urmărește organizatori."
+                        : activeFilter !== "all"
                         ? "Niciun eveniment pentru acest filtru. Încearcă altul sau postează tu ceva."
                         : "Niciun eveniment încă. Fii primul care aprinde noaptea — postează un eveniment."}
                     </div>
-                    <button onClick={() => setShowPost(true)} style={{
+                    <button onClick={() => feedMode === "following" ? setFeedMode("foryou") : setShowPost(true)} style={{
                       padding: "14px 28px", borderRadius: 30, border: "none", cursor: "pointer",
                       background: "linear-gradient(120deg, #FF3366, #B44FFF)", color: "#fff",
-                      fontSize: 15, fontWeight: 700, fontFamily: "'Syne', sans-serif",
+                      fontSize: 15, fontWeight: 700, fontFamily: "'Inter', sans-serif",
                       boxShadow: "0 8px 30px rgba(255,51,102,0.35)",
                     }}>
-                      + Postează primul eveniment
+                      {feedMode === "following" ? "Vezi Pentru tine" : "+ Postează primul eveniment"}
                     </button>
                   </div>
                 </div>
               ) : (
-                filtered.map((event, i) => (
-                  <div key={event.id} style={{ width: "100%", height: "calc(100dvh - 64px)", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
-                    <EventCard event={event} isActive={i === currentIndex} user={user} onComment={() => setCommentsEvent(event)} onViewProfile={(uid) => setViewingProfile(uid)} />
+                slides.map((slide, i) => (
+                  <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: "calc(100dvh - 64px)", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
+                    {slide.type === "single" ? (
+                      <EventCard event={slide.event} isActive={i === currentIndex} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: "#050506", padding: "70px 12px 12px", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 10 }}>
+                        {slide.events.map(ev => (
+                          <MiniEventCard key={ev.id} event={ev} user={user} onOpenComments={(event) => setCommentsEvent(event)} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))
               )}
             </div>
 
-            {filtered.length > 1 && <ProgressDots total={filtered.length} current={currentIndex} color={filtered[currentIndex]?.color} />}
+            {slides.length > 1 && <ProgressDots total={slides.length} current={currentIndex} color={slides[currentIndex]?.type === "single" ? slides[currentIndex].event.color : "#FF3366"} />}
 
             <button
               onClick={() => setDrawerOpen(true)}

@@ -17,7 +17,7 @@ const timeAgo = (iso) => {
   return new Date(iso).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 };
 
-export default function NotificationsPage({ user, onClose }) {
+export default function NotificationsPage({ user, onClose, onViewProfile }) {
   const [notifications, setNotifications] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
@@ -74,8 +74,13 @@ export default function NotificationsPage({ user, onClose }) {
           const Icon = ICONS[n.type] || EnvelopeIcon;
           const color = COLORS[n.type] || "#FF3366";
           const avatarUrl = n.actor_id ? avatars[n.actor_id] : null;
+          const clickable = !!(n.actor_id && onViewProfile);
           return (
-            <div key={n.id} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", borderRadius: 14, background: n.read ? "rgba(255,255,255,0.03)" : `${color}0d`, border: `1px solid ${n.read ? "rgba(255,255,255,0.07)" : color + "30"}` }}>
+            <div
+              key={n.id}
+              onClick={clickable ? () => { onViewProfile(n.actor_id); onClose(); } : undefined}
+              style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", borderRadius: 14, background: n.read ? "rgba(255,255,255,0.03)" : `${color}0d`, border: `1px solid ${n.read ? "rgba(255,255,255,0.07)" : color + "30"}`, cursor: clickable ? "pointer" : "default" }}
+            >
               <div style={{ position: "relative", flexShrink: 0 }}>
                 <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden", background: avatarUrl ? "transparent" : `${color}20`, border: `1px solid ${color}40`, display: "flex", alignItems: "center", justifyContent: "center", color }}>
                   {avatarUrl ? <img src={avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Icon size={16} />}

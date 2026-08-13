@@ -160,6 +160,10 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
         @keyframes floatOrb2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-30px,40px) scale(1.05); } }
         @keyframes floatOrb3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,30px) scale(1.12); } }
         @keyframes authGrain { 0%,100% { opacity: 0.03; } 50% { opacity: 0.05; } }
+        .auth-card input[type="text"]:focus, .auth-card input[type="email"]:focus {
+          border-color: rgba(255,51,102,0.5) !important;
+          box-shadow: 0 0 0 3px rgba(255,51,102,0.12);
+        }
       `}</style>
       <div style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", top: "-120px", left: "-100px", background: "radial-gradient(circle, rgba(255,51,102,0.35), transparent 70%)", filter: "blur(70px)", animation: "floatOrb1 14s ease-in-out infinite", pointerEvents: "none" }} />
       <div style={{ position: "absolute", width: 460, height: 460, borderRadius: "50%", bottom: "-140px", right: "-120px", background: "radial-gradient(circle, rgba(180,79,255,0.30), transparent 70%)", filter: "blur(70px)", animation: "floatOrb2 18s ease-in-out infinite", pointerEvents: "none" }} />
@@ -191,19 +195,19 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
             <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.5" fill="none" opacity="0.5"/>
           </svg>
         </div>
-        <div style={{ fontSize: 28, fontWeight: 900, color: "#fff", fontFamily: "'Syne', sans-serif" }}>
+        <div style={{ fontSize: 28, fontWeight: 900, color: "#fff", fontFamily: "'Inter', sans-serif" }}>
           Night<span style={{ color: "#FF3366" }}>Feed</span>
         </div>
       </div>
 
       {/* Verify email screen */}
       {mode === "verify" && (
-        <div style={{ width: "100%", maxWidth: 340, textAlign: "center" }}>
+        <div className="auth-card" style={{ width: "100%", maxWidth: 340, textAlign: "center", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "30px 24px", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
           <div style={{ marginBottom: 16, color: "rgba(255,255,255,0.6)", display: "flex", justifyContent: "center" }}><EnvelopeIcon size={56} /></div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Playfair Display', serif", marginBottom: 8 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>
             Verifică emailul!
           </div>
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
             Am trimis un link de confirmare la <span style={{ color: "#FF3366" }}>{email}</span>. Dă click pe link și revino aici să te loghezi.
           </div>
           <button
@@ -213,7 +217,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
               background: "linear-gradient(135deg, #FF3366, #FF6B35)",
               border: "none", borderRadius: 14,
               color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Playfair Display', serif", cursor: "pointer",
+              fontFamily: "'Inter', sans-serif", cursor: "pointer",
             }}
           >
             Mergi la login →
@@ -223,26 +227,26 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
       {/* Forgot password: request screen */}
       {mode === "forgot" && (
-        <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="auth-card" style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "26px 24px", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
           <div style={{ textAlign: "center", marginBottom: 4 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Playfair Display', serif", display: "inline-flex", alignItems: "center", gap: 6 }}>Resetează parola <KeyIcon size={15} /></div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'Instrument Sans', sans-serif", marginTop: 6 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Inter', sans-serif", display: "inline-flex", alignItems: "center", gap: 6 }}>Resetează parola <KeyIcon size={15} /></div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>
               Îți trimitem un link de resetare pe email.
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'Instrument Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
             <input
               type="email" placeholder="email@exemplu.com"
               value={email} onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleForgotSubmit()}
-              style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'Instrument Sans', sans-serif", outline: "none" }}
+              style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
             />
           </div>
 
           {error && (
-            <div style={{ padding: "10px 14px", background: "rgba(255,51,102,0.15)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontFamily: "'Instrument Sans', sans-serif" }}>
+            <div style={{ padding: "10px 14px", background: "rgba(255,51,102,0.15)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>
               {error}
             </div>
           )}
@@ -255,7 +259,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
               background: (loading || resetCooldown > 0) ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
               border: "none", borderRadius: 14,
               color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: "'Inter', sans-serif",
               cursor: (loading || resetCooldown > 0) ? "not-allowed" : "pointer",
               boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
               marginTop: 4,
@@ -275,12 +279,12 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
       {/* Forgot password: confirmation screen */}
       {mode === "forgot-sent" && (
-        <div style={{ width: "100%", maxWidth: 340, textAlign: "center" }}>
+        <div className="auth-card" style={{ width: "100%", maxWidth: 340, textAlign: "center", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "30px 24px", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
           <div style={{ marginBottom: 16, color: "rgba(255,255,255,0.6)", display: "flex", justifyContent: "center" }}><EnvelopeIcon size={56} /></div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Playfair Display', serif", marginBottom: 8 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>
             Verifică emailul!
           </div>
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
             Ți-am trimis un link de resetare la <span style={{ color: "#FF3366" }}>{email}</span>. Dă click pe el și vei putea seta o parolă nouă.
           </div>
           <button
@@ -290,7 +294,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
               background: "linear-gradient(135deg, #FF3366, #FF6B35)",
               border: "none", borderRadius: 14,
               color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Playfair Display', serif", cursor: "pointer",
+              fontFamily: "'Inter', sans-serif", cursor: "pointer",
             }}
           >
             Mergi la login →
@@ -300,44 +304,44 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
       {/* Login / Register form */}
       {(mode === "login" || mode === "register") && (
-        <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="auth-card" style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "26px 24px", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
           <div style={{ textAlign: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Playfair Display', serif", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Inter', sans-serif", display: "inline-flex", alignItems: "center", gap: 6 }}>
               {mode === "login" ? "Bine ai revenit" : <>Cont nou <RocketIcon size={15} /></>}
             </div>
           </div>
 
           {mode === "register" && (
             <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'Instrument Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Username</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Username</div>
               <input
                 type="text" placeholder="ex: razvan_nightfeed"
                 value={username} onChange={e => setUsername(e.target.value)}
-                style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${usernameStatus === "taken" ? "rgba(255,51,102,0.5)" : usernameStatus === "available" ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'Instrument Sans', sans-serif", outline: "none" }}
+                style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${usernameStatus === "taken" ? "rgba(255,51,102,0.5)" : usernameStatus === "available" ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
               />
               {usernameStatus === "checking" && (
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'Instrument Sans', sans-serif", marginTop: 6 }}>Se verifică...</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>Se verifică...</div>
               )}
               {usernameStatus === "available" && (
-                <div style={{ fontSize: 11, color: "#00C864", fontFamily: "'Instrument Sans', sans-serif", marginTop: 6 }}>✓ Disponibil</div>
+                <div style={{ fontSize: 11, color: "#00C864", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>✓ Disponibil</div>
               )}
               {usernameStatus === "taken" && (
-                <div style={{ fontSize: 11, color: "#FF3366", fontFamily: "'Instrument Sans', sans-serif", marginTop: 6 }}>✕ Deja folosit, alege altul</div>
+                <div style={{ fontSize: 11, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>✕ Deja folosit, alege altul</div>
               )}
             </div>
           )}
 
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'Instrument Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
             <input
               type="email" placeholder="email@exemplu.com"
               value={email} onChange={e => setEmail(e.target.value)}
-              style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'Instrument Sans', sans-serif", outline: "none" }}
+              style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
             />
           </div>
 
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'Instrument Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă</div>
             <PasswordInput
               placeholder={mode === "register" ? "creează o parolă puternică" : "parola ta"}
               value={password} onChange={e => setPassword(e.target.value)}
@@ -386,7 +390,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
               background: (loading || (mode === "login" && loginCooldown > 0)) ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
               border: "none", borderRadius: 14,
               color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: "'Inter', sans-serif",
               cursor: (loading || (mode === "login" && loginCooldown > 0)) ? "not-allowed" : "pointer",
               boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
               marginTop: 4,
