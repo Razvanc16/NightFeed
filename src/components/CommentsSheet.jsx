@@ -9,6 +9,43 @@ const HeartIcon = ({ filled, size = 14 }) => (
   </svg>
 );
 
+const formatTime = (ts) => new Date(ts).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
+
+// Definit în afara CommentsSheet (nu inline în render) — altfel ar fi un tip
+// de componentă nou la fiecare re-render al părintelui, iar React ar
+// demonta/remonta toate rândurile de fiecare dată (rulau din nou animația de
+// intrare simultan, arătând ca un glitch la fiecare actualizare de state).
+const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggleLike, onReply }) => (
+  <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", animation: "slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
+    <div style={{
+      width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
+      background: avatarUrl ? "transparent" : `${color}30`, border: `1px solid ${color}50`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: isReply ? 11 : 13, fontWeight: 700, color, fontFamily: "'DM Mono', monospace",
+    }}>
+      {avatarUrl ? <img src={avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (c.username || "U")[0].toUpperCase()}
+    </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif" }}>{c.username || "User"}</span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace" }}>{formatTime(c.created_at)}</span>
+      </div>
+      <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>{c.text}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 6 }}>
+        <button onClick={onToggleLike} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+          <HeartIcon filled={isLiked} size={13} />
+          {likeCount > 0 && (
+            <span style={{ fontSize: 11, color: isLiked ? "#FF3366" : "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{likeCount}</span>
+          )}
+        </button>
+        <button onClick={onReply} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>
+          Răspunde
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 export default function CommentsSheet({ event, user, open, onClose }) {
   // Ținem ultimul event valid și cât timp se închide sheet-ul (event devine
   // null în același render în care open devine false) — altfel componenta
@@ -29,7 +66,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
   const sheetRef = useRef(null);
   const listRef = useRef(null);
   const [dragY, setDragY] = useState(0);
-  const dragStartY = useRef(null);
+  const draggingRef = useRef(false); // adevărat cât timp sheet-ul urmărește efectiv degetul
   const dragYRef = useRef(0);
   const setDragYValue = (v) => { dragYRef.current = v; setDragY(v); };
 
@@ -51,38 +88,55 @@ export default function CommentsSheet({ event, user, open, onClose }) {
     if (open) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   }, [comments, open]);
 
-  // Swipe în jos ca să închizi — funcționează din handle/header oricând, sau
-  // din lista de comentarii doar când e scrolată sus (altfel s-ar bate cap în
-  // cap cu scroll-ul normal al listei).
+  // Swipe în jos ca să închizi — poți începe atingerea oriunde (chiar și
+  // scrolat jos în listă): lași scroll-ul normal să se întâmple până lista
+  // ajunge sus, iar din acel moment tragerea în jos convertește automat
+  // gestul într-un drag-to-close, fără să trebuiască să ridici degetul.
   useEffect(() => {
     const sheet = sheetRef.current;
     if (!sheet || !open) return;
 
+    let touchY = null;
+    let dragging = false;
+
     const onTouchStart = (e) => {
-      const withinList = listRef.current?.contains(e.target);
-      if (withinList && listRef.current.scrollTop > 0) {
-        dragStartY.current = null;
-        return;
-      }
-      dragStartY.current = e.touches[0].clientY;
+      touchY = e.touches[0].clientY;
+      dragging = false;
+      draggingRef.current = false;
     };
     const onTouchMove = (e) => {
-      if (dragStartY.current === null) return;
-      const delta = e.touches[0].clientY - dragStartY.current;
-      if (delta > 4) {
-        e.preventDefault();
-        setDragYValue(delta);
-      } else if (delta < 0) {
-        dragStartY.current = null;
-        setDragYValue(0);
+      if (touchY === null) return;
+      const currentY = e.touches[0].clientY;
+      const delta = currentY - touchY;
+
+      if (!dragging) {
+        const atTop = !listRef.current || listRef.current.scrollTop <= 0;
+        if (delta > 6 && atTop) {
+          dragging = true;
+          draggingRef.current = true;
+        } else {
+          return; // scroll normal al listei, nu tragem sheet-ul încă
+        }
       }
+
+      if (delta < 0) {
+        dragging = false;
+        draggingRef.current = false;
+        touchY = null;
+        setDragYValue(0);
+        return;
+      }
+
+      e.preventDefault();
+      setDragYValue(delta);
     };
     const onTouchEnd = () => {
-      if (dragStartY.current === null) return;
-      dragStartY.current = null;
-      if (dragYRef.current > 90) {
+      if (dragging && dragYRef.current > 90) {
         onClose();
       }
+      touchY = null;
+      dragging = false;
+      draggingRef.current = false;
       setDragYValue(0);
     };
 
@@ -187,43 +241,10 @@ export default function CommentsSheet({ event, user, open, onClose }) {
     setSending(false);
   };
 
-  const formatTime = (ts) => new Date(ts).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
-
   if (!displayEvent) return null;
 
   const topLevel = comments.filter(c => !c.parent_id);
   const repliesOf = (id) => comments.filter(c => c.parent_id === id);
-
-  const CommentRow = ({ c, isReply }) => (
-    <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", animation: "slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
-      <div style={{
-        width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
-        background: avatars[c.user_id] ? "transparent" : `${displayEvent.color}30`, border: `1px solid ${displayEvent.color}50`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: isReply ? 11 : 13, fontWeight: 700, color: displayEvent.color, fontFamily: "'DM Mono', monospace",
-      }}>
-        {avatars[c.user_id] ? <img src={avatars[c.user_id]} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (c.username || "U")[0].toUpperCase()}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif" }}>{c.username || "User"}</span>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace" }}>{formatTime(c.created_at)}</span>
-        </div>
-        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>{c.text}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 6 }}>
-          <button onClick={() => toggleLike(c)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-            <HeartIcon filled={myLikes.has(c.id)} size={13} />
-            {likeCounts[c.id] > 0 && (
-              <span style={{ fontSize: 11, color: myLikes.has(c.id) ? "#FF3366" : "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{likeCounts[c.id]}</span>
-            )}
-          </button>
-          <button onClick={() => startReply(c)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>
-            Răspunde
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <>
@@ -252,7 +273,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
         borderTop: `2px solid ${displayEvent.color}40`,
         borderRadius: "24px 24px 0 0",
         transform: open ? `translateY(${dragY}px)` : "translateY(100%)",
-        transition: dragStartY.current ? "none" : "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)",
+        transition: draggingRef.current ? "none" : "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)",
         zIndex: 201,
         display: "flex",
         flexDirection: "column",
@@ -284,10 +305,20 @@ export default function CommentsSheet({ event, user, open, onClose }) {
           ) : (
             topLevel.map(c => (
               <div key={c.id}>
-                <CommentRow c={c} isReply={false} />
+                <CommentRow
+                  c={c} isReply={false} color={displayEvent.color} avatarUrl={avatars[c.user_id]}
+                  likeCount={likeCounts[c.id] || 0} isLiked={myLikes.has(c.id)}
+                  onToggleLike={() => toggleLike(c)} onReply={() => startReply(c)}
+                />
                 {repliesOf(c.id).length > 0 && (
                   <div style={{ marginLeft: 16, paddingLeft: 16, borderLeft: "2px solid rgba(255,255,255,0.08)", marginTop: -2 }}>
-                    {repliesOf(c.id).map(r => <CommentRow key={r.id} c={r} isReply={true} />)}
+                    {repliesOf(c.id).map(r => (
+                      <CommentRow
+                        key={r.id} c={r} isReply={true} color={displayEvent.color} avatarUrl={avatars[r.user_id]}
+                        likeCount={likeCounts[r.id] || 0} isLiked={myLikes.has(r.id)}
+                        onToggleLike={() => toggleLike(r)} onReply={() => startReply(r)}
+                      />
+                    ))}
                   </div>
                 )}
               </div>

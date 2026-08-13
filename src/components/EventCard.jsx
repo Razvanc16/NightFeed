@@ -10,27 +10,29 @@ const HeartIcon = ({ filled, color, size = 22 }) => (
   </svg>
 );
 
+const iconShadow = { filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))" };
+
 const CheckIcon = ({ color }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={iconShadow}>
     <polyline points="20 6 9 17 4 12"/>
   </svg>
 );
 
 const ShareIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={iconShadow}>
     <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
   </svg>
 );
 
 const PlusIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={iconShadow}>
     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
   </svg>
 );
 
 const CommentIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={iconShadow}>
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
   </svg>
 );
@@ -359,7 +361,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       <style>{`
         @keyframes btnBounce { 0%{transform:scale(1)} 30%{transform:scale(0.85)} 60%{transform:scale(1.2)} 80%{transform:scale(0.95)} 100%{transform:scale(1)} }
         @keyframes heartFlyColor {
-          0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; filter: brightness(1) saturate(1) hue-rotate(0deg); }
+          0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; filter: brightness(1) saturate(1) hue-rotate(0deg); }
           18% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; filter: brightness(1.3) saturate(1.5) hue-rotate(18deg); }
           35% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: brightness(1) saturate(1) hue-rotate(0deg); }
           100% { transform: translate(-50%, -160%) scale(0.7); opacity: 0; filter: brightness(1.15) saturate(1.3) hue-rotate(-25deg); }
@@ -429,27 +431,12 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       <div style={{ position: "absolute", right: 12, bottom: 90, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
         {buttons.map(btn => (
           <button key={btn.key} onClick={btn.onClick} disabled={btn.disabled} title={btn.title} style={{ background: "none", border: "none", cursor: btn.disabled ? "default" : "pointer", opacity: btn.disabled ? 0.4 : 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: 0 }}>
-            {btn.key === "like" ? (
-              <div style={{
-                width: 46, height: 46, display: "flex", alignItems: "center", justifyContent: "center",
-                animation: btnAnim[btn.key] ? "btnBounce 0.4s ease-out" : "none",
-              }}>
-                {btn.icon}
-              </div>
-            ) : (
-              <div style={{
-                width: 46, height: 46, borderRadius: "50%",
-                background: btn.active ? `${event.color}25` : "rgba(255,255,255,0.08)",
-                border: `1.5px solid ${btn.active ? event.color : "rgba(255,255,255,0.15)"}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: btn.active ? `0 0 20px ${event.color}50` : "none",
-                backdropFilter: "blur(10px)",
-                animation: btnAnim[btn.key] ? "btnBounce 0.4s ease-out" : "none",
-                transition: "background 0.2s, border 0.2s, box-shadow 0.2s",
-              }}>
-                {btn.icon}
-              </div>
-            )}
+            <div style={{
+              width: 46, height: 46, display: "flex", alignItems: "center", justifyContent: "center",
+              animation: btnAnim[btn.key] ? "btnBounce 0.4s ease-out" : "none",
+            }}>
+              {btn.icon}
+            </div>
             {btn.label && (
               <span style={{ fontSize: 11, fontWeight: 700, color: btn.active ? event.color : "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace", transition: "color 0.2s" }}>
                 {btn.label}
