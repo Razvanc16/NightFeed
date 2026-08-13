@@ -90,14 +90,28 @@ export default function PostPage({ user, onClose, editEvent }) {
       const url = URL.createObjectURL(file);
       const probe = document.createElement("video");
       probe.preload = "metadata";
-      probe.onloadedmetadata = () => {
-        if (probe.duration > 15.5) {
-          setCoverError(`Videoclipul are ${probe.duration.toFixed(0)}s — maxim 15 secunde.`);
+      const finish = (duration) => {
+        if (duration > 15.5) {
+          setCoverError(`Videoclipul are ${duration.toFixed(0)}s — maxim 15 secunde.`);
           URL.revokeObjectURL(url);
           return;
         }
         setCoverFile(file);
         setCoverPreview(url);
+      };
+      probe.onloadedmetadata = () => {
+        // Chrome raportează duration = Infinity la unele fișiere (mai ales
+        // webm fără metadate complete) până cauți în video măcar o dată —
+        // fără hack-ul ăsta, orice astfel de clip era respins ca fiind "prea lung".
+        if (!isFinite(probe.duration)) {
+          probe.currentTime = 1e9;
+          probe.ontimeupdate = () => {
+            probe.ontimeupdate = null;
+            finish(probe.duration);
+          };
+        } else {
+          finish(probe.duration);
+        }
       };
       probe.onerror = () => {
         setCoverError("Nu am putut citi acest videoclip. Încearcă alt fișier.");
@@ -138,10 +152,9 @@ export default function PostPage({ user, onClose, editEvent }) {
         const ext = coverFile.name.split(".").pop();
         const path = `covers/${user.id}_${Date.now()}.${ext}`;
         const { error } = await supabase.storage.from("covers").upload(path, coverFile, { upsert: true });
-        if (!error) {
-          const { data } = supabase.storage.from("covers").getPublicUrl(path);
-          cover_url = data.publicUrl;
-        }
+        if (error) throw error;
+        const { data } = supabase.storage.from("covers").getPublicUrl(path);
+        cover_url = data.publicUrl;
       }
 
       // venue/lat/lng nu mai trăiesc în posted_events (sunt în tabelul separat
