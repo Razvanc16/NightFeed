@@ -76,12 +76,14 @@ export default function PostPage({ user, onClose, editEvent }) {
   };
 
   const [coverError, setCoverError] = useState("");
+  const [coverUnverified, setCoverUnverified] = useState(false);
 
   const handleCover = (e) => {
     const file = e.target.files[0];
     e.target.value = ""; // permite reselectarea aceluiași fișier dacă ai corectat ceva
     if (!file) return;
     setCoverError("");
+    setCoverUnverified(false);
 
     if (file.type.startsWith("video/")) {
       // Verificăm durata înainte să acceptăm — feed-ul suportă doar clipuri
@@ -126,8 +128,16 @@ export default function PostPage({ user, onClose, editEvent }) {
         }
       };
       probe.onerror = () => {
-        setCoverError("Nu am putut citi acest videoclip. Încearcă alt fișier.");
-        cleanup();
+        // Unele clipuri (mai ales .mov de pe iPhone) nu pot fi decodate local
+        // dintr-un blob: URL în Safari, deși același fișier se redă normal
+        // odată urcat pe server (acolo ajunge prin HTTP, nu prin blob) — nu
+        // blocăm postarea doar pentru că nu putem verifica local durata,
+        // doar renunțăm la previzualizare și la limita de 15s pentru el.
+        probe.remove();
+        URL.revokeObjectURL(url);
+        setCoverFile(file);
+        setCoverPreview(null);
+        setCoverUnverified(true);
       };
       probe.src = url;
     } else {
@@ -150,7 +160,7 @@ export default function PostPage({ user, onClose, editEvent }) {
     // Evenimentele fără poză se văd mult mai slab în feed (doar gradient) —
     // înainte să postăm, dăm ocazia să adauge una, fără să blocăm pe cine
     // chiar vrea să posteze fără.
-    if (!coverPreview) { setShowNoPhotoConfirm(true); return; }
+    if (!coverPreview && !coverUnverified) { setShowNoPhotoConfirm(true); return; }
     doSubmit();
   };
 
@@ -221,8 +231,13 @@ export default function PostPage({ user, onClose, editEvent }) {
 
       <div style={{ padding: "20px 20px 0" }}>
         {/* Cover */}
-        <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: coverPreview ? "transparent" : "rgba(255,51,102,0.08)", border: `2px dashed ${coverPreview ? "transparent" : "rgba(255,51,102,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: coverPreview ? 8 : 8, overflow: "hidden" }}>
-          {coverPreview ? (
+        <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: (coverPreview || coverUnverified) ? "transparent" : "rgba(255,51,102,0.08)", border: `2px dashed ${(coverPreview || coverUnverified) ? "transparent" : "rgba(255,51,102,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: 8, overflow: "hidden" }}>
+          {coverUnverified ? (
+            <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.06)", width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}><CameraIcon size={30} /></div>
+              <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace" }}>Videoclip selectat ({coverFile?.name})</div>
+            </div>
+          ) : coverPreview ? (
             coverFile?.type.startsWith("video/")
               ? <video src={coverPreview} muted autoPlay loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               : <img src={coverPreview} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -236,12 +251,17 @@ export default function PostPage({ user, onClose, editEvent }) {
         {coverError && (
           <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 8, textAlign: "center" }}>{coverError}</div>
         )}
-        {!coverPreview && !coverError && (
+        {coverUnverified && (
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 8, textAlign: "center" }}>
+            Nu am putut previzualiza clipul aici, dar se poate încă posta — verifică doar tu că e sub 15 secunde.
+          </div>
+        )}
+        {!coverPreview && !coverUnverified && !coverError && (
           <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 8, marginBottom: 20, textAlign: "center" }}>
             📸 Evenimentele cu poză sau video ies mult mai bine în evidență în feed
           </div>
         )}
-        {coverPreview && <div style={{ marginBottom: 20 }} />}
+        {(coverPreview || coverUnverified) && <div style={{ marginBottom: 20 }} />}
         <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleCover} style={{ display: "none" }} />
 
         {/* Tip */}
