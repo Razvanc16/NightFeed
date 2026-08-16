@@ -21,7 +21,7 @@ import { playNotificationSound, primeNotificationAudio } from "./utils/notificat
 import { setAppVisible } from "./utils/appVisibility";
 import { MoonIcon, FilterIcon, BellIcon } from "./components/Icons";
 
-const filterLabels = { all: "Toate", official: "Oficial", homemade: "Homemade", today: "Azi", weekend: "Weekend", free: "Gratuit" };
+const filterLabels = { all: "Toate", official: "Oficial", homemade: "Neoficial", today: "Azi", weekend: "Weekend", free: "Gratuit" };
 
 const filterFn = (event, filter) => {
   if (filter === "all") return true;
@@ -310,6 +310,10 @@ export default function App() {
       .from("posted_events_feed")
       .select("*")
       .eq("archived", false)
+      // Evenimentele oficiale nepostate de administrare rămân ascunse din
+      // feed până sunt aprobate (verified=true) — cele neoficiale rămân
+      // vizibile imediat, ca înainte.
+      .or("type.neq.official,verified.eq.true")
       .order("created_at", { ascending: false });
     if (!data) return;
 
@@ -759,7 +763,7 @@ export default function App() {
             <FilterDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} active={activeFilter} onChange={setActiveFilter} />
           </div>
 
-          <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => setCommentsEvent(null)} />
+          <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => setCommentsEvent(null)} onViewProfile={(uid) => { setCommentsEvent(null); setViewingProfile(uid); }} />
           <Navbar active={activeTab} onChange={handleTabChange} />
 
           {notifToast && (

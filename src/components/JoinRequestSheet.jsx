@@ -67,7 +67,7 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Mesaj pentru host (opțional)</div>
               <textarea
-                placeholder="ex: Vin cu 2 prieteni, știu de la X..."
+                placeholder="Scrie un mesaj pentru host..."
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 rows={3}

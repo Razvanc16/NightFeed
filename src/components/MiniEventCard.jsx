@@ -104,7 +104,7 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
 
       <div style={{ position: "relative", marginTop: "auto", padding: "8px 10px", zIndex: 1 }}>
         <div style={{ fontSize: 9, fontWeight: 700, color: event.color, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>
-          {event.type === "official" ? "Oficial" : "Homemade"}
+          {event.type === "official" ? "Oficial" : "Neoficial"}
         </div>
         <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", lineHeight: 1.25, marginBottom: 3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
           {event.title}

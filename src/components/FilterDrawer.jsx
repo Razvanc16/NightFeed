@@ -3,7 +3,7 @@ import { SparkleIcon, LightningIcon, HouseIcon, FireIcon, ConfettiIcon, TagIcon 
 const filters = [
   { id: "all", label: "Toate", icon: SparkleIcon },
   { id: "official", label: "Oficial", icon: LightningIcon },
-  { id: "homemade", label: "Homemade", icon: HouseIcon },
+  { id: "homemade", label: "Neoficial", icon: HouseIcon },
   { id: "today", label: "Azi", icon: FireIcon },
   { id: "weekend", label: "Weekend", icon: ConfettiIcon },
   { id: "free", label: "Gratuit", icon: TagIcon },

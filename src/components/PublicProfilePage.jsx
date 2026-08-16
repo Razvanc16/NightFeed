@@ -55,7 +55,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
     setProfile(prof);
     const { data: uname } = await supabase.from("usernames").select("username").eq("user_id", profileUserId).single();
     setUsername(uname?.username || "");
-    const { data: evs } = await supabase.from("posted_events_feed").select("*").eq("user_id", profileUserId).eq("archived", false).order("created_at", { ascending: false });
+    const { data: evs } = await supabase.from("posted_events_feed").select("*").eq("user_id", profileUserId).eq("archived", false).or("type.neq.official,verified.eq.true").order("created_at", { ascending: false });
     setEvents(filterActiveEvents(evs).map(convertPostedEvent));
     await loadCounts();
     if (currentUser) {

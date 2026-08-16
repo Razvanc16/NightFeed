@@ -15,19 +15,22 @@ const formatTime = (ts) => new Date(ts).toLocaleTimeString("ro-RO", { hour: "2-d
 // de componentă nou la fiecare re-render al părintelui, iar React ar
 // demonta/remonta toate rândurile de fiecare dată (rulau din nou animația de
 // intrare simultan, arătând ca un glitch la fiecare actualizare de state).
-const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggleLike, onReply, animate }) => (
+const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggleLike, onReply, animate, onViewProfile }) => (
   <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", animation: animate ? "slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" : "none" }}>
-    <div style={{
-      width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
-      background: avatarUrl ? "transparent" : `${color}30`, border: `1px solid ${color}50`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: isReply ? 11 : 13, fontWeight: 700, color, fontFamily: "'DM Mono', monospace",
-    }}>
+    <div
+      onClick={() => c.user_id && onViewProfile && onViewProfile(c.user_id)}
+      style={{
+        width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
+        background: avatarUrl ? "transparent" : `${color}30`, border: `1px solid ${color}50`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: isReply ? 11 : 13, fontWeight: 700, color, fontFamily: "'DM Mono', monospace",
+        cursor: c.user_id ? "pointer" : "default",
+      }}>
       {avatarUrl ? <img src={avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (c.username || "U")[0].toUpperCase()}
     </div>
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif" }}>{c.username || "User"}</span>
+        <span onClick={() => c.user_id && onViewProfile && onViewProfile(c.user_id)} style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif", cursor: c.user_id ? "pointer" : "default" }}>{c.username || "User"}</span>
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace" }}>{formatTime(c.created_at)}</span>
       </div>
       <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>{c.text}</div>
@@ -46,7 +49,7 @@ const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggle
   </div>
 );
 
-export default function CommentsSheet({ event, user, open, onClose }) {
+export default function CommentsSheet({ event, user, open, onClose, onViewProfile }) {
   // Ținem ultimul event valid și cât timp se închide sheet-ul (event devine
   // null în același render în care open devine false) — altfel componenta
   // s-ar demonta instant, fără să apuce să joace tranziția de translateY.
@@ -317,7 +320,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
                 <CommentRow
                   c={c} isReply={false} color={displayEvent.color} avatarUrl={avatars[c.user_id]}
                   likeCount={likeCounts[c.id] || 0} isLiked={myLikes.has(c.id)}
-                  onToggleLike={() => toggleLike(c)} onReply={() => startReply(c)} animate={freshIds.has(c.id)}
+                  onToggleLike={() => toggleLike(c)} onReply={() => startReply(c)} animate={freshIds.has(c.id)} onViewProfile={onViewProfile}
                 />
                 {repliesOf(c.id).length > 0 && (
                   <div style={{ marginLeft: 16, paddingLeft: 16, borderLeft: "2px solid rgba(255,255,255,0.08)", marginTop: -2 }}>
@@ -325,7 +328,7 @@ export default function CommentsSheet({ event, user, open, onClose }) {
                       <CommentRow
                         key={r.id} c={r} isReply={true} color={displayEvent.color} avatarUrl={avatars[r.user_id]}
                         likeCount={likeCounts[r.id] || 0} isLiked={myLikes.has(r.id)}
-                        onToggleLike={() => toggleLike(r)} onReply={() => startReply(r)} animate={freshIds.has(r.id)}
+                        onToggleLike={() => toggleLike(r)} onReply={() => startReply(r)} animate={freshIds.has(r.id)} onViewProfile={onViewProfile}
                       />
                     ))}
                   </div>

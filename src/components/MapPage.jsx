@@ -12,7 +12,7 @@ import { notifyUser } from "../utils/pushNotifications";
 const filters = [
   { id: "all", label: "Toate", icon: SparkleIcon },
   { id: "official", label: "Oficial", icon: LightningIcon },
-  { id: "homemade", label: "Homemade", icon: HouseIcon },
+  { id: "homemade", label: "Neoficial", icon: HouseIcon },
   { id: "today", label: "Azi", icon: FireIcon },
   { id: "free", label: "Gratuit", icon: TagIcon },
 ];
@@ -133,7 +133,7 @@ export default function MapPage({ user, isActive }) {
   };
 
   const loadPostedEvents = async () => {
-    const { data } = await supabase.from("posted_events_feed").select("*").eq("archived", false).not("lat_approx", "is", null);
+    const { data } = await supabase.from("posted_events_feed").select("*").eq("archived", false).or("type.neq.official,verified.eq.true").not("lat_approx", "is", null);
     setPostedEvents(filterActiveEvents(data));
   };
 

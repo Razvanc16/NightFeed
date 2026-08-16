@@ -53,7 +53,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("posted_events_feed").select("*").eq("archived", false).order("created_at", { ascending: false });
+      const { data } = await supabase.from("posted_events_feed").select("*").eq("archived", false).or("type.neq.official,verified.eq.true").order("created_at", { ascending: false });
       const active = filterActiveEvents(data);
 
       // Aducem numele/username-ul hostilor, ca să poți căuta și după numele lor,
@@ -86,7 +86,10 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
   }, []);
 
   const q = query.trim().toLowerCase();
-  const results = q.length === 0 ? allEvents : allEvents.filter(e =>
+  // Nu arătăm toate evenimentele/userii din start — doar după ce cauți ceva.
+  // allEvents/people rămân încărcate în fundal (pentru filtrare instant și
+  // pentru căutarea după cod), doar nu le afișăm până tastezi.
+  const results = q.length === 0 ? [] : allEvents.filter(e =>
     e.title.toLowerCase().includes(q) ||
     e.venue.toLowerCase().includes(q) ||
     e.description.toLowerCase().includes(q) ||
@@ -94,7 +97,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
     e.organizerName.toLowerCase().includes(q) ||
     e.organizerUsername.toLowerCase().includes(q)
   );
-  const peopleResults = q.length === 0 ? people : people.filter(p =>
+  const peopleResults = q.length === 0 ? [] : people.filter(p =>
     p.displayName.toLowerCase().includes(q) || p.username.toLowerCase().includes(q)
   );
 
@@ -121,7 +124,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase().slice(0, 6))}
               onKeyDown={e => e.key === "Enter" && handleCodeSubmit()}
-              placeholder="ex: A7X9K2"
+              placeholder="Cod eveniment"
               maxLength={6}
               style={{ flex: 1, padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 18, fontFamily: "'DM Mono', monospace", letterSpacing: "0.2em", outline: "none", textTransform: "uppercase" }}
             />
@@ -168,7 +171,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
           ) : results.length === 0 ? (
             <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
               <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}><SearchIcon size={36} /></div>
-              <div style={{ fontSize: 14 }}>{q ? "Niciun rezultat pentru căutarea ta." : "Niciun eveniment încă."}</div>
+              <div style={{ fontSize: 14 }}>{q ? "Niciun rezultat pentru căutarea ta." : "Caută după nume, host, loc sau tag."}</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -197,7 +200,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
           ) : peopleResults.length === 0 ? (
             <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
               <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}><PersonIcon size={36} /></div>
-              <div style={{ fontSize: 14 }}>{q ? "Niciun om găsit pentru căutarea ta." : "Niciun profil încă."}</div>
+              <div style={{ fontSize: 14 }}>{q ? "Niciun om găsit pentru căutarea ta." : "Caută după nume sau username."}</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

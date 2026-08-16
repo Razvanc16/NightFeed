@@ -234,7 +234,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
   // Particip / Apreciate — acum din Supabase (tabelele "attendances" și "likes"),
   // valabil pentru evenimente statice ȘI postate de alți useri, sincronizat cross-device.
   const loadAttendingAndLiked = async () => {
-    const { data: postedRaw } = await supabase.from("posted_events_feed").select("*").eq("archived", false);
+    const { data: postedRaw } = await supabase.from("posted_events_feed").select("*").eq("archived", false).or("type.neq.official,verified.eq.true");
     const posted = filterActiveEvents(postedRaw).map(convertPostedEventMinimal);
     const allEvents = [...staticEvents, ...posted];
 

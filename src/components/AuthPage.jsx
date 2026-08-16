@@ -315,7 +315,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
             <div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Username</div>
               <input
-                type="text" placeholder="ex: razvan_nightfeed"
+                type="text" placeholder="Alege un username"
                 value={username} onChange={e => setUsername(e.target.value)}
                 style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${usernameStatus === "taken" ? "rgba(255,51,102,0.5)" : usernameStatus === "available" ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
               />

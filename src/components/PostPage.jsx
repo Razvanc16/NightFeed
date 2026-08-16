@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { formatEventDateTime, toDateInputValue, toTimeInputValue } from "../utils/eventTime";
+import { notifyUser } from "../utils/pushNotifications";
 import { CheckCircleIcon, ConfettiIcon, CameraIcon, LightningIcon, HouseIcon, NoEntryIcon, PinIcon, LockIcon, RocketIcon } from "./Icons";
+
+// Contul care aprobă evenimentele oficiale (Razvan) — evenimentele "oficial"
+// rămân ascunse din feed până le validează manual (verified=true în Supabase),
+// ca oricine să nu poată posta ca eveniment oficial fără control.
+const OFFICIAL_REVIEWER_ID = "0185e56d-fa21-4d25-a6e0-9885fc08743f";
 
 const searchAddress = async (query) => {
   if (!query || query.length < 3) return [];
@@ -18,6 +24,19 @@ const searchAddress = async (query) => {
       lng: parseFloat(r.lon),
     }));
   } catch { return []; }
+};
+
+// Adresa aproximativă a unui pin pus manual pe hartă — best-effort, dacă
+// eșuează lăsăm userul să scrie el adresa (nu blocăm plasarea pinului).
+const reverseGeocode = async (lat, lng) => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+      { headers: { "Accept-Language": "ro" } }
+    );
+    const data = await res.json();
+    return data?.display_name ? data.display_name.split(",").slice(0, 2).join(",") : "";
+  } catch { return ""; }
 };
 
 // "80 RON" -> "80"; "Gratuit"/gol -> ""
@@ -53,6 +72,70 @@ export default function PostPage({ user, onClose, editEvent }) {
   const [searchingAddress, setSearchingAddress] = useState(false);
   const fileRef = useRef(null);
   const searchTimer = useRef(null);
+
+  // Pin manual pe hartă — alternativă la căutarea de adresă, pentru locuri
+  // fără adresă exactă (parc, curte, zonă în aer liber etc.).
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const pickerMapRef = useRef(null);
+  const pickerMapInstanceRef = useRef(null);
+  const pickerMarkerRef = useRef(null);
+
+  useEffect(() => {
+    if (!showMapPicker) return;
+    if (window.L) { setLeafletLoaded(true); return; }
+    if (document.getElementById("leaflet-css")) {
+      const check = setInterval(() => {
+        if (window.L) { setLeafletLoaded(true); clearInterval(check); }
+      }, 50);
+      return () => clearInterval(check);
+    }
+    const link = document.createElement("link");
+    link.id = "leaflet-css";
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(link);
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.onload = () => setLeafletLoaded(true);
+    document.head.appendChild(script);
+  }, [showMapPicker]);
+
+  useEffect(() => {
+    if (!showMapPicker || !leafletLoaded || !pickerMapRef.current || pickerMapInstanceRef.current || !window.L) return;
+    const L = window.L;
+    const center = form.lat && form.lng ? [form.lat, form.lng] : [44.4268, 26.1025];
+    const map = L.map(pickerMapRef.current, { center, zoom: form.lat ? 15 : 12 });
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(map);
+    pickerMapInstanceRef.current = map;
+
+    const placeMarker = (lat, lng) => {
+      if (pickerMarkerRef.current) map.removeLayer(pickerMarkerRef.current);
+      pickerMarkerRef.current = L.marker([lat, lng], { draggable: true }).addTo(map);
+      pickerMarkerRef.current.on("dragend", async (e) => {
+        const { lat: dLat, lng: dLng } = e.target.getLatLng();
+        setForm(f => ({ ...f, lat: dLat, lng: dLng }));
+        const addr = await reverseGeocode(dLat, dLng);
+        if (addr) setForm(f => ({ ...f, venue: addr }));
+      });
+    };
+
+    if (form.lat && form.lng) placeMarker(form.lat, form.lng);
+
+    map.on("click", async (e) => {
+      const { lat, lng } = e.latlng;
+      placeMarker(lat, lng);
+      setForm(f => ({ ...f, lat, lng }));
+      const addr = await reverseGeocode(lat, lng);
+      if (addr) setForm(f => ({ ...f, venue: addr }));
+    });
+
+    return () => {
+      map.remove();
+      pickerMapInstanceRef.current = null;
+      pickerMarkerRef.current = null;
+    };
+  }, [showMapPicker, leafletLoaded]);
 
   const handleAddressChange = (val) => {
     setForm(f => ({ ...f, venue: val, lat: null, lng: null }));
@@ -198,6 +281,19 @@ export default function PostPage({ user, onClose, editEvent }) {
       const { error: locError } = await supabase.from("event_locations").upsert([{ event_id: eventId, venue, lat, lng }]);
       if (locError) throw locError;
 
+      // Evenimentele oficiale nu apar în feed până nu sunt aprobate — trimitem
+      // un "ticket" cu toate detaliile ca să poată fi validat manual.
+      if (!isEdit && payload.type === "official") {
+        const posterName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
+        notifyUser({
+          targetUserId: OFFICIAL_REVIEWER_ID,
+          title: "Cerere eveniment oficial",
+          body: `${posterName} vrea să posteze „${payload.title}” la ${venue || "locație nespecificată"} · ${payload.date} · ${payload.price}.${payload.description ? ` „${payload.description.slice(0, 150)}”` : ""}`,
+          type: "official_request",
+          actorId: user.id,
+        });
+      }
+
       setSuccess(true);
       setTimeout(() => { setSuccess(false); onClose(); }, 2000);
     } catch (err) {
@@ -268,10 +364,15 @@ export default function PostPage({ user, onClose, editEvent }) {
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Tip eveniment</div>
           <div style={{ display: "flex", gap: 8 }}>
-            {[{ id: "official", label: "Oficial", icon: LightningIcon }, { id: "homemade", label: "Homemade", icon: HouseIcon }].map(t => (
+            {[{ id: "official", label: "Oficial", icon: LightningIcon }, { id: "homemade", label: "Neoficial", icon: HouseIcon }].map(t => (
               <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))} style={{ flex: 1, padding: "10px", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: form.type === t.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.type === t.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.type === t.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: form.type === t.id ? 700 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}><t.icon size={14} /> {t.label}</button>
             ))}
           </div>
+          {form.type === "official" && !isEdit && (
+            <div style={{ marginTop: 8, padding: "8px 12px", background: "rgba(255,51,102,0.08)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 10, fontSize: 11, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "flex-start", gap: 6 }}>
+              <LockIcon size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Evenimentele oficiale sunt verificate manual înainte să apară în feed.
+            </div>
+          )}
         </div>
 
         {/* Eveniment 18+ — doar etichetă informativă pe card, nu blochează pe nimeni */}
@@ -297,7 +398,7 @@ export default function PostPage({ user, onClose, editEvent }) {
         {/* Titlu */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Titlu eveniment *</div>
-          <input type="text" placeholder="ex: Petrecere la mine acasă" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+          <input type="text" placeholder="Titlul evenimentului" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
         </div>
 
@@ -319,6 +420,23 @@ export default function PostPage({ user, onClose, editEvent }) {
               <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: "rgba(255,255,255,0.3)" }}>...</div>
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={() => { setAddressFocused(false); setShowMapPicker(v => !v); }}
+            style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 5, background: showMapPicker ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.06)", border: `1px solid ${showMapPicker ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "7px 12px", color: showMapPicker ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+          >
+            <PinIcon size={12} /> {showMapPicker ? "Ascunde harta" : "Pune pin pe hartă"}
+          </button>
+
+          {showMapPicker && (
+            <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div ref={pickerMapRef} style={{ width: "100%", height: 220, background: "rgba(255,255,255,0.04)" }} />
+              <div style={{ padding: "6px 10px", fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", background: "rgba(255,255,255,0.03)" }}>
+                Atinge harta ca să pui pinul, sau trage-l ca să-l ajustezi.
+              </div>
+            </div>
+          )}
 
           {/* Suggestions dropdown */}
           {addressResults.length > 0 && addressFocused && (
@@ -388,7 +506,7 @@ export default function PostPage({ user, onClose, editEvent }) {
           {priceMode === "paid" && (
             <div style={{ position: "relative" }}>
               <input
-                type="number" min="0" placeholder="ex: 80" value={priceAmount}
+                type="number" min="0" placeholder="0" value={priceAmount}
                 onChange={e => {
                   const val = e.target.value;
                   setPriceAmount(val);
