@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { formatEventDateTime, toDateInputValue, toTimeInputValue } from "../utils/eventTime";
 import { notifyUser } from "../utils/pushNotifications";
+import LegalPage from "./LegalPage";
 import { CheckCircleIcon, ConfettiIcon, CameraIcon, LightningIcon, HouseIcon, NoEntryIcon, PinIcon, LockIcon, RocketIcon } from "./Icons";
 
 // Contul care aprobă evenimentele oficiale (Razvan) — evenimentele "oficial"
@@ -57,6 +58,7 @@ export default function PostPage({ user, onClose, editEvent }) {
     eventTime: toTimeInputValue(editEvent?.event_date),
     price: editEvent?.price || "",
     type: editEvent?.type || "homemade",
+    location_visible: editEvent ? !!editEvent.location_visible : false,
     age_restricted: editEvent?.age_restricted || false,
     description: editEvent?.description || "",
     ticket_link: editEvent?.ticket_link || "",
@@ -163,6 +165,8 @@ export default function PostPage({ user, onClose, editEvent }) {
 
   const [coverError, setCoverError] = useState("");
   const [coverUnverified, setCoverUnverified] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(isEdit);
+  const [showLegal, setShowLegal] = useState(false);
 
   const handleCover = (e) => {
     const file = e.target.files[0];
@@ -242,6 +246,7 @@ export default function PostPage({ user, onClose, editEvent }) {
       alert("Completează prețul, sau alege Gratuit!"); return;
     }
     if (!user) { alert("Trebuie să fii autentificat!"); return; }
+    if (!acceptedTerms) { alert("Trebuie să accepți Termenii și Condițiile înainte să postezi!"); return; }
 
     // Evenimentele fără poză se văd mult mai slab în feed (doar gradient) —
     // înainte să postăm, dăm ocazia să adauge una, fără să blocăm pe cine
@@ -470,11 +475,28 @@ export default function PostPage({ user, onClose, editEvent }) {
             </div>
           )}
 
-          {/* Privacy note for homemade */}
-          {form.type === "homemade" && form.lat && (
-            <div style={{ marginTop: 8, padding: "8px 12px", background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 10, fontSize: 11, color: "#FFB800", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "flex-start", gap: 6 }}>
-              <LockIcon size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Pe hartă se va afișa doar o zonă aproximativă. Adresa exactă e vizibilă doar participanților acceptați.
-            </div>
+          {/* Vizibilitatea locației — independent de tip, alegerea hostului */}
+          {form.lat && (
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, location_visible: !f.location_visible }))}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                marginTop: 8, padding: "10px 12px", borderRadius: 12, cursor: "pointer",
+                background: form.location_visible ? "rgba(0,200,100,0.1)" : "rgba(255,184,0,0.1)",
+                border: `1px solid ${form.location_visible ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.2)"}`,
+              }}
+            >
+              <span style={{ display: "inline-flex", alignItems: "flex-start", gap: 6, fontSize: 11, color: form.location_visible ? "#00C864" : "#FFB800", fontFamily: "'DM Sans', sans-serif", textAlign: "left" }}>
+                <LockIcon size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+                {form.location_visible
+                  ? "Locație exactă vizibilă tuturor pe hartă"
+                  : "Pe hartă se vede doar o zonă aproximativă — adresa exactă e vizibilă doar ție și participanților acceptați"}
+              </span>
+              <div style={{ width: 40, height: 22, borderRadius: 11, background: form.location_visible ? "#00C864" : "rgba(255,255,255,0.15)", position: "relative", transition: "background 0.2s", flexShrink: 0, marginLeft: 10 }}>
+                <div style={{ position: "absolute", top: 2, left: form.location_visible ? 20 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+              </div>
+            </button>
           )}
         </div>
 
@@ -554,10 +576,30 @@ export default function PostPage({ user, onClose, editEvent }) {
             style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }} />
         </div>
 
+        {!isEdit && (
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "2px 0", marginBottom: 16 }}>
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={e => setAcceptedTerms(e.target.checked)}
+              style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0, cursor: "pointer" }}
+            />
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>
+              Am citit și accept{" "}
+              <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowLegal(true); }} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>
+                Termenii și Condițiile
+              </span>
+              , inclusiv faptul că NightFeed nu răspunde pentru ce se întâmplă la evenimentul postat.
+            </span>
+          </label>
+        )}
+
         <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
           {loading ? "Se salvează..." : isEdit ? <><CheckCircleIcon size={17} /> Salvează modificările</> : <><RocketIcon size={17} /> Trimite evenimentul</>}
         </button>
       </div>
+
+      {showLegal && <LegalPage onClose={() => setShowLegal(false)} />}
 
       {showNoPhotoConfirm && (
         <>

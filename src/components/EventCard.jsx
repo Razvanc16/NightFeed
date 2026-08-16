@@ -119,6 +119,8 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   const [videoPaused, setVideoPaused] = useState(false);
   const videoRef = useRef(null);
   const lastTap = useRef(0);
+  const singleTapTimer = useRef(null);
+  useEffect(() => () => clearTimeout(singleTapTimer.current), []);
   const cardRef = useRef(null);
   const toastTimer = useRef(null);
   const attendBusyRef = useRef(false);
@@ -344,8 +346,20 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
   const handleDoubleTap = (e) => {
     const now = Date.now();
-    if (now - lastTap.current < 300) triggerLike(e);
-    lastTap.current = now;
+    if (now - lastTap.current < 300) {
+      // E al doilea tap din pereche — anulăm pauza programată de primul tap
+      // (altfel un double-tap-like ar mai și opri/porni video-ul pe deasupra).
+      clearTimeout(singleTapTimer.current);
+      triggerLike(e);
+      lastTap.current = 0;
+    } else {
+      lastTap.current = now;
+      if (isVideoUrl(event.cover_url)) {
+        // Așteptăm fereastra de double-tap înainte să tratăm asta ca tap simplu —
+        // altfel orice double-tap ar porni/opri video-ul chiar înainte de like.
+        singleTapTimer.current = setTimeout(() => setVideoPaused(p => !p), 300);
+      }
+    }
   };
 
   const triggerLike = (e) => {
@@ -553,7 +567,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
             <PinIcon size={13} />
-            {event.type === "homemade" ? <>Zonă aproximativă <LockIcon size={12} /></> : event.venue}
+            {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
           </span>
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>·</span>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}><ClockIcon size={13} /> {event.date}</span>

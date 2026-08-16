@@ -228,9 +228,11 @@ export default function MapPage({ user, isActive }) {
         title: e.title, venue: e.venue, date: e.date, price: e.price || "Gratuit",
         type: e.type, description: e.description, age_restricted: !!e.age_restricted,
         color: e.type === "official" ? "#FF3366" : "#FFB800",
-        // Homemade: doar coordonatele fuzzate (adresa exactă vine separat, doar
-        // pentru host/cereri acceptate, în RequestsPage). Oficial: coordonate reale.
-        coords: e.type === "homemade" ? [e.lat_approx, e.lng_approx] : [e.lat, e.lng],
+        // Coordonatele exacte vs fuzzate depind acum de location_visible (setat
+        // de host la postare), nu de tip — un eveniment oficial poate alege să
+        // rămână aproximativ, unul neoficial poate alege să fie exact.
+        coords: e.location_visible ? [e.lat, e.lng] : [e.lat_approx, e.lng_approx],
+        location_visible: !!e.location_visible,
         isHomemade: e.type === "homemade",
         isPosted: true,
         rawId: e.id,
@@ -420,11 +422,13 @@ export default function MapPage({ user, isActive }) {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.coords[0]},${event.coords[1]}`, "_blank");
   };
 
-  // Adresa exactă (și deci navigarea) e permisă doar pentru evenimente oficiale,
-  // sau pentru homemade unde hostul te-a acceptat deja — altfel ar fi doar de fațadă
-  // să scrie "zonă aproximativă" dacă oricine putea oricum să navigheze la adresa reală.
+  // Adresa exactă (și deci navigarea) e permisă doar dacă hostul a ales
+  // location_visible la postare, sau pentru homemade unde hostul te-a acceptat
+  // deja — altfel ar fi doar de fațadă să scrie "zonă aproximativă" dacă oricine
+  // putea oricum să navigheze la adresa reală.
   const canSeeExactAddress = (event) => {
-    if (!event.isHomemade) return true;
+    if (event.location_visible) return true;
+    if (!event.isHomemade) return false;
     const rawId = String(event.rawId ?? event.id);
     return myRequests[rawId] === "accepted";
   };
@@ -478,9 +482,7 @@ export default function MapPage({ user, isActive }) {
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}><ClockIcon size={13} /> {selectedEvent.date}</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
               <PinIcon size={13} />
-              {selectedEvent.isHomemade
-                ? (canSeeExactAddress(selectedEvent) ? selectedEvent.venue : <>Zonă aproximativă <LockIcon size={12} /></>)
-                : selectedEvent.venue}
+              {canSeeExactAddress(selectedEvent) ? selectedEvent.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
             </span>
             <span style={{ fontSize: 12, color: selectedEvent.color, fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>{selectedEvent.price}</span>
           </div>

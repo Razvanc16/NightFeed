@@ -12,6 +12,7 @@ const convertPostedEvent = (e, organizerMap = {}) => {
     type: e.type || "homemade",
     title: e.title,
     venue: e.venue || "Locație necunoscută",
+    location_visible: !!e.location_visible,
     date: e.date || "Data necunoscută",
     event_date: e.event_date || null,
     price: e.price || "Gratuit",
@@ -183,7 +184,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
                     <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {event.type === "homemade" ? "Zonă aproximativă" : event.venue} · {event.date}
+                      {event.location_visible ? event.venue : "Zonă aproximativă"} · {event.date}
                       {event.organizerName && ` · ${event.organizerName}`}
                     </div>
                   </div>

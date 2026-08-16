@@ -68,6 +68,10 @@ export default function LegalPage({ onClose }) {
         <Section title="11. Modificări">
           Putem actualiza acest document pe măsură ce aplicația evoluează. Modificările importante vor fi comunicate în aplicație.
         </Section>
+
+        <Section title="12. Răspundere pentru evenimente">
+          NightFeed este o platformă care conectează oameni și evenimente — nu organizăm, nu supraveghem și nu suntem parte la niciun eveniment postat de useri. Fiecare eveniment e organizat pe propria răspundere a hostului, iar participarea e pe propria răspundere a fiecărui participant. NightFeed nu răspunde pentru incidente, vătămări, pierderi, conduită necorespunzătoare, activități ilegale, anulări sau orice altă situație neplăcută petrecută înainte, în timpul sau după un eveniment postat prin aplicație. Prin postarea sau participarea la un eveniment, confirmi că înțelegi și accepți acest lucru.
+        </Section>
       </div>
     </div>
   );
