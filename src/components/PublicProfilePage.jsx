@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
 import { filterActiveEvents } from "../utils/eventTime";
 import { MoonIcon, LightningIcon, HouseIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
+import { useSwipeBack } from "../utils/useSwipeBack";
 
 const convertPostedEvent = (e) => ({
   id: `posted_${e.id}`,
@@ -31,6 +32,8 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
 
   const isSelf = currentUser?.id === profileUserId;
+  const containerRef = useRef(null);
+  useSwipeBack(containerRef, onBack);
 
   useEffect(() => {
     loadEverything();
@@ -106,7 +109,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   }
 
   return (
-    <div style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80 }}>
+    <div ref={containerRef} style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80 }}>
       {/* Header cu back */}
       <div style={{ padding: "50px 20px 0", display: "flex", alignItems: "center", gap: 12 }}>
         <button onClick={onBack} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer" }}>← Înapoi</button>
