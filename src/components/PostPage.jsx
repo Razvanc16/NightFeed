@@ -74,12 +74,15 @@ export default function PostPage({ user, onClose, editEvent }) {
   const searchTimer = useRef(null);
 
   // Pin manual pe hartă — alternativă la căutarea de adresă, pentru locuri
-  // fără adresă exactă (parc, curte, zonă în aer liber etc.).
+  // fără adresă exactă (parc, curte, zonă în aer liber etc.). Ca la Uber: pinul
+  // stă fix în centrul ecranului, tu miști harta pe sub el (nu pinul pe hartă) —
+  // mai natural pe telefon decât să nimerești exact un punct cu degetul.
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const [pickerMoving, setPickerMoving] = useState(false);
   const pickerMapRef = useRef(null);
   const pickerMapInstanceRef = useRef(null);
-  const pickerMarkerRef = useRef(null);
+  const reverseGeocodeTimer = useRef(null);
 
   useEffect(() => {
     if (!showMapPicker) return;
@@ -105,35 +108,35 @@ export default function PostPage({ user, onClose, editEvent }) {
     if (!showMapPicker || !leafletLoaded || !pickerMapRef.current || pickerMapInstanceRef.current || !window.L) return;
     const L = window.L;
     const center = form.lat && form.lng ? [form.lat, form.lng] : [44.4268, 26.1025];
-    const map = L.map(pickerMapRef.current, { center, zoom: form.lat ? 15 : 12 });
+    const map = L.map(pickerMapRef.current, { center, zoom: form.lat ? 16 : 12, zoomControl: false });
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(map);
+    L.control.zoom({ position: "bottomright" }).addTo(map);
     pickerMapInstanceRef.current = map;
 
-    const placeMarker = (lat, lng) => {
-      if (pickerMarkerRef.current) map.removeLayer(pickerMarkerRef.current);
-      pickerMarkerRef.current = L.marker([lat, lng], { draggable: true }).addTo(map);
-      pickerMarkerRef.current.on("dragend", async (e) => {
-        const { lat: dLat, lng: dLng } = e.target.getLatLng();
-        setForm(f => ({ ...f, lat: dLat, lng: dLng }));
-        const addr = await reverseGeocode(dLat, dLng);
+    const commitCenter = () => {
+      const { lat, lng } = map.getCenter();
+      setForm(f => ({ ...f, lat, lng }));
+      setPickerMoving(false);
+      clearTimeout(reverseGeocodeTimer.current);
+      reverseGeocodeTimer.current = setTimeout(async () => {
+        const addr = await reverseGeocode(lat, lng);
         if (addr) setForm(f => ({ ...f, venue: addr }));
-      });
+      }, 400);
     };
 
-    if (form.lat && form.lng) placeMarker(form.lat, form.lng);
-
-    map.on("click", async (e) => {
-      const { lat, lng } = e.latlng;
-      placeMarker(lat, lng);
-      setForm(f => ({ ...f, lat, lng }));
-      const addr = await reverseGeocode(lat, lng);
-      if (addr) setForm(f => ({ ...f, venue: addr }));
-    });
+    map.on("movestart", () => setPickerMoving(true));
+    map.on("moveend", commitCenter);
+    if (form.lat && form.lng) {
+      // Locația era deja setată (ex: din căutarea de adresă) — nu o rescriem
+      // fără motiv, doar centrăm harta pe ea.
+    } else {
+      commitCenter();
+    }
 
     return () => {
       map.remove();
       pickerMapInstanceRef.current = null;
-      pickerMarkerRef.current = null;
+      clearTimeout(reverseGeocodeTimer.current);
     };
   }, [showMapPicker, leafletLoaded]);
 
@@ -431,9 +434,23 @@ export default function PostPage({ user, onClose, editEvent }) {
 
           {showMapPicker && (
             <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <div ref={pickerMapRef} style={{ width: "100%", height: 220, background: "rgba(255,255,255,0.04)" }} />
+              <div style={{ position: "relative" }}>
+                <div ref={pickerMapRef} style={{ width: "100%", height: 260, background: "rgba(255,255,255,0.04)" }} />
+                {/* Pinul stă fix în centru, ca la Uber — muți harta pe sub el */}
+                <div style={{
+                  position: "absolute", top: "50%", left: "50%", zIndex: 401, pointerEvents: "none", color: "#FF3366",
+                  filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
+                  transform: `translate(-50%, ${pickerMoving ? "-16px" : "-100%"})`,
+                  transition: "transform 0.15s ease-out",
+                }}>
+                  <PinIcon size={34} />
+                </div>
+                {pickerMoving && (
+                  <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, 0)", width: 6, height: 6, borderRadius: "50%", background: "rgba(0,0,0,0.4)", zIndex: 400 }} />
+                )}
+              </div>
               <div style={{ padding: "6px 10px", fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", background: "rgba(255,255,255,0.03)" }}>
-                Atinge harta ca să pui pinul, sau trage-l ca să-l ajustezi.
+                Mișcă harta ca pinul să ajungă exact unde vrei.
               </div>
             </div>
           )}
