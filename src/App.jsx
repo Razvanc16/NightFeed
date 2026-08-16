@@ -19,6 +19,7 @@ import { events as staticEvents } from "./data/events";
 import { filterActiveEvents } from "./utils/eventTime";
 import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
 import { setAppVisible } from "./utils/appVisibility";
+import { notifyUser } from "./utils/pushNotifications";
 import { MoonIcon, FilterIcon, BellIcon } from "./components/Icons";
 
 const filterLabels = { all: "Toate", official: "Oficial", homemade: "Neoficial", today: "Azi", weekend: "Weekend", free: "Gratuit" };
@@ -64,7 +65,9 @@ const convertPostedEvent = (e, organizerMap = {}) => ({
   color: e.type === "official" ? "#FF3366" : "#FFB800",
   bgColor: e.type === "official" ? "#1a0010" : "#110d00",
   description: e.description || "",
-  organizer: organizerMap[e.user_id] || "Utilizator NightFeed",
+  organizer: organizerMap[e.user_id]?.name || organizerMap[e.user_id]?.username || "Organizator",
+  organizer_username: organizerMap[e.user_id]?.username || "",
+  organizer_avatar: organizerMap[e.user_id]?.avatar_url || "",
   cover_url: e.cover_url,
   ticket_link: e.ticket_link,
   code: e.code,
@@ -276,6 +279,38 @@ export default function App() {
     setFollowingIds(new Set((data || []).map(f => f.following_id)));
   };
 
+  // Follow direct din cardul de eveniment (lângă numele organizatorului) —
+  // aceeași logică ca la profilul public, cu debounce pe notificare (per
+  // organizator, un Map — poți urmări pe cineva chiar dacă mai ai un timer
+  // în așteptare pentru altcineva).
+  const followNotifyTimers = useRef(new Map());
+  const toggleFollowOrganizer = async (organizerId) => {
+    if (!user || !organizerId || organizerId === user.id) return;
+    const wasFollowing = followingIds?.has(organizerId);
+    setFollowingIds(prev => {
+      const s = new Set(prev);
+      wasFollowing ? s.delete(organizerId) : s.add(organizerId);
+      return s;
+    });
+    if (wasFollowing) {
+      clearTimeout(followNotifyTimers.current.get(organizerId));
+      await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", organizerId);
+    } else {
+      await supabase.from("follows").insert([{ follower_id: user.id, following_id: organizerId }]);
+      const followerName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
+      clearTimeout(followNotifyTimers.current.get(organizerId));
+      followNotifyTimers.current.set(organizerId, setTimeout(() => {
+        notifyUser({
+          targetUserId: organizerId,
+          title: "Urmăritor nou",
+          body: `${followerName} a început să te urmărească.`,
+          type: "follower",
+          actorId: user.id,
+        });
+      }, 2000));
+    }
+  };
+
   // Reîncărcăm lista de urmăriri la login și de fiecare dată când intri pe
   // tab-ul "Urmăriți" — dacă tocmai ai urmărit pe cineva din alt ecran
   // (profil public), să prindă imediat schimbarea.
@@ -317,19 +352,20 @@ export default function App() {
       .order("created_at", { ascending: false });
     if (!data) return;
 
-    // Numele reale ale organizatorilor, ca să nu mai arate generic "Utilizator
-    // NightFeed" pe fiecare card — la fel cum se face deja în Căutare.
+    // Numele/handle-ul/poza reale ale organizatorilor, ca să nu mai arate
+    // generic "Utilizator NightFeed" pe fiecare card — la fel cum se face
+    // deja în Căutare.
     const hostIds = [...new Set(data.map(e => e.user_id).filter(Boolean))];
     let organizerMap = {};
     if (hostIds.length > 0) {
       const [{ data: profiles }, { data: usernames }] = await Promise.all([
-        supabase.from("profiles").select("user_id, nume, prenume").in("user_id", hostIds),
+        supabase.from("profiles").select("user_id, nume, prenume, avatar_url").in("user_id", hostIds),
         supabase.from("usernames").select("user_id, username").in("user_id", hostIds),
       ]);
       const unameMap = Object.fromEntries((usernames || []).map(u => [u.user_id, u.username]));
       organizerMap = Object.fromEntries((profiles || []).map(p => [
         p.user_id,
-        [p.prenume, p.nume].filter(Boolean).join(" ") || unameMap[p.user_id] || "",
+        { name: [p.prenume, p.nume].filter(Boolean).join(" "), username: unameMap[p.user_id] || "", avatar_url: p.avatar_url || "" },
       ]));
     }
 
@@ -714,7 +750,7 @@ export default function App() {
                 slides.map((slide, i) => (
                   <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: "calc(100dvh - 64px)", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
                     {slide.type === "single" ? (
-                      <EventCard event={slide.event} isActive={i === currentIndex} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} />
+                      <EventCard event={slide.event} isActive={i === currentIndex} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", background: "#050506", padding: "70px 12px 12px", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 10 }}>
                         {slide.events.map(ev => (

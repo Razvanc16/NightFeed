@@ -101,7 +101,7 @@ const Toast = ({ message, show, color }) => (
   </div>
 );
 
-export default function EventCard({ event, isActive, user, onComment, onViewProfile }) {
+export default function EventCard({ event, isActive, user, onComment, onViewProfile, isFollowingOrganizer, onToggleFollowOrganizer }) {
   // Like-urile și attend-ul (pentru evenimente non-homemade) sunt acum în Supabase,
   // vizibile pentru toți userii, pe orice device.
   const [liked, setLiked] = useState(false);
@@ -122,6 +122,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   const cardRef = useRef(null);
   const toastTimer = useRef(null);
   const attendBusyRef = useRef(false);
+  const likeNotifyTimer = useRef(null);
 
   // Attend count (Supabase, shared) — la fel ca la likes: bază demo + count real + realtime
   useEffect(() => {
@@ -313,16 +314,24 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         );
         if (error) throw error;
         if (event.organizer_id && event.organizer_id !== user.id) {
+          // Debounce, nu trimitem imediat — spamul de like/unlike rapid (double-tap
+          // repetat) trimitea o notificare la fiecare apăsare. Așteptăm puțin ca
+          // starea să se stabilizeze; dacă dai unlike înainte să treacă timpul,
+          // notificarea se anulează (vezi ramura else de mai jos).
           const likerName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
-          notifyUser({
-            targetUserId: event.organizer_id,
-            title: "Like nou!",
-            body: `${likerName} a apreciat ${event.title}.`,
-            type: "like",
-            actorId: user.id,
-          });
+          clearTimeout(likeNotifyTimer.current);
+          likeNotifyTimer.current = setTimeout(() => {
+            notifyUser({
+              targetUserId: event.organizer_id,
+              title: "Like nou!",
+              body: `${likerName} a apreciat ${event.title}.`,
+              type: "like",
+              actorId: user.id,
+            });
+          }, 2000);
         }
       } else {
+        clearTimeout(likeNotifyTimer.current);
         const { error } = await supabase.from("likes").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
         if (error) throw error;
       }
@@ -478,7 +487,9 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               onMouseLeave={handleVideoHoldEnd}
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             />
-            <div style={{ position: "absolute", top: 20, left: 16, zIndex: 3, display: "flex", gap: 8 }}>
+            {/* Sub butonul de filtre (fix, top-left, z-index mare) ca să nu se
+                suprapună cu el — filtrele "câștigau" atingerea în locul lor. */}
+            <div style={{ position: "absolute", top: 76, left: 16, zIndex: 3, display: "flex", gap: 8 }}>
               <button onClick={toggleVideoPause} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <PlayPauseIcon paused={videoPaused} />
               </button>
@@ -496,7 +507,10 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         )
       )}
 
-      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 30%, ${event.color}40 0%, transparent 70%)` }} />
+      {/* pointerEvents:none — altfel acest voal decorativ (fără niciun
+          handler propriu) prindea el atingerile în locul video-ului de
+          dedesubt, blocând ținut-apăsat-pentru-2x. */}
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 30%, ${event.color}40 0%, transparent 70%)`, pointerEvents: "none" }} />
       {!event.cover_url && (
         <>
           <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: 220, height: 220, borderRadius: "50%", background: `radial-gradient(circle, ${event.color}30 0%, transparent 70%)`, filter: "blur(40px)", animation: isActive ? "pulse 3s ease-in-out infinite" : "none" }} />
@@ -505,7 +519,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           </div>
         </>
       )}
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "65%", background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 50%, transparent 100%)" }} />
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "65%", background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 50%, transparent 100%)", pointerEvents: "none" }} />
 
       {event.age_restricted && (
         <div style={{ position: "absolute", top: 20, right: 16, padding: "4px 10px", borderRadius: 20, background: "rgba(255,51,102,0.25)", border: "1px solid rgba(255,51,102,0.6)", backdropFilter: "blur(10px)" }}>
@@ -514,11 +528,26 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       )}
 
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 64, padding: "0 16px 28px" }}>
-        <div
-          onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
-          style={{ fontSize: 11, color: event.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", marginBottom: 6, opacity: 0.9, cursor: event.organizer_id ? "pointer" : "default", display: "inline-flex", alignItems: "center", gap: 4 }}
-        >
-          {event.organizer}{event.organizer_id && " ›"}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <div
+            onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: event.organizer_id ? "pointer" : "default", minWidth: 0 }}
+          >
+            <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: event.organizer_avatar ? "transparent" : `${event.color}30`, border: `1px solid ${event.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: event.color, fontFamily: "'DM Mono', monospace" }}>
+              {event.organizer_avatar ? <img src={event.organizer_avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.organizer || "?").charAt(0).toUpperCase()}
+            </div>
+            <span style={{ fontSize: 11, color: event.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", opacity: 0.9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {event.organizer_username ? `@${event.organizer_username}` : event.organizer}{event.organizer_id && " ›"}
+            </span>
+          </div>
+          {!isOwnEvent && event.organizer_id && onToggleFollowOrganizer && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleFollowOrganizer(event.organizer_id); }}
+              style={{ flexShrink: 0, padding: "3px 9px", borderRadius: 20, cursor: "pointer", background: isFollowingOrganizer ? "rgba(255,255,255,0.1)" : `${event.color}25`, border: `1px solid ${isFollowingOrganizer ? "rgba(255,255,255,0.2)" : event.color + "60"}`, color: isFollowingOrganizer ? "rgba(255,255,255,0.6)" : event.color, fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}
+            >
+              {isFollowingOrganizer ? "✓ Urmărești" : "+ Urmărește"}
+            </button>
+          )}
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8, fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>

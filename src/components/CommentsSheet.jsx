@@ -70,6 +70,9 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
+  // Debounce pentru notificarea de apreciere comentariu, per comentariu (un
+  // Map, nu un singur timer — poți da like la mai multe comentarii diferite).
+  const likeNotifyTimers = useRef(new Map());
   const inputRef = useRef(null);
   const sheetRef = useRef(null);
   const listRef = useRef(null);
@@ -195,18 +198,24 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
     setMyLikes(prev => { const s = new Set(prev); isLiked ? s.delete(comment.id) : s.add(comment.id); return s; });
     setLikeCounts(prev => ({ ...prev, [comment.id]: Math.max(0, (prev[comment.id] || 0) + (isLiked ? -1 : 1)) }));
     if (isLiked) {
+      clearTimeout(likeNotifyTimers.current.get(comment.id)); // te-ai răzgândit înainte să trimită
       await supabase.from("comment_likes").delete().eq("comment_id", comment.id).eq("user_id", user.id);
     } else {
       await supabase.from("comment_likes").insert([{ comment_id: comment.id, user_id: user.id }]);
       if (comment.user_id && comment.user_id !== user.id) {
+        // Debounce — like/unlike rapid repetat pe același comentariu trimitea
+        // o notificare la fiecare apăsare.
         const likerName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
-        notifyUser({
-          targetUserId: comment.user_id,
-          title: "Apreciere nouă",
-          body: `${likerName} ți-a apreciat comentariul la ${event.title}`,
-          type: "like",
-          actorId: user.id,
-        });
+        clearTimeout(likeNotifyTimers.current.get(comment.id));
+        likeNotifyTimers.current.set(comment.id, setTimeout(() => {
+          notifyUser({
+            targetUserId: comment.user_id,
+            title: "Apreciere nouă",
+            body: `${likerName} ți-a apreciat comentariul la ${event.title}`,
+            type: "like",
+            actorId: user.id,
+          });
+        }, 2000));
       }
     }
   };

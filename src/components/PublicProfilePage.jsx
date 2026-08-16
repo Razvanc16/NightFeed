@@ -33,7 +33,8 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
 
   const isSelf = currentUser?.id === profileUserId;
   const containerRef = useRef(null);
-  useSwipeBack(containerRef, onBack);
+  const swipeBack = useSwipeBack(containerRef, onBack);
+  const followNotifyTimer = useRef(null);
 
   useEffect(() => {
     loadEverything();
@@ -79,6 +80,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
     if (!currentUser || isSelf || busy) return;
     setBusy(true);
     if (isFollowing) {
+      clearTimeout(followNotifyTimer.current); // te-ai răzgândit înainte să apuce să trimită
       await supabase.from("follows").delete().eq("follower_id", currentUser.id).eq("following_id", profileUserId);
       setIsFollowing(false);
       setFollowers(f => Math.max(0, f - 1));
@@ -86,14 +88,19 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
       await supabase.from("follows").insert([{ follower_id: currentUser.id, following_id: profileUserId }]);
       setIsFollowing(true);
       setFollowers(f => f + 1);
+      // Debounce, ca la like — follow/unfollow rapid repetat trimitea o
+      // notificare la fiecare apăsare.
       const followerName = currentUser.user_metadata?.username || currentUser.email?.split("@")[0] || "Cineva";
-      notifyUser({
-        targetUserId: profileUserId,
-        title: "Urmăritor nou",
-        body: `${followerName} a început să te urmărească.`,
-        type: "follower",
-        actorId: currentUser.id,
-      });
+      clearTimeout(followNotifyTimer.current);
+      followNotifyTimer.current = setTimeout(() => {
+        notifyUser({
+          targetUserId: profileUserId,
+          title: "Urmăritor nou",
+          body: `${followerName} a început să te urmărească.`,
+          type: "follower",
+          actorId: currentUser.id,
+        });
+      }, 2000);
     }
     setBusy(false);
   };
@@ -109,7 +116,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   }
 
   return (
-    <div ref={containerRef} style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80 }}>
+    <div ref={containerRef} style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80, ...swipeBack.style }}>
       {/* Header cu back */}
       <div style={{ padding: "50px 20px 0", display: "flex", alignItems: "center", gap: 12 }}>
         <button onClick={onBack} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer" }}>← Înapoi</button>
