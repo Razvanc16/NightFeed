@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
-import { filterActiveEvents } from "../utils/eventTime";
+import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
 import { MoonIcon, LightningIcon, HouseIcon, CheckCircleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 import { useSwipeBack } from "../utils/useSwipeBack";
@@ -14,7 +14,7 @@ const convertPostedEvent = (e) => ({
   title: e.title,
   venue: e.venue || "Locație necunoscută",
   location_visible: !!e.location_visible,
-  date: e.date || "",
+  date: (e.event_date && formatEventDateTime(e.event_date)) || e.date || "",
   event_date: e.event_date || null,
   price: e.price || "Gratuit",
   color: e.type === "official" ? "#FF3366" : "#FFB800",

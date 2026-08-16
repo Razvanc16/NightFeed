@@ -24,10 +24,8 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
           marginBottom: 22, boxShadow: "0 0 50px rgba(255,51,102,0.45)",
           animation: "lpPopIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both",
         }}>
-          <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
-            <circle cx="20" cy="20" r="8" fill="white" opacity="0.9" />
-            <circle cx="20" cy="20" r="14" stroke="white" strokeWidth="2" opacity="0.4" />
-            <circle cx="20" cy="20" r="20" stroke="white" strokeWidth="1" opacity="0.15" />
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="white">
+            <path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5a6.5 6.5 0 0 0 10 10z" />
           </svg>
         </div>
 

@@ -16,7 +16,7 @@ import PostPage from "./components/PostPage";
 import CommentsSheet from "./components/CommentsSheet";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
-import { filterActiveEvents } from "./utils/eventTime";
+import { filterActiveEvents, formatEventDateTime } from "./utils/eventTime";
 import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
 import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
@@ -57,7 +57,10 @@ const convertPostedEvent = (e, organizerMap = {}) => ({
   venue: e.venue || "Locație necunoscută",
   location_visible: !!e.location_visible,
   vibe: e.vibe || null,
-  date: e.date || "Data necunoscută",
+  // Recalculăm mereu live din event_date, nu folosim textul salvat în bază —
+  // altfel, o schimbare de format (ex: adăugarea datei numerice) nu s-ar
+  // vedea decât pe evenimentele postate după schimbare.
+  date: (e.event_date && formatEventDateTime(e.event_date)) || e.date || "Data necunoscută",
   event_date: e.event_date || null,
   age_restricted: !!e.age_restricted,
   price: e.price || "Gratuit",
@@ -81,6 +84,10 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
+  // Valoarea "vie" a lui user, citibilă din interiorul closure-ului cu deps [] de
+  // mai jos (altfel ar rămâne mereu null acolo, capturat o singură dată la mount).
+  const userRef = useRef(null);
+  useEffect(() => { userRef.current = user; }, [user]);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [authScreen, setAuthScreen] = useState(null); // null = landing, "login" | "register" = AuthPage
   const [viewingProfile, setViewingProfile] = useState(null); // user_id of profile being viewed publicly
@@ -101,7 +108,19 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState("feed");
+  // Reținem ultimul tab vizitat (localStorage) — altfel, de fiecare dată când
+  // PWA-ul e repornit din fundal (iOS descarcă des tab-uri/PWA-uri din memorie),
+  // reveneai mereu pe Feed în loc de unde erai înainte să minimizezi aplicația.
+  const VALID_TABS = ["feed", "search", "map", "profile"];
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const saved = localStorage.getItem("nf_active_tab");
+      return VALID_TABS.includes(saved) ? saved : "feed";
+    } catch { return "feed"; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("nf_active_tab", activeTab); } catch {}
+  }, [activeTab]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [feedMode, setFeedMode] = useState("foryou"); // "foryou" | "following"
   const [followingIds, setFollowingIds] = useState(null); // null = încă neîncărcat
@@ -205,10 +224,14 @@ export default function App() {
       // generat de sesiunea temporară de recovery).
       if (recoveryModeRef.current) return;
 
+      // SIGNED_IN se declanșează și la simpla restaurare a sesiunii existente la
+      // fiecare pornire a aplicației (nu doar la un login efectiv nou) — verificăm
+      // că userRef chiar era null înainte, ca să comutăm pe Profil doar la o
+      // autentificare reală, nu de fiecare dată când repornești aplicația.
+      const wasLoggedOut = !userRef.current;
       setUser(session?.user || null);
       setAuthLoading(false);
-      // When user logs in, switch to profile tab so they can complete their profile
-      if (session?.user && _event === "SIGNED_IN") {
+      if (session?.user && _event === "SIGNED_IN" && wasLoggedOut) {
         setActiveTab("profile");
       }
     });
@@ -568,7 +591,7 @@ export default function App() {
 
           {/* POST PAGE */}
           {showPost && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 20, animation: "slideUp 0.3s ease-out" }}>
+            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 20, animation: "slideUp 0.3s ease-out" }}>
               {user
                 ? <PostPage user={user} onClose={() => { setShowPost(false); loadPostedEvents(); }} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
@@ -591,7 +614,7 @@ export default function App() {
 
           {/* SEARCH PAGE */}
           {activeTab === "search" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
+            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
               <SearchPage onOpenEvent={openSpecificEvent} onViewProfile={(uid) => setViewingProfile(uid)} />
             </div>
           )}
@@ -601,13 +624,13 @@ export default function App() {
               harta Leaflet (re-cerea locația GPS, redescărca toate tile-urile de pe
               internet, reconstruia toate marker-ele), ceea ce o făcea să se simtă
               foarte lentă. Exact ca la Feed, care are același tipar. */}
-          <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10 }}>
+          <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10 }}>
             <MapPage user={user} isActive={activeTab === "map"} />
           </div>
 
           {/* PROFILE PAGE */}
           {activeTab === "profile" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px)", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
+            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
               {user
                 ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
@@ -708,7 +731,7 @@ export default function App() {
               </div>
             )}
             <div ref={feedRef} style={{
-              width: "100%", height: "calc(100dvh - 64px)", overflowY: "scroll", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
+              width: "100%", height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", overflowY: "scroll", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
               // transform: "none" cât timp nu tragem în niciun sens — orice valoare
               // de transform (chiar translateY(0px)) creează un nou "containing
               // block" pentru copiii cu position:fixed din interior (ex: sheet-ul
@@ -750,9 +773,9 @@ export default function App() {
                 </div>
               ) : (
                 slides.map((slide, i) => (
-                  <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: "calc(100dvh - 64px)", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
+                  <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
                     {slide.type === "single" ? (
-                      <EventCard event={slide.event} isActive={i === currentIndex} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} />
+                      <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", background: "#050506", padding: "70px 12px 12px", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 10 }}>
                         {slide.events.map(ev => (

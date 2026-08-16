@@ -16,7 +16,11 @@ export default function Navbar({ active, onChange }) {
         bottom: 0,
         left: 0,
         right: 0,
-        height: 64,
+        // minHeight, nu height — cu box-sizing:border-box global, un height fix
+        // ar face ca padding-bottom (safe-area-inset-bottom, ~34px pe telefoane cu
+        // home indicator, activ doar ca PWA standalone) să "mănânce" din cele 64px
+        // spațiu pentru iconițe+etichete, comprimându-le până se suprapuneau.
+        minHeight: 64,
         background: "rgba(0,0,0,0.85)",
         backdropFilter: "blur(20px)",
         borderTop: "1px solid rgba(255,255,255,0.07)",

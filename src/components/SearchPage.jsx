@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
-import { filterActiveEvents } from "../utils/eventTime";
+import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
 import { KeyIcon, SearchIcon, MoonIcon, LightningIcon, HouseIcon, PersonIcon } from "./Icons";
 
 const convertPostedEvent = (e, organizerMap = {}) => {
@@ -13,7 +13,7 @@ const convertPostedEvent = (e, organizerMap = {}) => {
     title: e.title,
     venue: e.venue || "Locație necunoscută",
     location_visible: !!e.location_visible,
-    date: e.date || "Data necunoscută",
+    date: (e.event_date && formatEventDateTime(e.event_date)) || e.date || "Data necunoscută",
     event_date: e.event_date || null,
     price: e.price || "Gratuit",
     tags: e.tags ? e.tags.split(",").map(t => t.trim()) : [],

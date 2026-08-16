@@ -13,15 +13,17 @@ export const isEventExpired = (event) => {
 
 export const filterActiveEvents = (events) => (events || []).filter((e) => !isEventExpired(e));
 
-// "Sâmbătă, 22:00" generat dintr-un timestamp ISO real.
+// "Sâmbătă, 22/08, 22:00" generat dintr-un timestamp ISO real.
 export const formatEventDateTime = (iso) => {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   const dayLabel = d.toLocaleDateString("ro-RO", { weekday: "long" });
   const capitalized = dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1);
+  const pad = (n) => String(n).padStart(2, "0");
+  const dateNum = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
   const time = d.toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
-  return `${capitalized}, ${time}`;
+  return `${capitalized}, ${dateNum}, ${time}`;
 };
 
 // "2026-08-09" pentru <input type="date">

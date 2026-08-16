@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
-import { filterActiveEvents } from "../utils/eventTime";
+import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
 import {
   SparkleIcon, LightningIcon, HouseIcon, FireIcon, TagIcon, PinIcon, LockIcon,
   ClockIcon, CheckCircleIcon, CrossCircleIcon, PlusIcon, MapIcon,
@@ -227,7 +227,7 @@ export default function MapPage({ user, isActive }) {
       })),
       ...postedEvents.filter(e => filterFn(e, activeFilter)).map(e => ({
         id: `posted_${e.id}`,
-        title: e.title, venue: e.venue, date: e.date, price: e.price || "Gratuit",
+        title: e.title, venue: e.venue, date: (e.event_date && formatEventDateTime(e.event_date)) || e.date, price: e.price || "Gratuit",
         type: e.type, description: e.description, age_restricted: !!e.age_restricted,
         color: e.type === "official" ? "#FF3366" : "#FFB800",
         vibe: e.vibe || null,
@@ -250,7 +250,10 @@ export default function MapPage({ user, isActive }) {
         ? myRequests[String(event.rawId ?? event.id)] === "accepted"
         : !!attending[event.id];
 
-      if (isHomemade) {
+      // Cercul de "zonă aproximativă" apare doar cât timp locația chiar e
+      // ascunsă — dacă hostul a activat location_visible, evenimentul (chiar
+      // neoficial) primește marker clasic tip pin, cu poziția exactă.
+      if (isHomemade && !event.location_visible) {
         // Cercul de zonă are un offset FIX (identic pentru toți) față de adresa reală
         const offsetCenter = applyOffset(event.coords[0], event.coords[1], event.rawId ?? event.id);
 
