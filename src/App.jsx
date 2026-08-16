@@ -56,6 +56,7 @@ const convertPostedEvent = (e, organizerMap = {}) => ({
   title: e.title,
   venue: e.venue || "Locație necunoscută",
   location_visible: !!e.location_visible,
+  vibe: e.vibe || null,
   date: e.date || "Data necunoscută",
   event_date: e.event_date || null,
   age_restricted: !!e.age_restricted,

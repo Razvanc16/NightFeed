@@ -158,3 +158,47 @@ export const ChevronRightIcon = ({ size = 16, style }) => (
 export const InboxIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M4 12h4l2 3h4l2-3h4" /><path d="M6 5h12l2 7v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6z" /></svg>
 );
+
+// Iconițe de "vibe" pentru eveniment — alese de host la postare, ca oricine
+// se uită pe hartă să-și dea seama dintr-o privire ce fel de petrecere e.
+export const BottleIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M10 2h4v3.5l2 2.5v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8l2-2.5z" /><line x1="8" y1="12" x2="16" y2="12" /></svg>
+);
+
+export const NoAlcoholIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M10 2h4v3.5l2 2.5v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8l2-2.5z" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="5" y1="20" x2="19" y2="4" /></svg>
+);
+
+export const MusicNoteIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+);
+
+export const LeafIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 18 8 18 12c0 5-3.5 8-7 8z" /><path d="M9.8 6.1C10.5 10.5 9.5 14.5 6 18" /></svg>
+);
+
+export const FoodIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M7 2v7a2 2 0 0 0 4 0V2" /><path d="M9 9v13" /><path d="M17 2c-1.7 0-3 1.8-3 4s1.3 4 3 4v11" /></svg>
+);
+
+export const GamingIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><rect x="2" y="8" width="20" height="10" rx="5" /><line x1="7" y1="11" x2="7" y2="15" /><line x1="5" y1="13" x2="9" y2="13" /><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none" /><circle cx="18.5" cy="14" r="1" fill="currentColor" stroke="none" /></svg>
+);
+
+// Variante string SVG (nu componente React) — pentru markere Leaflet, care
+// primesc HTML brut, nu JSX.
+export const bottleIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4v3.5l2 2.5v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8l2-2.5z"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`;
+export const noAlcoholIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4v3.5l2 2.5v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8l2-2.5z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="5" y1="20" x2="19" y2="4"/></svg>`;
+export const musicNoteIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+export const leafIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 18 8 18 12c0 5-3.5 8-7 8z"/><path d="M9.8 6.1C10.5 10.5 9.5 14.5 6 18"/></svg>`;
+export const foodIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v7a2 2 0 0 0 4 0V2"/><path d="M9 9v13"/><path d="M17 2c-1.7 0-3 1.8-3 4s1.3 4 3 4v11"/></svg>`;
+export const gamingIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="20" height="10" rx="5"/><line x1="7" y1="11" x2="7" y2="15"/><line x1="5" y1="13" x2="9" y2="13"/><circle cx="16" cy="11" r="1" fill="${color}" stroke="none"/><circle cx="18.5" cy="14" r="1" fill="${color}" stroke="none"/></svg>`;
+
+export const VIBE_OPTIONS = [
+  { id: "alcohol", label: "Cu alcool", icon: BottleIcon, svg: bottleIconSvg },
+  { id: "no_alcohol", label: "Fără alcool", icon: NoAlcoholIcon, svg: noAlcoholIconSvg },
+  { id: "music", label: "Muzică/DJ", icon: MusicNoteIcon, svg: musicNoteIconSvg },
+  { id: "chill", label: "Chill", icon: LeafIcon, svg: leafIconSvg },
+  { id: "food", label: "Mâncare", icon: FoodIcon, svg: foodIconSvg },
+  { id: "gaming", label: "Gaming", icon: GamingIcon, svg: gamingIconSvg },
+];

@@ -3,7 +3,7 @@ import { supabase } from "../supabase";
 import { formatEventDateTime, toDateInputValue, toTimeInputValue } from "../utils/eventTime";
 import { notifyUser } from "../utils/pushNotifications";
 import LegalPage from "./LegalPage";
-import { CheckCircleIcon, ConfettiIcon, CameraIcon, LightningIcon, HouseIcon, NoEntryIcon, PinIcon, LockIcon, RocketIcon } from "./Icons";
+import { CheckCircleIcon, ConfettiIcon, CameraIcon, LightningIcon, HouseIcon, NoEntryIcon, PinIcon, LockIcon, RocketIcon, VIBE_OPTIONS } from "./Icons";
 
 // Contul care aprobă evenimentele oficiale (Razvan) — evenimentele "oficial"
 // rămân ascunse din feed până le validează manual (verified=true în Supabase),
@@ -59,6 +59,7 @@ export default function PostPage({ user, onClose, editEvent }) {
     price: editEvent?.price || "",
     type: editEvent?.type || "homemade",
     location_visible: editEvent ? !!editEvent.location_visible : false,
+    vibe: editEvent?.vibe || null,
     age_restricted: editEvent?.age_restricted || false,
     description: editEvent?.description || "",
     ticket_link: editEvent?.ticket_link || "",
@@ -381,6 +382,24 @@ export default function PostPage({ user, onClose, editEvent }) {
               <LockIcon size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Evenimentele oficiale sunt verificate manual înainte să apară în feed.
             </div>
           )}
+        </div>
+
+        {/* Vibe — apare ca iconiță pe hartă în loc de pinul generic, ca oricine
+            să-și dea seama dintr-o privire ce fel de petrecere e (opțional) */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Vibe (opțional, apare pe hartă)</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {VIBE_OPTIONS.map(v => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setForm(f => ({ ...f, vibe: f.vibe === v.id ? null : v.id }))}
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: 20, background: form.vibe === v.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.vibe === v.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.vibe === v.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: form.vibe === v.id ? 700 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+              >
+                <v.icon size={14} /> {v.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Eveniment 18+ — doar etichetă informativă pe card, nu blochează pe nimeni */}

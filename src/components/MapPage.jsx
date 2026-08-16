@@ -5,8 +5,10 @@ import { filterActiveEvents } from "../utils/eventTime";
 import {
   SparkleIcon, LightningIcon, HouseIcon, FireIcon, TagIcon, PinIcon, LockIcon,
   ClockIcon, CheckCircleIcon, CrossCircleIcon, PlusIcon, MapIcon,
-  houseIconSvg, lightningIconSvg,
+  houseIconSvg, lightningIconSvg, VIBE_OPTIONS,
 } from "./Icons";
+
+const vibeSvgById = Object.fromEntries(VIBE_OPTIONS.map(v => [v.id, v.svg]));
 import { notifyUser } from "../utils/pushNotifications";
 
 const filters = [
@@ -228,6 +230,7 @@ export default function MapPage({ user, isActive }) {
         title: e.title, venue: e.venue, date: e.date, price: e.price || "Gratuit",
         type: e.type, description: e.description, age_restricted: !!e.age_restricted,
         color: e.type === "official" ? "#FF3366" : "#FFB800",
+        vibe: e.vibe || null,
         // Coordonatele exacte vs fuzzate depind acum de location_visible (setat
         // de host la postare), nu de tip — un eveniment oficial poate alege să
         // rămână aproximativ, unul neoficial poate alege să fie exact.
@@ -304,7 +307,7 @@ export default function MapPage({ user, isActive }) {
           html: `
             <div style="display:flex;flex-direction:column;align-items:center;">
               <div style="width:36px;height:36px;border-radius:50%;background:${color};border:3px solid ${isMarkedActive ? '#fff' : color + 'b0'};display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 18px ${color}90, 0 4px 16px rgba(0,0,0,0.5);cursor:pointer;">
-                ${houseIconSvg("#fff")}
+                ${(event.vibe && vibeSvgById[event.vibe]) ? vibeSvgById[event.vibe]("#fff") : houseIconSvg("#fff")}
               </div>
               <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${color};margin-top:-2px;"></div>
             </div>
@@ -327,7 +330,7 @@ export default function MapPage({ user, isActive }) {
         html: `
           <div style="display:flex;flex-direction:column;align-items:center;">
             <div style="width:36px;height:36px;border-radius:50%;background:${color};border:3px solid ${isMarkedActive ? '#fff' : color + 'b0'};display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 18px ${color}90, 0 4px 16px rgba(0,0,0,0.5);cursor:pointer;">
-              ${lightningIconSvg("#fff")}
+              ${(event.vibe && vibeSvgById[event.vibe]) ? vibeSvgById[event.vibe]("#fff") : lightningIconSvg("#fff")}
             </div>
             <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${color};margin-top:-2px;"></div>
           </div>
