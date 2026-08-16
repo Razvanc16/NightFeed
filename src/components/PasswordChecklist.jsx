@@ -1,4 +1,5 @@
 import { passwordRequirements, getPasswordStrength } from "../utils/passwordValidation";
+import { CheckCircleIcon } from "./Icons";
 
 export default function PasswordChecklist({ password }) {
   const strength = getPasswordStrength(password);
@@ -20,8 +21,8 @@ export default function PasswordChecklist({ password }) {
           const ok = req.test(password);
           return (
             <div key={req.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 12, color: ok ? "#00C864" : "rgba(255,255,255,0.3)", width: 14, textAlign: "center" }}>
-                {ok ? "✓" : "○"}
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", color: ok ? "#00C864" : "rgba(255,255,255,0.3)", width: 14 }}>
+                {ok ? <CheckCircleIcon size={12} /> : <span style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid currentColor" }} />}
               </span>
               <span style={{ fontSize: 11, color: ok ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>
                 {req.label}

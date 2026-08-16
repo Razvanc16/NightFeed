@@ -362,8 +362,8 @@ export default function PostPage({ user, onClose, editEvent }) {
           </div>
         )}
         {!coverPreview && !coverUnverified && !coverError && (
-          <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 8, marginBottom: 20, textAlign: "center" }}>
-            📸 Evenimentele cu poză sau video ies mult mai bine în evidență în feed
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 8, marginBottom: 20, textAlign: "center" }}>
+            <CameraIcon size={13} /> Evenimentele cu poză sau video ies mult mai bine în evidență în feed
           </div>
         )}
         {(coverPreview || coverUnverified) && <div style={{ marginBottom: 20 }} />}

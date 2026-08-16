@@ -116,6 +116,14 @@ export const PlusIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
 );
 
+export const PlayIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><polygon points="6 3 20 12 6 21 6 3" /></svg>
+);
+
+export const PencilIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M17 3a2.8 2.8 0 0 1 4 4L7 21l-4 1 1-4z" /></svg>
+);
+
 // String SVG (nu componentă React) — pentru markere Leaflet, care primesc HTML brut, nu JSX.
 export const houseIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg>`;
 export const lightningIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>`;

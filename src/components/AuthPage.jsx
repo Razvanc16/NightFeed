@@ -4,7 +4,7 @@ import { validatePassword } from "../utils/passwordValidation";
 import PasswordChecklist from "./PasswordChecklist";
 import PasswordInput from "./PasswordInput";
 import LegalPage from "./LegalPage";
-import { EnvelopeIcon, KeyIcon, RocketIcon } from "./Icons";
+import { EnvelopeIcon, KeyIcon, RocketIcon, CheckCircleIcon, CrossCircleIcon } from "./Icons";
 
 export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [mode, setMode] = useState(initialMode || "login"); // login | register | verify | forgot | forgot-sent
@@ -323,10 +323,10 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>Se verifică...</div>
               )}
               {usernameStatus === "available" && (
-                <div style={{ fontSize: 11, color: "#00C864", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>✓ Disponibil</div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00C864", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}><CheckCircleIcon size={12} /> Disponibil</div>
               )}
               {usernameStatus === "taken" && (
-                <div style={{ fontSize: 11, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>✕ Deja folosit, alege altul</div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}><CrossCircleIcon size={12} /> Deja folosit, alege altul</div>
               )}
             </div>
           )}

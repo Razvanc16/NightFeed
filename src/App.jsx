@@ -703,7 +703,7 @@ export default function App() {
                   fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace",
                   letterSpacing: "0.02em", textAlign: "center",
                 }}>
-                  Asta e tot pentru acum ✨
+                  Asta e tot pentru acum
                 </div>
               </div>
             )}

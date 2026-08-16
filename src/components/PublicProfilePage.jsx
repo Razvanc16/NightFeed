@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
 import { filterActiveEvents } from "../utils/eventTime";
-import { MoonIcon, LightningIcon, HouseIcon } from "./Icons";
+import { MoonIcon, LightningIcon, HouseIcon, CheckCircleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 import { useSwipeBack } from "../utils/useSwipeBack";
 
@@ -152,12 +152,13 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
         {!isSelf && currentUser && (
           <button onClick={toggleFollow} disabled={busy} style={{
             width: "100%", maxWidth: 300, padding: "13px", borderRadius: 30, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             border: isFollowing ? "1px solid rgba(255,255,255,0.2)" : "none",
             background: isFollowing ? "rgba(255,255,255,0.06)" : "linear-gradient(120deg, #FF3366, #B44FFF)",
             color: "#fff", fontSize: 15, fontWeight: 700, fontFamily: "'Syne', sans-serif",
             boxShadow: isFollowing ? "none" : "0 6px 24px rgba(255,51,102,0.35)",
           }}>
-            {isFollowing ? "✓ Urmărești" : "+ Urmărește"}
+            {isFollowing ? <><CheckCircleIcon size={15} /> Urmărești</> : "+ Urmărește"}
           </button>
         )}
       </div>

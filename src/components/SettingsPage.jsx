@@ -1,5 +1,5 @@
 import {
-  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, HeartOutlineIcon, PersonIcon,
+  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, HeartOutlineIcon, PersonIcon, PencilIcon,
 } from "./Icons";
 
 const NotifRow = ({ label, onClick, count }) => (
@@ -70,7 +70,7 @@ export default function SettingsPage({
       <div style={{ padding: "4px 16px 60px" }}>
         <SectionLabel>Cont</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <Row icon={<span style={{ fontSize: 15 }}>✎</span>} label="Editează profilul" onClick={onEditProfile} />
+          <Row icon={<PencilIcon size={15} />} label="Editează profilul" onClick={onEditProfile} />
           <Row icon={<PersonIcon size={16} />} label={username ? `Username: @${username}` : "Setează username"} onClick={onChangeUsername} />
           <NotifRow label="Notificări" onClick={onShowNotifications} count={unreadNotifCount} />
           <Row icon={<HeartOutlineIcon size={16} />} label="Evenimente apreciate" onClick={onShowLiked} />

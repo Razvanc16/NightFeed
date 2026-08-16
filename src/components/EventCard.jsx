@@ -1,7 +1,7 @@
 import JoinRequestSheet from "./JoinRequestSheet";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
-import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon } from "./Icons";
+import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon, CheckCircleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 
 const HeartIcon = ({ filled, color, size = 22 }) => (
@@ -557,9 +557,9 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           {!isOwnEvent && event.organizer_id && onToggleFollowOrganizer && (
             <button
               onClick={(e) => { e.stopPropagation(); onToggleFollowOrganizer(event.organizer_id); }}
-              style={{ flexShrink: 0, padding: "3px 9px", borderRadius: 20, cursor: "pointer", background: isFollowingOrganizer ? "rgba(255,255,255,0.1)" : `${event.color}25`, border: `1px solid ${isFollowingOrganizer ? "rgba(255,255,255,0.2)" : event.color + "60"}`, color: isFollowingOrganizer ? "rgba(255,255,255,0.6)" : event.color, fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}
+              style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 20, cursor: "pointer", background: isFollowingOrganizer ? "rgba(255,255,255,0.1)" : `${event.color}25`, border: `1px solid ${isFollowingOrganizer ? "rgba(255,255,255,0.2)" : event.color + "60"}`, color: isFollowingOrganizer ? "rgba(255,255,255,0.6)" : event.color, fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}
             >
-              {isFollowingOrganizer ? "✓ Urmărești" : "+ Urmărește"}
+              {isFollowingOrganizer ? <><CheckCircleIcon size={11} /> Urmărești</> : "+ Urmărește"}
             </button>
           )}
         </div>
