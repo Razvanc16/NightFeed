@@ -17,7 +17,7 @@ const timeAgo = (iso) => {
   return new Date(iso).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 };
 
-export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent }) {
+export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes }) {
   const [notifications, setNotifications] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
@@ -75,21 +75,25 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
           const color = COLORS[n.type] || "#FF3366";
           const avatarUrl = n.actor_id ? avatars[n.actor_id] : null;
           // Atingerea pozei duce mereu la profilul actorului. Atingerea
-          // restului rândului duce la evenimentul (și, la comentarii, direct
-          // la comentariul respectiv) dacă există unul — altfel, ca înainte,
-          // tot la profilul actorului (follower, cereri de participare etc.,
-          // care nu au un eveniment de deschis).
-          const rowGoesToEvent = !!(n.event_id && onOpenEvent);
-          const rowGoesToProfile = !rowGoesToEvent && !!(n.actor_id && onViewProfile);
-          const rowClickable = rowGoesToEvent || rowGoesToProfile;
+          // restului rândului duce, pentru aprecieri, direct la lista celor
+          // care au apreciat (nu doar la eveniment — asta era ideea
+          // notificării); pentru comentarii, la eveniment cu comentariul
+          // respectiv deschis; altfel, ca înainte, la profilul actorului
+          // (follower, cereri de participare etc., care nu au un eveniment
+          // de deschis).
+          const rowGoesToLikes = n.type === "like" && !!(n.event_id && onOpenLikes);
+          const rowGoesToEvent = !rowGoesToLikes && !!(n.event_id && onOpenEvent);
+          const rowGoesToProfile = !rowGoesToLikes && !rowGoesToEvent && !!(n.actor_id && onViewProfile);
+          const rowClickable = rowGoesToLikes || rowGoesToEvent || rowGoesToProfile;
           const avatarClickable = !!(n.actor_id && onViewProfile);
           const handleRowClick = () => {
             // Spre eveniment: schimbă tab-ul pe feed, n-are sens să rămână
-            // deschisă pe sub el. Spre profil: profilul e un overlay peste tot
-            // (vezi App.jsx, zIndex 9996 > 300 de aici) — o lăsăm deschisă
-            // dedesubt, ca "Înapoi" din profil să te aducă înapoi la notificări,
-            // nu să te scoată de tot din ele.
-            if (rowGoesToEvent) { onOpenEvent(n.event_id, n.comment_id); onClose(); }
+            // deschisă pe sub el. Spre listă de aprecieri/profil: sunt
+            // overlay-uri peste tot (zIndex mai mare decât 300 de aici) — le
+            // lăsăm deschisă dedesubt, ca "Înapoi"/"Închide" să te aducă
+            // înapoi la notificări, nu să te scoată de tot din ele.
+            if (rowGoesToLikes) { onOpenLikes(n.event_id); }
+            else if (rowGoesToEvent) { onOpenEvent(n.event_id, n.comment_id); onClose(); }
             else if (rowGoesToProfile) { onViewProfile(n.actor_id); }
           };
           return (

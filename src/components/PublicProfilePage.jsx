@@ -29,6 +29,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   const [followers, setFollowers] = useState(0);
   const [following, setFollowing] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followsMe, setFollowsMe] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
@@ -66,6 +67,8 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
     if (currentUser) {
       const { data: rel } = await supabase.from("follows").select("id").eq("follower_id", currentUser.id).eq("following_id", profileUserId).maybeSingle();
       setIsFollowing(!!rel);
+      const { data: relBack } = await supabase.from("follows").select("id").eq("follower_id", profileUserId).eq("following_id", currentUser.id).maybeSingle();
+      setFollowsMe(!!relBack);
     }
     setLoading(false);
   };
@@ -138,15 +141,15 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
         {/* Statistici */}
         <div style={{ display: "flex", gap: 28, marginTop: 20, marginBottom: 20 }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{events.length}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{events.length}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Evenimente</div>
           </div>
           <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followers}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followers}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Urmăritori</div>
           </button>
           <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{following}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{following}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Urmărește</div>
           </button>
         </div>
@@ -161,7 +164,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
             color: "#fff", fontSize: 15, fontWeight: 700, fontFamily: "'Syne', sans-serif",
             boxShadow: isFollowing ? "none" : "0 6px 24px rgba(255,51,102,0.35)",
           }}>
-            {isFollowing ? <><CheckCircleIcon size={15} /> Urmărești</> : "+ Urmărește"}
+            {isFollowing ? <><CheckCircleIcon size={15} /> Urmărești</> : (followsMe ? "Urmărește înapoi" : "+ Urmărește")}
           </button>
         )}
       </div>

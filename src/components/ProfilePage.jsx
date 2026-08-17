@@ -107,7 +107,7 @@ const ActionMenu = ({ items }) => {
   );
 };
 
-export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent }) {
+export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent, onOpenLikes }) {
   const [view, setView] = useState("loading");
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -125,6 +125,16 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
+  // Pull-to-refresh — aceeași mecanică (fizică + indicator) ca pe Feed.
+  const scrollRef = useRef(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const pullStartY = useRef(null);
+  const pullDistanceRef = useRef(0);
+  const refreshingRef = useRef(false);
+  const PULL_THRESHOLD = 70;
+  const PULL_MAX = 110;
 
   const copyCode = (code) => {
     navigator.clipboard?.writeText(code);
@@ -225,6 +235,70 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
+
+  useEffect(() => { refreshingRef.current = refreshing; }, [refreshing]);
+
+  const setPull = (v) => { pullDistanceRef.current = v; setPullDistance(v); };
+
+  const doRefresh = async () => {
+    setRefreshing(true);
+    const start = Date.now();
+    await Promise.all([
+      loadProfileByUserId(),
+      loadAttendingAndLiked(),
+      loadMyPostedEvents(),
+      loadFollowCounts(),
+      loadPendingRequestsCount(),
+      loadUnreadNotifCount(),
+      postedView === "archived" ? loadArchivedEvents() : Promise.resolve(),
+    ]);
+    const elapsed = Date.now() - start;
+    if (elapsed < 700) await new Promise((r) => setTimeout(r, 700 - elapsed));
+    setRefreshing(false);
+    setPull(0);
+  };
+
+  // Ascultătorii de touch se atașează manual (nu prin props JSX), ca touchmove
+  // să poată fi non-pasiv — vezi explicația identică din App.jsx (Feed).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e) => {
+      pullStartY.current = el.scrollTop <= 0 && !refreshingRef.current ? e.touches[0].clientY : null;
+    };
+    const onTouchMove = (e) => {
+      if (pullStartY.current === null) return;
+      const delta = e.touches[0].clientY - pullStartY.current;
+      if (delta > 6 && el.scrollTop <= 0) {
+        e.preventDefault();
+        setPull(Math.min(delta * 0.5, PULL_MAX));
+      } else if (delta <= 0) {
+        pullStartY.current = null;
+        setPull(0);
+      }
+    };
+    const onTouchEnd = () => {
+      if (pullStartY.current === null) return;
+      pullStartY.current = null;
+      if (pullDistanceRef.current >= PULL_THRESHOLD) {
+        setPull(PULL_THRESHOLD);
+        doRefresh();
+      } else {
+        setPull(0);
+      }
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postedView]);
 
   // Scoate live evenimentele care expiră cât timp userul stă pe profil (Particip /
   // Apreciate / Evenimentele mele).
@@ -462,7 +536,50 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const isSetup = view === "setup" || editing;
 
   return (
-    <div style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80 }}>
+    <div ref={scrollRef} style={{
+      width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80, position: "relative",
+      transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : "none",
+      transition: pullStartY.current ? "none" : "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    }}>
+      {(pullDistance > 0 || refreshing) && (
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 90, zIndex: 5, pointerEvents: "none",
+          display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 12,
+          opacity: Math.min(pullDistance / 24, 1),
+        }}>
+          <div style={{
+            width: 42, height: 42, borderRadius: "50%", position: "relative",
+            background: "rgba(10,10,12,0.9)", border: "1px solid rgba(255,255,255,0.1)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 20px rgba(255,51,102,0.25)",
+            animation: !refreshing && pullDistance >= PULL_THRESHOLD ? "ptrPop 0.4s ease-out" : "none",
+          }}>
+            <svg width="42" height="42" viewBox="0 0 42 42" style={{ position: "absolute", inset: 0, animation: refreshing ? "ptrSpin 0.9s linear infinite" : "none" }}>
+              <defs>
+                <linearGradient id="ptrGradProfile" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FF3366" />
+                  <stop offset="100%" stopColor="#B44FFF" />
+                </linearGradient>
+              </defs>
+              <circle cx="21" cy="21" r="17" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
+              <circle
+                cx="21" cy="21" r="17" fill="none" stroke="url(#ptrGradProfile)" strokeWidth="2.5" strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 17}
+                strokeDashoffset={refreshing ? 2 * Math.PI * 17 * 0.25 : 2 * Math.PI * 17 * (1 - Math.min(pullDistance / PULL_THRESHOLD, 1))}
+                transform="rotate(-90 21 21)"
+                style={{ transition: pullStartY.current ? "none" : "stroke-dashoffset 0.25s ease-out" }}
+              />
+            </svg>
+            <div style={{
+              display: "flex", color: pullDistance >= PULL_THRESHOLD || refreshing ? "#FF3366" : "rgba(255,255,255,0.5)",
+              transform: `scale(${refreshing ? 1 : 0.6 + Math.min(pullDistance / PULL_THRESHOLD, 1) * 0.4}) rotate(${refreshing ? 0 : Math.min(pullDistance / PULL_THRESHOLD, 1) * 360}deg)`,
+              transition: pullStartY.current ? "none" : "transform 0.25s ease-out, color 0.2s",
+            }}>
+              <MoonIcon size={18} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {isSetup && (
         <div style={{ padding: "50px 20px 20px", animation: "slideUp 0.3s ease-out" }}>
@@ -569,11 +686,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{profile.prenume} {profile.nume}</div>
               <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
                 <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
-                  <span style={{ fontSize: 19, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
                   <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmăritori</span>
                 </button>
                 <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
-                  <span style={{ fontSize: 19, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</span>
                   <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmărește</span>
                 </button>
               </div>
@@ -598,7 +715,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                   border: "1px solid transparent",
                   backgroundImage: isActive
                     ? "linear-gradient(120deg, rgba(255,51,102,0.16), rgba(180,79,255,0.16)), linear-gradient(135deg, #FF3366, #B44FFF)"
-                    : "linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04)), linear-gradient(rgba(255,255,255,0.12), rgba(255,255,255,0.12))",
+                    : "linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04)), linear-gradient(rgba(255,255,255,0.07), rgba(255,255,255,0.07))",
                   backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box",
                 }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.6)" }}>{stat.icon}</div>
@@ -754,7 +871,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         document.body
       )}
 
-      {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} onViewProfile={onViewProfile} onOpenEvent={onOpenEvent} />, document.body)}
+      {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} onViewProfile={onViewProfile} onOpenEvent={onOpenEvent} onOpenLikes={onOpenLikes} />, document.body)}
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 

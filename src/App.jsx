@@ -14,6 +14,7 @@ import PublicProfilePage from "./components/PublicProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import PostPage from "./components/PostPage";
 import CommentsSheet from "./components/CommentsSheet";
+import EventPeopleSheet from "./components/EventPeopleSheet";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
 import { filterActiveEvents, formatEventDateTime } from "./utils/eventTime";
@@ -157,6 +158,7 @@ export default function App() {
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [commentsHighlightId, setCommentsHighlightId] = useState(null);
+  const [likesSheetEventId, setLikesSheetEventId] = useState(null);
   const [mapFocus, setMapFocus] = useState(null); // { id, ts } — ts schimbă identitatea ca să poți reapăsa același eveniment de mai multe ori
   const [postedEvents, setPostedEvents] = useState([]);
   const [notifToast, setNotifToast] = useState(null); // { title, body } — rămâne montat în timpul ieșirii
@@ -749,7 +751,7 @@ export default function App() {
           {activeTab === "profile" && (
             <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
               {user
-                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} />
+                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} onOpenLikes={(eventId) => setLikesSheetEventId(eventId)} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
               }
             </div>
@@ -942,6 +944,15 @@ export default function App() {
           </div>
 
           <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => { setCommentsEvent(null); setCommentsHighlightId(null); }} onViewProfile={(uid) => { setCommentsEvent(null); setViewingProfile(uid); }} highlightCommentId={commentsHighlightId} />
+          {likesSheetEventId && (
+            <EventPeopleSheet
+              title="Aprecieri"
+              source="likes"
+              eventId={likesSheetEventId}
+              onClose={() => setLikesSheetEventId(null)}
+              onViewProfile={(uid) => { setLikesSheetEventId(null); setViewingProfile(uid); }}
+            />
+          )}
           <Navbar active={activeTab} onChange={handleTabChange} />
 
           {notifToast && (
