@@ -1,5 +1,5 @@
 import {
-  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, PencilIcon, TicketIcon, ClockIcon,
+  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, PencilIcon, TicketIcon, ClockIcon, HeartOutlineIcon,
 } from "./Icons";
 
 const NOTIF_PREF_TYPES = [
@@ -33,7 +33,7 @@ const SectionLabel = ({ children }) => (
 );
 
 export default function SettingsPage({
-  onClose, onEditProfile, onShowLegal, onDeleteAccount, onLogout,
+  onClose, onEditProfile, onShowLegal, onShowLiked, onDeleteAccount, onLogout,
   onShowTickets, onShowHistory,
   profile, pushStatus, pushBusy, onTogglePush, onToggleNotifPref,
 }) {
@@ -50,6 +50,7 @@ export default function SettingsPage({
         <SectionLabel>Cont</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Row icon={<PencilIcon size={15} />} label="Editează profilul" onClick={onEditProfile} />
+          <Row icon={<HeartOutlineIcon size={16} />} label="Evenimente apreciate" onClick={onShowLiked} />
           <Row icon={<TicketIcon size={16} />} label="Biletele mele" onClick={onShowTickets} />
           <Row icon={<ClockIcon size={16} />} label="Istoricul meu" onClick={onShowHistory} />
           <Row icon={<LogoutIcon size={16} />} label="Ieși din cont" onClick={onLogout} />

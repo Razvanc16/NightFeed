@@ -107,20 +107,20 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 24 }}>Găsește petreceri sau intră cu un cod</div>
 
         {/* Acces direct cu cod */}
-        <div style={{ background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 16, padding: "16px", marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#FF3366", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}><KeyIcon size={12} /> Acces direct cu cod</div>
-          <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 14, padding: "10px 12px", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "#FF3366", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}><KeyIcon size={11} /> Acces direct cu cod</div>
+          <div style={{ display: "flex", gap: 6 }}>
             <input
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase().slice(0, 6))}
               onKeyDown={e => e.key === "Enter" && handleCodeSubmit()}
               placeholder=""
               maxLength={6}
-              style={{ flex: 1, padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 18, fontFamily: "'DM Mono', monospace", letterSpacing: "0.2em", outline: "none", textTransform: "uppercase" }}
+              style={{ flex: 1, padding: "9px 12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "#fff", fontSize: 15, fontFamily: "'DM Mono', monospace", letterSpacing: "0.18em", outline: "none", textTransform: "uppercase" }}
             />
-            <button onClick={handleCodeSubmit} style={{ padding: "0 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #FF3366, #FF6B35)", color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}>Intră</button>
+            <button onClick={handleCodeSubmit} style={{ padding: "0 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #FF3366, #FF6B35)", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}>Intră</button>
           </div>
-          {codeError && <div style={{ fontSize: 12, color: "#FF3366", marginTop: 8, fontFamily: "'DM Sans', sans-serif" }}>{codeError}</div>}
+          {codeError && <div style={{ fontSize: 11, color: "#FF3366", marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>{codeError}</div>}
         </div>
 
         {/* Căutare text */}

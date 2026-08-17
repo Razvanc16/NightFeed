@@ -24,7 +24,7 @@ export default function PasswordChecklist({ password }) {
               <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", color: ok ? "#00C864" : "rgba(255,255,255,0.3)", width: 14 }}>
                 {ok ? <CheckCircleIcon size={12} /> : <span style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid currentColor" }} />}
               </span>
-              <span style={{ fontSize: 11, color: ok ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>
+              <span style={{ fontSize: 11, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
                 {req.label}
               </span>
             </div>

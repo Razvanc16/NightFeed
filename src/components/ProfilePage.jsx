@@ -10,7 +10,7 @@ import SettingsPage from "./SettingsPage";
 import NotificationsPage from "./NotificationsPage";
 import AvatarCropSheet from "./AvatarCropSheet";
 import PhotoViewerModal from "./PhotoViewerModal";
-import MyTicketsPage from "./MyTicketsPage";
+import MyTicketsPage, { TicketQR } from "./MyTicketsPage";
 import CheckinScannerSheet from "./CheckinScannerSheet";
 import EventInsightsModal from "./EventInsightsModal";
 import MyHistoryPage from "./MyHistoryPage";
@@ -19,7 +19,7 @@ import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pu
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon, BellIcon, PencilIcon, ScanIcon, InfoIcon,
+  WarningIcon, GearIcon, BellIcon, PencilIcon, ScanIcon, InfoIcon, QrCodeIcon, CrossCircleIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -57,6 +57,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [activeTab, setActiveTab] = useState("attending");
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [likedEvents, setLikedEvents] = useState([]);
+  const [myCheckins, setMyCheckins] = useState({}); // { [eventId]: { token, checked_in } }
+  const [ticketFor, setTicketFor] = useState(null); // token string | null
   const [myPostedEvents, setMyPostedEvents] = useState([]);
   const [archivedEvents, setArchivedEvents] = useState([]);
   const [postedView, setPostedView] = useState("active"); // "active" | "archived"
@@ -198,12 +200,33 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
     const { data: myAttendances } = await supabase.from("attendances").select("event_id").eq("user_id", user.id);
     const { data: myLikes } = await supabase.from("likes").select("event_id").eq("user_id", user.id);
+    // Evenimentele neoficiale cu locație ascunsă merg prin cerere de aprobare
+    // (attendance_requests), nu prin attendances — fără asta, cele acceptate
+    // nu apăreau niciodată la "Particip". event_id de-acolo e uuid-ul brut.
+    const { data: myAcceptedRequests } = await supabase.from("attendance_requests").select("event_id").eq("requester_id", user.id).eq("status", "accepted");
 
-    const attendingIds = new Set((myAttendances || []).map(r => r.event_id));
+    const attendingIds = new Set([
+      ...(myAttendances || []).map(r => r.event_id),
+      ...(myAcceptedRequests || []).map(r => `posted_${r.event_id}`),
+    ]);
     const likedIds = new Set((myLikes || []).map(r => r.event_id));
 
-    setAttendingEvents(allEvents.filter(e => attendingIds.has(String(e.id))));
+    const attending = allEvents.filter(e => attendingIds.has(String(e.id)));
+    setAttendingEvents(attending);
     setLikedEvents(allEvents.filter(e => likedIds.has(String(e.id))));
+    loadMyCheckins(attending);
+  };
+
+  // Biletul QR (dacă există) pentru fiecare eveniment la care participi —
+  // afișat direct în lista "Particip", ca să nu mai fie nevoie să cauți
+  // separat prin Bilete/Cereri.
+  const loadMyCheckins = async (attendingList) => {
+    const postedIds = attendingList.map(e => String(e.id)).filter(id => id.startsWith("posted_"));
+    if (!postedIds.length) { setMyCheckins({}); return; }
+    const { data } = await supabase.from("event_checkins").select("event_id, token, checked_in").eq("user_id", user.id).in("event_id", postedIds);
+    const map = {};
+    (data || []).forEach(c => { map[c.event_id] = c; });
+    setMyCheckins(map);
   };
 
   const loadMyPostedEvents = async () => {
@@ -595,18 +618,27 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                   </div>
                 </div>
               ) : (activeTab === "attending" ? attendingEvents : likedEvents).map(event => (
-                <div key={event.id} style={{ borderRadius: 14, background: event.bgColor, border: `1px solid ${event.color}30`, padding: "14px", position: "relative", overflow: "hidden" }}>
+                <div
+                  key={event.id}
+                  onClick={() => onOpenEvent && onOpenEvent(event.id)}
+                  style={{ borderRadius: 14, background: event.bgColor, border: `1px solid ${event.color}30`, padding: "14px", position: "relative", overflow: "hidden", cursor: onOpenEvent ? "pointer" : "default" }}
+                >
                   <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at top left, ${event.color}15 0%, transparent 60%)`, pointerEvents: "none" }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
                     <div style={{ width: 44, height: 44, borderRadius: 10, background: `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", color: event.color, flexShrink: 0 }}>
                       {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {event.price}</div>
                     </div>
+                    {activeTab === "attending" && myCheckins[event.id] && (
+                      <button onClick={(e) => { e.stopPropagation(); setTicketFor(myCheckins[event.id].token); }} style={{ width: 30, height: 30, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#fff", cursor: "pointer" }}>
+                        <QrCodeIcon size={15} />
+                      </button>
+                    )}
                     {activeTab === "attending" && (
-                      <button onClick={() => handleRemoveAttending(event.id)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.35)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Renunț</button>
+                      <button onClick={(e) => { e.stopPropagation(); handleRemoveAttending(event.id); }} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.35)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Renunț</button>
                     )}
                   </div>
                 </div>
@@ -621,6 +653,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         <SettingsPage
           onClose={() => setShowSettings(false)}
           onEditProfile={() => { setShowSettings(false); setEditing(true); }}
+          onShowLiked={() => { setShowSettings(false); setActiveTab("liked"); }}
           onShowLegal={() => setShowLegal(true)}
           onShowTickets={() => { setShowSettings(false); setShowTickets(true); }}
           onShowHistory={() => { setShowSettings(false); setShowHistory(true); }}
@@ -641,7 +674,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
       {showTickets && createPortal(<MyTicketsPage user={user} onClose={() => setShowTickets(false)} />, document.body)}
 
-      {showHistory && createPortal(<MyHistoryPage user={user} onClose={() => setShowHistory(false)} />, document.body)}
+      {showHistory && createPortal(<MyHistoryPage user={user} onClose={() => setShowHistory(false)} onOpenEvent={onOpenEvent} />, document.body)}
 
       {showOwnPhoto && createPortal(<PhotoViewerModal src={profile?.avatar_url} onClose={() => setShowOwnPhoto(false)} />, document.body)}
 
@@ -654,6 +687,20 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           onClose={() => setInfoEvent(null)}
           onViewProfile={onViewProfile}
         />,
+        document.body
+      )}
+
+      {ticketFor && createPortal(
+        <div onClick={() => setTicketFor(null)} style={{ position: "fixed", inset: 0, zIndex: 10350, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <TicketQR token={ticketFor} />
+            </div>
+            <button onClick={() => setTicketFor(null)} style={{ width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <CrossCircleIcon size={13} /> Închide
+            </button>
+          </div>
+        </div>,
         document.body
       )}
 

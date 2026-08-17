@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
-import { formatEventDateTime } from "../utils/eventTime";
+import { formatEventDateTime, isEventExpired } from "../utils/eventTime";
 import { HeartOutlineIcon, ConfettiIcon, LightningIcon, HouseIcon, MoonIcon } from "./Icons";
 
 // Istoric complet — spre deosebire de tab-urile "Particip"/"Apreciate" din
 // profil (care arată doar evenimente încă active, nearhivate), aici apar
 // TOATE, inclusiv cele trecute sau arhivate de host între timp.
-export default function MyHistoryPage({ user, onClose }) {
+export default function MyHistoryPage({ user, onClose, onOpenEvent }) {
   const [tab, setTab] = useState("attending"); // "attending" | "liked"
   const [attending, setAttending] = useState([]);
   const [liked, setLiked] = useState([]);
@@ -30,7 +30,7 @@ export default function MyHistoryPage({ user, onClose }) {
 
     let byId = {};
     if (allIds.length) {
-      const { data } = await supabase.from("posted_events").select("id, title, type, event_date, price").in("id", allIds);
+      const { data } = await supabase.from("posted_events").select("id, title, type, event_date, price, archived").in("id", allIds);
       (data || []).forEach(e => { byId[e.id] = e; });
     }
 
@@ -77,19 +77,32 @@ export default function MyHistoryPage({ user, onClose }) {
             </div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Nimic încă.</div>
           </div>
-        ) : list.map(event => (
-          <div key={event.id} style={{ borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 10, background: event.type === "official" ? "rgba(255,51,102,0.2)" : "rgba(255,184,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: event.type === "official" ? "#FF3366" : "#FFB800", flexShrink: 0 }}>
-              {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
-                {(event.event_date && formatEventDateTime(event.event_date)) || "Data necunoscută"} · {event.price || "Gratuit"}
+        ) : list.map(event => {
+          const inactive = event.archived || isEventExpired(event);
+          const openable = !inactive && !!onOpenEvent;
+          return (
+            <div
+              key={event.id}
+              onClick={() => openable && onOpenEvent(`posted_${event.id}`)}
+              style={{ borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", display: "flex", alignItems: "center", gap: 12, cursor: openable ? "pointer" : "default", opacity: inactive ? 0.7 : 1 }}
+            >
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: event.type === "official" ? "rgba(255,51,102,0.2)" : "rgba(255,184,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: event.type === "official" ? "#FF3366" : "#FFB800", flexShrink: 0 }}>
+                {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
               </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+                  {(event.event_date && formatEventDateTime(event.event_date)) || "Data necunoscută"} · {event.price || "Gratuit"}
+                </div>
+              </div>
+              {inactive && (
+                <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "3px 9px", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>
+                  {event.archived ? "Arhivat" : "Trecut"}
+                </span>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

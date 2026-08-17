@@ -146,8 +146,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           boxShadow: "0 0 40px rgba(255,51,102,0.4)",
         }}>
           <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <circle cx="12" cy="12" r="5"/>
-            <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.5" fill="none" opacity="0.5"/>
+            <path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5a6.5 6.5 0 0 0 10 10z" />
           </svg>
         </div>
         <div style={{ fontSize: 28, fontWeight: 900, color: "#fff", fontFamily: "'Inter', sans-serif" }}>
@@ -267,7 +266,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           </div>
 
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
+            <div style={{ fontSize: 11, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
             <input
               type="email" placeholder="email@exemplu.com"
               value={email} onChange={e => setEmail(e.target.value)}
@@ -276,7 +275,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           </div>
 
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă</div>
+            <div style={{ fontSize: 11, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă</div>
             <PasswordInput
               placeholder={mode === "register" ? "creează o parolă puternică" : "parola ta"}
               value={password} onChange={e => setPassword(e.target.value)}
