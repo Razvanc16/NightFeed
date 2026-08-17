@@ -598,12 +598,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                   border: "1px solid transparent",
                   backgroundImage: isActive
                     ? "linear-gradient(120deg, rgba(255,51,102,0.16), rgba(180,79,255,0.16)), linear-gradient(135deg, #FF3366, #B44FFF)"
-                    : "linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04)), linear-gradient(rgba(255,255,255,0.07), rgba(255,255,255,0.07))",
+                    : "linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04)), linear-gradient(rgba(255,255,255,0.12), rgba(255,255,255,0.12))",
                   backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box",
                 }}>
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.5)" }}>{stat.icon}</div>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.6)" }}>{stat.icon}</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
-                  <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
+                  <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
                 </button>
               );
             })}
