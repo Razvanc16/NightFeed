@@ -9,6 +9,7 @@ import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
 import NotificationsPage from "./NotificationsPage";
 import AvatarCropSheet from "./AvatarCropSheet";
+import PhotoViewerModal from "./PhotoViewerModal";
 import MyTicketsPage from "./MyTicketsPage";
 import CheckinScannerSheet from "./CheckinScannerSheet";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
@@ -97,6 +98,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [showSettings, setShowSettings] = useState(false);
   const [showTickets, setShowTickets] = useState(false);
   const [scannerEvent, setScannerEvent] = useState(null);
+  const [showOwnPhoto, setShowOwnPhoto] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -441,7 +443,10 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             )}
           </button>
           <div style={{ padding: "50px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 70, height: 70, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #FF6B35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, overflow: "hidden", flexShrink: 0, border: "2px solid rgba(255,51,102,0.4)" }}>
+            <div
+              onClick={() => profile.avatar_url && setShowOwnPhoto(true)}
+              style={{ width: 70, height: 70, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #FF6B35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, overflow: "hidden", flexShrink: 0, border: "2px solid rgba(255,51,102,0.4)", cursor: profile.avatar_url ? "pointer" : "default" }}
+            >
               {profile.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MoonIcon size={26} style={{ color: "#fff" }} />}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -624,6 +629,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 
       {showTickets && createPortal(<MyTicketsPage user={user} onClose={() => setShowTickets(false)} />, document.body)}
+
+      {showOwnPhoto && createPortal(<PhotoViewerModal src={profile?.avatar_url} onClose={() => setShowOwnPhoto(false)} />, document.body)}
 
       {scannerEvent && createPortal(<CheckinScannerSheet event={scannerEvent} onClose={() => setScannerEvent(null)} />, document.body)}
 

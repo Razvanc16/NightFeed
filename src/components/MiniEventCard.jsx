@@ -20,7 +20,7 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
   const [showJoin, setShowJoin] = useState(false);
   const attendBusyRef = useRef(false);
 
-  const isJoinable = event.isPosted && event.type === "homemade";
+  const isJoinable = event.isPosted && event.type === "homemade" && !event.location_visible;
   const isOwnEvent = !!(user && event.organizer_id && event.organizer_id === user.id);
 
   useEffect(() => {

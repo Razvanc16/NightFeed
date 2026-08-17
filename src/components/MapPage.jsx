@@ -90,6 +90,37 @@ export default function MapPage({ user, isActive, focusTarget }) {
     });
   };
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [popupDragY, setPopupDragY] = useState(0);
+  const [popupClosing, setPopupClosing] = useState(false);
+  const popupDragRef = useRef(null);
+
+  // Închide cu animație (slide jos + fade), nu instant — setSelectedEvent(null)
+  // direct demonta cardul fără nicio tranziție de ieșire.
+  const closePopup = () => {
+    setPopupClosing(true);
+    setTimeout(() => {
+      setSelectedEvent(null);
+      setPopupClosing(false);
+      setPopupDragY(0);
+    }, 220);
+  };
+
+  const handlePopupPointerDown = (e) => {
+    popupDragRef.current = { startY: e.clientY };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+  const handlePopupPointerMove = (e) => {
+    if (!popupDragRef.current) return;
+    const delta = e.clientY - popupDragRef.current.startY;
+    if (delta > 0) setPopupDragY(delta); // doar tras în jos, nu în sus
+  };
+  const handlePopupPointerUp = () => {
+    if (!popupDragRef.current) return;
+    popupDragRef.current = null;
+    if (popupDragY > 60) closePopup();
+    else setPopupDragY(0);
+  };
+
   const [attending, setAttending] = useState({});
   const [toast, setToast] = useState(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
@@ -512,10 +543,24 @@ export default function MapPage({ user, isActive, focusTarget }) {
 
       {/* Selected event popup */}
       {selectedEvent && (
-        <div style={{ position: "absolute", bottom: 80, left: 16, right: 16, background: "rgba(10,10,12,0.98)", border: `1px solid ${selectedEvent.color}60`, borderRadius: 20, padding: "16px", backdropFilter: "blur(20px)", zIndex: 600, animation: "slideUp 0.25s ease-out", boxShadow: `0 8px 40px rgba(0,0,0,0.6), 0 0 30px ${selectedEvent.color}20` }}>
-          <button onClick={() => setSelectedEvent(null)} style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: "50%", width: 28, height: 28, color: "rgba(255,255,255,0.6)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+        <div
+          onPointerDown={handlePopupPointerDown}
+          onPointerMove={handlePopupPointerMove}
+          onPointerUp={handlePopupPointerUp}
+          onPointerLeave={handlePopupPointerUp}
+          style={{
+            position: "absolute", bottom: 80, left: 16, right: 16, background: "rgba(10,10,12,0.98)", border: `1px solid ${selectedEvent.color}60`, borderRadius: 20, padding: "16px", backdropFilter: "blur(20px)", zIndex: 600, boxShadow: `0 8px 40px rgba(0,0,0,0.6), 0 0 30px ${selectedEvent.color}20`,
+            touchAction: "none",
+            transform: `translateY(${popupClosing ? 400 : popupDragY}px)`,
+            opacity: popupClosing ? 0 : 1,
+            transition: popupDragRef.current ? "none" : "transform 0.22s ease, opacity 0.22s ease",
+            animation: (!popupClosing && popupDragY === 0) ? "slideUp 0.25s ease-out" : "none",
+          }}
+        >
+          <div style={{ position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)", width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)" }} />
+          <button onClick={closePopup} style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.1)", border: "none", borderRadius: "50%", width: 28, height: 28, color: "rgba(255,255,255,0.6)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
 
-          <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+          <div style={{ display: "flex", gap: 12, marginBottom: 12, marginTop: 6 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: `${selectedEvent.color}25`, border: `1px solid ${selectedEvent.color}50`, display: "flex", alignItems: "center", justifyContent: "center", color: selectedEvent.color, flexShrink: 0 }}>
               {selectedEvent.type === "official" ? <LightningIcon size={20} /> : <HouseIcon size={20} />}
             </div>
@@ -542,7 +587,7 @@ export default function MapPage({ user, isActive, focusTarget }) {
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
-            {selectedEvent.isHomemade ? (
+            {selectedEvent.isHomemade && !selectedEvent.location_visible ? (
               (() => {
                 const rawId = String(selectedEvent.rawId ?? selectedEvent.id);
                 const status = myRequests[rawId];
@@ -575,7 +620,7 @@ export default function MapPage({ user, isActive, focusTarget }) {
               })()
             ) : (
               <button onClick={() => handleAttend(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: attending[selectedEvent.id] ? `${selectedEvent.color}35` : `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: `1px solid ${attending[selectedEvent.id] ? selectedEvent.color : "transparent"}`, borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                {attending[selectedEvent.id] ? <><CheckCircleIcon size={15} /> Participi</> : <><PlusIcon size={15} /> Vreau să vin</>}
+                {attending[selectedEvent.id] ? <><CheckCircleIcon size={15} /> Participi</> : <><PlusIcon size={15} /> Particip</>}
               </button>
             )}
             {canSeeExactAddress(selectedEvent) && (

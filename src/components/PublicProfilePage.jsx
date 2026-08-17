@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
+import PhotoViewerModal from "./PhotoViewerModal";
 import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
 import { MoonIcon, LightningIcon, HouseIcon, CheckCircleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
@@ -30,6 +32,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
+  const [showPhoto, setShowPhoto] = useState(false);
 
   const isSelf = currentUser?.id === profileUserId;
   const containerRef = useRef(null);
@@ -122,9 +125,13 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
 
       {/* Avatar + nume */}
       <div style={{ padding: "24px 20px 0", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-        <div style={{ width: 96, height: 96, borderRadius: "50%", overflow: "hidden", border: "2px solid rgba(255,51,102,0.4)", background: profile?.avatar_url ? "transparent" : "linear-gradient(135deg, #FF3366, #B44FFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, fontWeight: 800, color: "#fff", marginBottom: 14 }}>
+        <div
+          onClick={() => profile?.avatar_url && setShowPhoto(true)}
+          style={{ width: 96, height: 96, borderRadius: "50%", overflow: "hidden", border: "2px solid rgba(255,51,102,0.4)", background: profile?.avatar_url ? "transparent" : "linear-gradient(135deg, #FF3366, #B44FFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, fontWeight: 800, color: "#fff", marginBottom: 14, cursor: profile?.avatar_url ? "pointer" : "default" }}
+        >
           {profile?.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : displayName.charAt(0).toUpperCase()}
         </div>
+        {showPhoto && createPortal(<PhotoViewerModal src={profile.avatar_url} onClose={() => setShowPhoto(false)} />, document.body)}
         <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{displayName}</div>
         {profile?.hobby && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 8, maxWidth: 300 }}>{profile.hobby}</div>}
 

@@ -171,7 +171,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   // deloc tabelul attendances, deci contorul de participanți rămânea mereu
   // ascuns/gol pentru ele — aici numărăm cererile acceptate din
   // attendance_requests, tabelul pe care chiar îl folosesc.
-  const isJoinRequestEvent = event.isPosted && event.type === "homemade";
+  const isJoinRequestEvent = event.isPosted && event.type === "homemade" && !event.location_visible;
   useEffect(() => {
     if (!isJoinRequestEvent) return;
     let active = true;
@@ -456,7 +456,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
   const buttons = [
     { key: "like", onClick: handleLike, active: liked, label: formatNum(likeCount), icon: <HeartIcon filled={liked} color={event.color} size={32} /> },
-    event.isPosted && event.type === "homemade"
+    event.isPosted && event.type === "homemade" && !event.location_visible
       ? {
           key: "attend",
           onClick: isOwnEvent ? undefined : (e) => { e.stopPropagation(); animateBtn("attend"); setShowJoinRequest(true); },
