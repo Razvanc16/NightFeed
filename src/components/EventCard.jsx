@@ -329,6 +329,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               body: `${likerName} a apreciat ${event.title}.`,
               type: "like",
               actorId: user.id,
+              eventId: String(event.id),
             });
           }, 2000);
         }

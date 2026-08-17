@@ -68,8 +68,11 @@ export async function unsubscribeFromPush() {
 // Scrie în paralel în tabelul `notifications` (istoric persistent, vizibil în
 // tab-ul de Notificări) și trimite push-ul — un singur punct de apel pentru
 // toate declanșatoarele existente din aplicație.
-export function notifyUser({ targetUserId, title, body, url, type, actorId }) {
-  supabase.from("notifications").insert([{ user_id: targetUserId, type, title, body, url, actor_id: actorId || null }]).then(() => {});
+// `eventId`/`commentId`: opționale — pentru notificările de like/comentariu,
+// ca atingerea notificării (pe altceva decât poza actorului) să te ducă direct
+// la evenimentul respectiv (și, pentru comentarii, la comentariul exact).
+export function notifyUser({ targetUserId, title, body, url, type, actorId, eventId, commentId }) {
+  supabase.from("notifications").insert([{ user_id: targetUserId, type, title, body, url, actor_id: actorId || null, event_id: eventId || null, comment_id: commentId || null }]).then(() => {});
   return supabase.functions
     .invoke("send-push", { body: { targetUserId, title, body, url, type } })
     .catch(() => {});

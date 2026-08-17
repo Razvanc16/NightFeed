@@ -43,7 +43,7 @@ const convertPostedEventMinimal = (e) => ({
   bgColor: e.type === "official" ? "#1a0010" : "#110d00",
 });
 
-export default function ProfilePage({ user, onLogout, onViewProfile }) {
+export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent }) {
   const [view, setView] = useState("loading");
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -473,12 +473,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
               )}
               <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
                 <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmăritori</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
+                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmăritori</span>
                 </button>
                 <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmărește</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</span>
+                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmărește</span>
                 </button>
               </div>
               <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 6 }}>
@@ -644,7 +644,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile }) {
         document.body
       )}
 
-      {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} onViewProfile={onViewProfile} />, document.body)}
+      {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} onViewProfile={onViewProfile} onOpenEvent={onOpenEvent} />, document.body)}
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 

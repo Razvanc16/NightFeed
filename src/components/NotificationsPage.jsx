@@ -17,7 +17,7 @@ const timeAgo = (iso) => {
   return new Date(iso).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 };
 
-export default function NotificationsPage({ user, onClose, onViewProfile }) {
+export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent }) {
   const [notifications, setNotifications] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
@@ -74,14 +74,29 @@ export default function NotificationsPage({ user, onClose, onViewProfile }) {
           const Icon = ICONS[n.type] || EnvelopeIcon;
           const color = COLORS[n.type] || "#FF3366";
           const avatarUrl = n.actor_id ? avatars[n.actor_id] : null;
-          const clickable = !!(n.actor_id && onViewProfile);
+          // Atingerea pozei duce mereu la profilul actorului. Atingerea
+          // restului rândului duce la evenimentul (și, la comentarii, direct
+          // la comentariul respectiv) dacă există unul — altfel, ca înainte,
+          // tot la profilul actorului (follower, cereri de participare etc.,
+          // care nu au un eveniment de deschis).
+          const rowGoesToEvent = !!(n.event_id && onOpenEvent);
+          const rowGoesToProfile = !rowGoesToEvent && !!(n.actor_id && onViewProfile);
+          const rowClickable = rowGoesToEvent || rowGoesToProfile;
+          const avatarClickable = !!(n.actor_id && onViewProfile);
+          const handleRowClick = () => {
+            if (rowGoesToEvent) { onOpenEvent(n.event_id, n.comment_id); onClose(); }
+            else if (rowGoesToProfile) { onViewProfile(n.actor_id); onClose(); }
+          };
           return (
             <div
               key={n.id}
-              onClick={clickable ? () => { onViewProfile(n.actor_id); onClose(); } : undefined}
-              style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", borderRadius: 14, background: n.read ? "rgba(255,255,255,0.03)" : `${color}0d`, border: `1px solid ${n.read ? "rgba(255,255,255,0.07)" : color + "30"}`, cursor: clickable ? "pointer" : "default" }}
+              onClick={rowClickable ? handleRowClick : undefined}
+              style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", borderRadius: 14, background: n.read ? "rgba(255,255,255,0.03)" : `${color}0d`, border: `1px solid ${n.read ? "rgba(255,255,255,0.07)" : color + "30"}`, cursor: rowClickable ? "pointer" : "default" }}
             >
-              <div style={{ position: "relative", flexShrink: 0 }}>
+              <div
+                onClick={avatarClickable ? (e) => { e.stopPropagation(); onViewProfile(n.actor_id); onClose(); } : undefined}
+                style={{ position: "relative", flexShrink: 0, cursor: avatarClickable ? "pointer" : "default" }}
+              >
                 <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden", background: avatarUrl ? "transparent" : `${color}20`, border: `1px solid ${color}40`, display: "flex", alignItems: "center", justifyContent: "center", color }}>
                   {avatarUrl ? <img src={avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Icon size={16} />}
                 </div>

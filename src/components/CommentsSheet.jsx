@@ -15,8 +15,18 @@ const formatTime = (ts) => new Date(ts).toLocaleTimeString("ro-RO", { hour: "2-d
 // de componentă nou la fiecare re-render al părintelui, iar React ar
 // demonta/remonta toate rândurile de fiecare dată (rulau din nou animația de
 // intrare simultan, arătând ca un glitch la fiecare actualizare de state).
-const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggleLike, onReply, animate, onViewProfile }) => (
-  <div style={{ marginBottom: isReply ? 10 : 14, display: "flex", gap: 10, alignItems: "flex-start", animation: animate ? "slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" : "none" }}>
+const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggleLike, onReply, animate, onViewProfile, highlighted }) => (
+  <div
+    id={`comment-${c.id}`}
+    style={{
+      marginBottom: isReply ? 10 : 14, marginLeft: highlighted ? -8 : 0, marginRight: highlighted ? -8 : 0,
+      display: "flex", gap: 10, alignItems: "flex-start",
+      animation: animate ? "slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" : "none",
+      background: highlighted ? `${color}18` : "transparent",
+      border: `1px solid ${highlighted ? color + "40" : "transparent"}`,
+      borderRadius: 12, padding: highlighted ? 8 : 0,
+      transition: "background 0.4s, border-color 0.4s",
+    }}>
     <div
       onClick={() => c.user_id && onViewProfile && onViewProfile(c.user_id)}
       style={{
@@ -49,7 +59,7 @@ const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggle
   </div>
 );
 
-export default function CommentsSheet({ event, user, open, onClose, onViewProfile }) {
+export default function CommentsSheet({ event, user, open, onClose, onViewProfile, highlightCommentId }) {
   // Ținem ultimul event valid și cât timp se închide sheet-ul (event devine
   // null în același render în care open devine false) — altfel componenta
   // s-ar demonta instant, fără să apuce să joace tranziția de translateY.
@@ -100,8 +110,18 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
   }, [open, event?.id]);
 
   useEffect(() => {
-    if (open) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-  }, [comments, open]);
+    // Dacă venim dintr-o notificare cu un comentariu țintă, derulăm la el
+    // (mai jos) în loc să sărim automat la finalul listei.
+    if (open && !highlightCommentId) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  }, [comments, open, highlightCommentId]);
+
+  useEffect(() => {
+    if (!open || !highlightCommentId || !comments.length) return;
+    const timer = setTimeout(() => {
+      document.getElementById(`comment-${highlightCommentId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [open, highlightCommentId, comments]);
 
   // Swipe în jos ca să închizi — poți începe atingerea oriunde (chiar și
   // scrolat jos în listă): lași scroll-ul normal să se întâmple până lista
@@ -214,6 +234,8 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
             body: `${likerName} ți-a apreciat comentariul la ${event.title}`,
             type: "like",
             actorId: user.id,
+            eventId: String(event.id),
+            commentId: comment.id,
           });
         }, 2000));
       }
@@ -231,9 +253,9 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
     setSending(true);
     const username = user.user_metadata?.username || user.email?.split("@")[0] || "User";
     const parent_id = replyingTo?.id || null;
-    const { error } = await supabase.from("comments").insert([{
+    const { data: inserted, error } = await supabase.from("comments").insert([{
       event_id: event.id, user_id: user.id, username, text: text.trim(), parent_id,
-    }]);
+    }]).select("id").single();
     if (!error) {
       setText("");
       if (event.organizer_id && event.organizer_id !== user.id) {
@@ -243,6 +265,8 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
           body: `${username} a comentat la ${event.title}: „${text.trim().slice(0, 80)}”`,
           type: "comment",
           actorId: user.id,
+          eventId: String(event.id),
+          commentId: inserted?.id,
         });
       }
       if (parent_id) {
@@ -254,6 +278,8 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
             body: `${username} ți-a răspuns la ${event.title}: „${text.trim().slice(0, 80)}”`,
             type: "comment",
             actorId: user.id,
+            eventId: String(event.id),
+            commentId: inserted?.id,
           });
         }
       }
@@ -329,7 +355,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
                 <CommentRow
                   c={c} isReply={false} color={displayEvent.color} avatarUrl={avatars[c.user_id]}
                   likeCount={likeCounts[c.id] || 0} isLiked={myLikes.has(c.id)}
-                  onToggleLike={() => toggleLike(c)} onReply={() => startReply(c)} animate={freshIds.has(c.id)} onViewProfile={onViewProfile}
+                  onToggleLike={() => toggleLike(c)} onReply={() => startReply(c)} animate={freshIds.has(c.id)} onViewProfile={onViewProfile} highlighted={c.id === highlightCommentId}
                 />
                 {repliesOf(c.id).length > 0 && (
                   <div style={{ marginLeft: 16, paddingLeft: 16, borderLeft: "2px solid rgba(255,255,255,0.08)", marginTop: -2 }}>
@@ -337,7 +363,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
                       <CommentRow
                         key={r.id} c={r} isReply={true} color={displayEvent.color} avatarUrl={avatars[r.user_id]}
                         likeCount={likeCounts[r.id] || 0} isLiked={myLikes.has(r.id)}
-                        onToggleLike={() => toggleLike(r)} onReply={() => startReply(r)} animate={freshIds.has(r.id)} onViewProfile={onViewProfile}
+                        onToggleLike={() => toggleLike(r)} onReply={() => startReply(r)} animate={freshIds.has(r.id)} onViewProfile={onViewProfile} highlighted={r.id === highlightCommentId}
                       />
                     ))}
                   </div>

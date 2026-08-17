@@ -127,6 +127,7 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
+  const [commentsHighlightId, setCommentsHighlightId] = useState(null);
   const [postedEvents, setPostedEvents] = useState([]);
   const [notifToast, setNotifToast] = useState(null); // { title, body } — rămâne montat în timpul ieșirii
   const [notifToastShow, setNotifToastShow] = useState(false); // controlează animația de intrare/ieșire
@@ -535,6 +536,27 @@ export default function App() {
     }, 50);
   };
 
+  // Deschide evenimentul (și, dacă vine dintr-o notificare de comentariu,
+  // comentariul exact) legat de o notificare de like/comentariu.
+  const openEventFromNotification = (eventId, commentId) => {
+    const idx = slides.findIndex(s => s.type === "single" ? s.event.id === eventId : s.events.some(e => e.id === eventId));
+    setActiveTab("feed");
+    setTimeout(() => {
+      if (feedRef.current && idx >= 0) {
+        feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
+        setCurrentIndex(idx);
+      }
+      if (commentId && idx >= 0) {
+        const slide = slides[idx];
+        const foundEvent = slide.type === "single" ? slide.event : slide.events.find(e => e.id === eventId);
+        if (foundEvent) {
+          setCommentsHighlightId(commentId);
+          setCommentsEvent(foundEvent);
+        }
+      }
+    }, 50);
+  };
+
   return (
     <>
       <style>{`
@@ -632,7 +654,7 @@ export default function App() {
           {activeTab === "profile" && (
             <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
               {user
-                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} />
+                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
               }
             </div>
@@ -824,7 +846,7 @@ export default function App() {
             <FilterDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} active={activeFilter} onChange={setActiveFilter} />
           </div>
 
-          <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => setCommentsEvent(null)} onViewProfile={(uid) => { setCommentsEvent(null); setViewingProfile(uid); }} />
+          <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => { setCommentsEvent(null); setCommentsHighlightId(null); }} onViewProfile={(uid) => { setCommentsEvent(null); setViewingProfile(uid); }} highlightCommentId={commentsHighlightId} />
           <Navbar active={activeTab} onChange={handleTabChange} />
 
           {notifToast && (
