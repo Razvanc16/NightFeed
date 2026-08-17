@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-// Swipe de la marginea din stânga spre dreapta = back, ca pe Instagram/iOS.
-// Gestul trebuie să pornească aproape de marginea ecranului (nu oriunde pe
-// pagină), altfel ar intra în conflict cu scroll orizontal sau alte gesturi
-// din listă. Pagina urmărește degetul live (translateX) — dacă tragi destul
-// SAU tragi rapid (flick scurt), tranziția se termină spre onBack; altfel
-// sare înapoi la loc.
-const EDGE_ZONE = 28; // px de la marginea stângă unde poate porni gestul
+// Swipe spre dreapta = back, ca pe Instagram/iOS. Pornește de ORIUNDE pe
+// ecran (nu doar de la marginea din stânga) — zona îngustă de 28px era
+// imposibil de nimerit precis pe telefon. Nu intră în conflict cu scroll-ul
+// vertical al listei, fiindcă onTouchMove renunță la gest imediat ce mișcarea
+// e mai degrabă verticală decât orizontală. Pagina urmărește degetul live
+// (translateX) — dacă tragi destul SAU tragi rapid (flick scurt), tranziția
+// se termină spre onBack; altfel sare înapoi la loc.
 const DISTANCE_THRESHOLD = 70; // px — suficient tras, indiferent de viteză
 const FLICK_DISTANCE = 30; // px — prag mai mic dacă gestul e rapid
 const FLICK_VELOCITY = 0.55; // px/ms
@@ -22,7 +22,6 @@ export function useSwipeBack(ref, onBack, enabled = true) {
 
     const onTouchStart = (e) => {
       const touch = e.touches[0];
-      if (touch.clientX > EDGE_ZONE) { stateRef.current.tracking = false; return; }
       const now = Date.now();
       stateRef.current = { startX: touch.clientX, startY: touch.clientY, tracking: true, lastX: touch.clientX, lastT: now, velocity: 0 };
     };

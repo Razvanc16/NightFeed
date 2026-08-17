@@ -296,12 +296,18 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const openEventInfo = async (event) => {
     setInfoEvent(event);
     setInfoStats(null);
+    // event.id aici e uuid-ul brut (vine din posted_events_feed) — likes și
+    // attendances țin însă event_id cu prefixul "posted_", iar
+    // attendance_requests ține uuid-ul brut. Fără normalizarea asta,
+    // query-urile pe likes/attendances nu găseau niciodată nimic (0 mereu),
+    // chiar dacă existau aprecieri/participanți reali.
+    const prefixedId = `posted_${event.id}`;
     const isRequestBased = event.type === "homemade" && !event.location_visible;
     const [{ count: likes }, { count: attending }] = await Promise.all([
-      supabase.from("likes").select("*", { count: "exact", head: true }).eq("event_id", String(event.id)),
+      supabase.from("likes").select("*", { count: "exact", head: true }).eq("event_id", prefixedId),
       isRequestBased
-        ? supabase.from("attendance_requests").select("*", { count: "exact", head: true }).eq("event_id", String(event.id).replace("posted_", "")).eq("status", "accepted")
-        : supabase.from("attendances").select("*", { count: "exact", head: true }).eq("event_id", String(event.id)),
+        ? supabase.from("attendance_requests").select("*", { count: "exact", head: true }).eq("event_id", event.id).eq("status", "accepted")
+        : supabase.from("attendances").select("*", { count: "exact", head: true }).eq("event_id", prefixedId),
     ]);
     setInfoStats({ likes: likes || 0, attending: attending || 0 });
   };
@@ -475,12 +481,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{profile.prenume} {profile.nume}</div>
               <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
                 <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
-                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmăritori</span>
+                  <span style={{ fontSize: 19, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
+                  <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmăritori</span>
                 </button>
                 <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</span>
-                  <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmărește</span>
+                  <span style={{ fontSize: 19, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</span>
+                  <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmărește</span>
                 </button>
               </div>
               <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 6 }}>
@@ -670,11 +676,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               <div style={{ textAlign: "center", padding: "20px 0", color: "rgba(255,255,255,0.3)" }}>Se încarcă...</div>
             ) : (
               <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
-                <button onClick={() => setPeopleSheetFor({ source: "likes", eventId: infoEvent.id, title: "Aprecieri" })} style={{ flex: 1, padding: "14px 10px", borderRadius: 14, background: "rgba(255,51,102,0.08)", border: "1px solid rgba(255,51,102,0.2)", cursor: "pointer", textAlign: "center" }}>
+                <button onClick={() => setPeopleSheetFor({ source: "likes", eventId: `posted_${infoEvent.id}`, title: "Aprecieri" })} style={{ flex: 1, padding: "14px 10px", borderRadius: 14, background: "rgba(255,51,102,0.08)", border: "1px solid rgba(255,51,102,0.2)", cursor: "pointer", textAlign: "center" }}>
                   <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{infoStats.likes}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Aprecieri</div>
                 </button>
-                <button onClick={() => setPeopleSheetFor({ source: (infoEvent.type === "homemade" && !infoEvent.location_visible) ? "requests" : "attendances", eventId: infoEvent.id, title: "Participă" })} style={{ flex: 1, padding: "14px 10px", borderRadius: 14, background: "rgba(0,200,100,0.08)", border: "1px solid rgba(0,200,100,0.2)", cursor: "pointer", textAlign: "center" }}>
+                <button onClick={() => setPeopleSheetFor({ source: (infoEvent.type === "homemade" && !infoEvent.location_visible) ? "requests" : "attendances", eventId: `posted_${infoEvent.id}`, title: "Participă" })} style={{ flex: 1, padding: "14px 10px", borderRadius: 14, background: "rgba(0,200,100,0.08)", border: "1px solid rgba(0,200,100,0.2)", cursor: "pointer", textAlign: "center" }}>
                   <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{infoStats.attending}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Participă</div>
                 </button>

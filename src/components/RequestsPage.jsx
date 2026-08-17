@@ -3,6 +3,7 @@ import { supabase } from "../supabase";
 import { ClockIcon, CheckCircleIcon, CrossCircleIcon, InboxIcon, PersonIcon, OutboxIcon, LightningIcon, HouseIcon, PinIcon, MapIcon, TicketIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 import { TicketQR } from "./MyTicketsPage";
+import { isEventExpired } from "../utils/eventTime";
 
 export default function RequestsPage({ user, onClose }) {
   const [requests, setRequests] = useState([]);
@@ -38,7 +39,7 @@ export default function RequestsPage({ user, onClose }) {
     // le dezvăluie doar pentru cererile acceptate.
     const { data: outgoing } = await supabase
       .from("attendance_requests")
-      .select("*, posted_events(title, type, date)")
+      .select("*, posted_events(title, type, date, event_date, archived)")
       .eq("requester_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -67,9 +68,10 @@ export default function RequestsPage({ user, onClose }) {
 
     setRequests(incoming || []);
     setMyRequests((outgoing || [])
-      // Evenimentul poate fi șters între timp (embed-ul FK vine null) — nu
-      // are rost să arătăm o cerere pentru ceva ce nu mai există.
-      .filter(r => r.posted_events?.title)
+      // Ascundem cererile către evenimente care nu mai există (șterse — embed-ul
+      // FK vine null), arhivate de host sau deja trecute — nu mai e nimic de
+      // făcut cu ele, doar aglomerau lista de "Cereri trimise".
+      .filter(r => r.posted_events?.title && !r.posted_events.archived && !isEventExpired(r.posted_events))
       .map(r => ({
         ...r,
         posted_events: { ...r.posted_events, ...addressByEventId[String(r.event_id)] },
