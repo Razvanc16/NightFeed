@@ -4,12 +4,13 @@ import { events as staticEvents } from "../data/events";
 import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
 import {
   SparkleIcon, LightningIcon, HouseIcon, FireIcon, TagIcon, PinIcon, LockIcon,
-  ClockIcon, CheckCircleIcon, CrossCircleIcon, PlusIcon, MapIcon,
+  ClockIcon, CheckCircleIcon, CrossCircleIcon, PlusIcon, MapIcon, InfoIcon,
   houseIconSvg, lightningIconSvg, VIBE_OPTIONS,
 } from "./Icons";
 
 const vibeSvgById = Object.fromEntries(VIBE_OPTIONS.map(v => [v.id, v.svg]));
 import { notifyUser } from "../utils/pushNotifications";
+import EventInsightsModal from "./EventInsightsModal";
 
 const filters = [
   { id: "all", label: "Toate", icon: SparkleIcon },
@@ -68,7 +69,7 @@ const applyOffset = (lat, lng, id) => {
   return [lat + dLat, lng + dLng];
 };
 
-export default function MapPage({ user, isActive, focusTarget }) {
+export default function MapPage({ user, isActive, focusTarget, onViewProfile }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -90,6 +91,7 @@ export default function MapPage({ user, isActive, focusTarget }) {
     });
   };
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [insightsEvent, setInsightsEvent] = useState(null);
   const [popupDragY, setPopupDragY] = useState(0);
   const [popupClosing, setPopupClosing] = useState(false);
   const popupDragRef = useRef(null);
@@ -591,7 +593,13 @@ export default function MapPage({ user, isActive, focusTarget }) {
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
-            {selectedEvent.isHomemade && !selectedEvent.location_visible ? (
+            {selectedEvent.hostId && user && selectedEvent.hostId === user.id ? (
+              // E propriul tău eveniment — n-are sens să "participi" la el, arătăm
+              // în schimb statisticile (aprecieri/participanți).
+              <button onClick={() => setInsightsEvent(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: "none", borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                <InfoIcon size={15} /> Insights
+              </button>
+            ) : selectedEvent.isHomemade && !selectedEvent.location_visible ? (
               (() => {
                 const rawId = String(selectedEvent.rawId ?? selectedEvent.id);
                 const status = myRequests[rawId];
@@ -640,6 +648,15 @@ export default function MapPage({ user, isActive, focusTarget }) {
         <div style={{ position: "absolute", bottom: 90, left: "50%", transform: "translateX(-50%)", background: "rgba(15,15,18,0.97)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, padding: "10px 20px", zIndex: 700, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", backdropFilter: "blur(20px)", whiteSpace: "nowrap", boxShadow: "0 4px 24px rgba(0,0,0,0.5)" }}>
           {toast}
         </div>
+      )}
+
+      {insightsEvent && (
+        <EventInsightsModal
+          event={insightsEvent}
+          rawId={insightsEvent.rawId}
+          onClose={() => setInsightsEvent(null)}
+          onViewProfile={onViewProfile}
+        />
       )}
 
       <style>{`

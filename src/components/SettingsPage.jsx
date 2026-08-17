@@ -1,27 +1,6 @@
 import {
-  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, HeartOutlineIcon, PencilIcon, TicketIcon, ClockIcon,
+  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, PencilIcon, TicketIcon, ClockIcon,
 } from "./Icons";
-
-const NotifRow = ({ label, onClick, count }) => (
-  <button
-    onClick={onClick}
-    style={{
-      width: "100%", padding: "13px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 10,
-      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
-      color: "rgba(255,255,255,0.75)", fontSize: 14, fontFamily: "'DM Sans', sans-serif",
-      cursor: "pointer", textAlign: "left",
-    }}
-  >
-    <BellIcon size={16} />
-    <span style={{ flex: 1 }}>{label}</span>
-    {count > 0 && (
-      <span style={{ minWidth: 18, height: 18, borderRadius: 9, background: "#FF3366", color: "#fff", fontSize: 10, fontWeight: 800, fontFamily: "'DM Mono', monospace", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>
-        {count > 9 ? "9+" : count}
-      </span>
-    )}
-    <ChevronRightIcon size={14} style={{ opacity: 0.3 }} />
-  </button>
-);
 
 const NOTIF_PREF_TYPES = [
   { key: "notif_likes", label: "Like-uri" },
@@ -54,8 +33,8 @@ const SectionLabel = ({ children }) => (
 );
 
 export default function SettingsPage({
-  onClose, onEditProfile, onShowLegal, onShowLiked, onDeleteAccount, onLogout,
-  onShowNotifications, unreadNotifCount, onShowTickets, onShowHistory,
+  onClose, onEditProfile, onShowLegal, onDeleteAccount, onLogout,
+  onShowTickets, onShowHistory,
   profile, pushStatus, pushBusy, onTogglePush, onToggleNotifPref,
 }) {
   return (
@@ -71,8 +50,6 @@ export default function SettingsPage({
         <SectionLabel>Cont</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Row icon={<PencilIcon size={15} />} label="Editează profilul" onClick={onEditProfile} />
-          <NotifRow label="Notificări" onClick={onShowNotifications} count={unreadNotifCount} />
-          <Row icon={<HeartOutlineIcon size={16} />} label="Evenimente apreciate" onClick={onShowLiked} />
           <Row icon={<TicketIcon size={16} />} label="Biletele mele" onClick={onShowTickets} />
           <Row icon={<ClockIcon size={16} />} label="Istoricul meu" onClick={onShowHistory} />
           <Row icon={<LogoutIcon size={16} />} label="Ieși din cont" onClick={onLogout} />

@@ -12,7 +12,7 @@ import AvatarCropSheet from "./AvatarCropSheet";
 import PhotoViewerModal from "./PhotoViewerModal";
 import MyTicketsPage from "./MyTicketsPage";
 import CheckinScannerSheet from "./CheckinScannerSheet";
-import EventPeopleSheet from "./EventPeopleSheet";
+import EventInsightsModal from "./EventInsightsModal";
 import MyHistoryPage from "./MyHistoryPage";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
@@ -102,8 +102,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [scannerEvent, setScannerEvent] = useState(null);
   const [showOwnPhoto, setShowOwnPhoto] = useState(false);
   const [infoEvent, setInfoEvent] = useState(null);
-  const [infoStats, setInfoStats] = useState(null); // { likes, attending }
-  const [peopleSheetFor, setPeopleSheetFor] = useState(null); // { source, eventId, title } | null
   const [showHistory, setShowHistory] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -290,28 +288,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     setSaving(false);
   };
 
-  // Info despre un eveniment (arhivat) — cine a apreciat, cine a participat,
-  // fiindcă odată arhivat evenimentul nu mai apare nicăieri altundeva ca să
-  // poți vedea aceste date.
-  const openEventInfo = async (event) => {
-    setInfoEvent(event);
-    setInfoStats(null);
-    // event.id aici e uuid-ul brut (vine din posted_events_feed) — likes și
-    // attendances țin însă event_id cu prefixul "posted_", iar
-    // attendance_requests ține uuid-ul brut. Fără normalizarea asta,
-    // query-urile pe likes/attendances nu găseau niciodată nimic (0 mereu),
-    // chiar dacă existau aprecieri/participanți reali.
-    const prefixedId = `posted_${event.id}`;
-    const isRequestBased = event.type === "homemade" && !event.location_visible;
-    const [{ count: likes }, { count: attending }] = await Promise.all([
-      supabase.from("likes").select("*", { count: "exact", head: true }).eq("event_id", prefixedId),
-      isRequestBased
-        ? supabase.from("attendance_requests").select("*", { count: "exact", head: true }).eq("event_id", event.id).eq("status", "accepted")
-        : supabase.from("attendances").select("*", { count: "exact", head: true }).eq("event_id", prefixedId),
-    ]);
-    setInfoStats({ likes: likes || 0, attending: attending || 0 });
-  };
-
   const handleRemoveAttending = async (eventId) => {
     await supabase.from("attendances").delete().eq("event_id", String(eventId)).eq("user_id", user.id);
     setAttendingEvents(prev => prev.filter(e => e.id !== eventId));
@@ -464,12 +440,19 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
       {!isSetup && profile && (
         <div style={{ position: "relative", animation: "slideUp 0.3s ease-out" }}>
-          <button onClick={() => setShowSettings(true)} style={{ position: "absolute", top: 14, right: 16, zIndex: 6, width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
-            <GearIcon size={15} />
-            {unreadNotifCount > 0 && (
-              <div style={{ position: "absolute", top: -3, right: -3, width: 10, height: 10, borderRadius: "50%", background: "#FF3366", border: "2px solid #080808" }} />
-            )}
-          </button>
+          <div style={{ position: "absolute", top: 14, right: 16, zIndex: 6, display: "flex", gap: 8 }}>
+            <button onClick={() => setShowNotifications(true)} style={{ position: "relative", width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
+              <BellIcon size={15} />
+              {unreadNotifCount > 0 && (
+                <div style={{ position: "absolute", top: -5, right: -5, minWidth: 16, height: 16, padding: "0 3px", borderRadius: 8, background: "#FF3366", border: "2px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace" }}>
+                  {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
+                </div>
+              )}
+            </button>
+            <button onClick={() => setShowSettings(true)} style={{ width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
+              <GearIcon size={15} />
+            </button>
+          </div>
           <div style={{ padding: "50px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
             <div
               onClick={() => profile.avatar_url && setShowOwnPhoto(true)}
@@ -500,6 +483,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[
               { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={18} /> },
+              { id: "liked", label: "Apreciate", value: likedEvents.length, icon: <HeartOutlineIcon size={18} /> },
               { id: "requests", label: "Cereri", value: pendingRequestsCount, icon: <EnvelopeIcon size={18} /> },
               { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={18} /> },
             ].map(stat => {
@@ -591,7 +575,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {event.price || "Gratuit"}</div>
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        <button onClick={() => openEventInfo(event)} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><InfoIcon size={12} /> Info</button>
+                        <button onClick={() => setInfoEvent(event)} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><InfoIcon size={12} /> Info</button>
                         <button onClick={() => handleRestorePosted(event.id)} style={{ background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.25)", borderRadius: 8, padding: "5px 10px", color: "#00C864", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Restaurează</button>
                         <button onClick={() => handlePermanentDeletePosted(event.id)} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 8, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Șterge definitiv</button>
                       </div>
@@ -637,12 +621,9 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         <SettingsPage
           onClose={() => setShowSettings(false)}
           onEditProfile={() => { setShowSettings(false); setEditing(true); }}
-          onShowLiked={() => { setShowSettings(false); setActiveTab("liked"); }}
           onShowLegal={() => setShowLegal(true)}
-          onShowNotifications={() => { setShowSettings(false); setShowNotifications(true); }}
           onShowTickets={() => { setShowSettings(false); setShowTickets(true); }}
           onShowHistory={() => { setShowSettings(false); setShowHistory(true); }}
-          unreadNotifCount={unreadNotifCount}
           onDeleteAccount={() => setShowDeleteConfirm(true)}
           onLogout={onLogout}
           profile={profile}
@@ -667,41 +648,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       {scannerEvent && createPortal(<CheckinScannerSheet event={scannerEvent} onClose={() => setScannerEvent(null)} />, document.body)}
 
       {infoEvent && createPortal(
-        <div onClick={() => setInfoEvent(null)} style={{ position: "fixed", inset: 0, zIndex: 10350, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "22px 20px", width: "100%", maxWidth: 340, border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>{infoEvent.title}</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 18 }}>{infoEvent.date} · {infoEvent.price || "Gratuit"}</div>
-
-            {!infoStats ? (
-              <div style={{ textAlign: "center", padding: "20px 0", color: "rgba(255,255,255,0.3)" }}>Se încarcă...</div>
-            ) : (
-              <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
-                <button onClick={() => setPeopleSheetFor({ source: "likes", eventId: `posted_${infoEvent.id}`, title: "Aprecieri" })} style={{ flex: 1, padding: "14px 10px", borderRadius: 14, background: "rgba(255,51,102,0.08)", border: "1px solid rgba(255,51,102,0.2)", cursor: "pointer", textAlign: "center" }}>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{infoStats.likes}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Aprecieri</div>
-                </button>
-                <button onClick={() => setPeopleSheetFor({ source: (infoEvent.type === "homemade" && !infoEvent.location_visible) ? "requests" : "attendances", eventId: `posted_${infoEvent.id}`, title: "Participă" })} style={{ flex: 1, padding: "14px 10px", borderRadius: 14, background: "rgba(0,200,100,0.08)", border: "1px solid rgba(0,200,100,0.2)", cursor: "pointer", textAlign: "center" }}>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{infoStats.attending}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Participă</div>
-                </button>
-              </div>
-            )}
-
-            <button onClick={() => setInfoEvent(null)} style={{ marginTop: 12, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-              Închide
-            </button>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {peopleSheetFor && createPortal(
-        <EventPeopleSheet
-          title={peopleSheetFor.title}
-          source={peopleSheetFor.source}
-          eventId={peopleSheetFor.eventId}
-          onClose={() => setPeopleSheetFor(null)}
-          onViewProfile={(uid) => { setPeopleSheetFor(null); setInfoEvent(null); onViewProfile && onViewProfile(uid); }}
+        <EventInsightsModal
+          event={infoEvent}
+          rawId={infoEvent.id}
+          onClose={() => setInfoEvent(null)}
+          onViewProfile={onViewProfile}
         />,
         document.body
       )}
