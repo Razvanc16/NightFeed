@@ -5,10 +5,17 @@
 
 // Evenimentele vechi, postate înainte de acest update, nu au "event_date" — nu știm
 // când au avut loc, așa că nu le considerăm expirate automat.
+//
+// Nu există un câmp separat de oră de final în schemă, doar ora de start —
+// așa că "expirat" înseamnă "trecut de EVENT_GRACE_MS de la start", nu chiar
+// momentul de start. Fără asta, un eveniment dispărea din Feed/Hartă/Căutare/
+// Profil exact când începea — inclusiv pentru participanții cu cerere deja
+// acceptată, care aveau nevoie de adresă și bilet QR chiar atunci, la intrare.
+const EVENT_GRACE_MS = 6 * 60 * 60 * 1000; // 6h — durata tipică a unei petreceri
 export const isEventExpired = (event) => {
   if (!event?.event_date) return false;
   const t = new Date(event.event_date).getTime();
-  return !Number.isNaN(t) && t < Date.now();
+  return !Number.isNaN(t) && t + EVENT_GRACE_MS < Date.now();
 };
 
 export const filterActiveEvents = (events) => (events || []).filter((e) => !isEventExpired(e));

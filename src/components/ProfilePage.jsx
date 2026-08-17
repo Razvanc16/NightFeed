@@ -370,7 +370,19 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   };
 
   const handleRemoveAttending = async (eventId) => {
-    await supabase.from("attendances").delete().eq("event_id", String(eventId)).eq("user_id", user.id);
+    const idStr = String(eventId);
+    await supabase.from("attendances").delete().eq("event_id", idStr).eq("user_id", user.id);
+    // Evenimentele la care participi printr-o cerere acceptată (locație
+    // ascunsă) nu au niciodată un rând în "attendances" (vezi
+    // loadAttendingAndLiked) — ștergerea de mai sus nu are ce șterge pentru
+    // ele, deci fără asta "Renunț" nu făcea nimic real, evenimentul revenea
+    // la următorul refresh.
+    if (idStr.startsWith("posted_")) {
+      await supabase.from("attendance_requests").delete()
+        .eq("event_id", idStr.slice("posted_".length))
+        .eq("requester_id", user.id)
+        .eq("status", "accepted");
+    }
     setAttendingEvents(prev => prev.filter(e => e.id !== eventId));
   };
 

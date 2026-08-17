@@ -86,7 +86,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
       setIsFollowing(false);
       setFollowers(f => Math.max(0, f - 1));
     } else {
-      await supabase.from("follows").insert([{ follower_id: currentUser.id, following_id: profileUserId }]);
+      await supabase.from("follows").upsert([{ follower_id: currentUser.id, following_id: profileUserId }], { onConflict: "follower_id,following_id" });
       setIsFollowing(true);
       setFollowers(f => f + 1);
       // Debounce, ca la like — follow/unfollow rapid repetat trimitea o

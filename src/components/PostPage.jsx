@@ -294,11 +294,20 @@ export default function PostPage({ user, onClose, editEvent }) {
       // altfel ajung la adresa veche fără să știe că s-a schimbat.
       if (isEdit && (editEvent.venue !== venue || editEvent.lat !== lat || editEvent.lng !== lng)) {
         const { data: attendees } = await supabase.from("attendances").select("user_id").eq("event_id", `posted_${eventId}`);
+        // Evenimentele cu locație ascunsă (aprobare manuală) nu au rând în
+        // attendances pentru participanți — fără query-ul ăsta, exact ei
+        // (cei cărora le pasă cel mai mult de adresă) nu erau anunțați
+        // niciodată când hostul o schimbă.
+        const { data: acceptedRequesters } = await supabase.from("attendance_requests").select("requester_id").eq("event_id", eventId).eq("status", "accepted");
         const posterName = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "Organizatorul";
-        (attendees || []).forEach(a => {
-          if (a.user_id === user.id) return;
+        const notifyTargets = new Set([
+          ...(attendees || []).map(a => a.user_id),
+          ...(acceptedRequesters || []).map(r => r.requester_id),
+        ]);
+        notifyTargets.forEach(targetUserId => {
+          if (targetUserId === user.id) return;
           notifyUser({
-            targetUserId: a.user_id,
+            targetUserId,
             title: "Locație schimbată",
             body: `${posterName} a schimbat locația pentru „${payload.title}”.`,
             type: "event_update",

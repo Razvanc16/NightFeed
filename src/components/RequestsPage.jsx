@@ -82,7 +82,11 @@ export default function RequestsPage({ user, onClose }) {
 
   const handleDecision = async (requestId, status) => {
     const req = requests.find(r => r.id === requestId);
-    await supabase.from("attendance_requests").update({ status }).eq("id", requestId);
+    const { error } = await supabase.from("attendance_requests").update({ status }).eq("id", requestId);
+    // Fără verificarea asta, un update eșuat (rețea, RLS) tot trimitea
+    // notificarea "Cerere acceptată!" — participantul credea că are bilet și
+    // adresă, deși statusul nu s-a schimbat deloc în bază.
+    if (error) { alert("Eroare: " + error.message); return; }
     if (req) {
       const eventTitle = req.posted_events?.title || "eveniment";
       notifyUser({

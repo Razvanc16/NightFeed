@@ -165,6 +165,7 @@ export default function App() {
   const recoveryModeRef = useRef(false);
   const notifToastTimer = useRef(null);
   const notifToastHideTimer = useRef(null);
+  const pendingNavRef = useRef(null); // { matchFn, commentId } — eveniment de deschis odată ce filtrele resetate recalculează slide-urile
 
   // Pull-to-refresh pe feed: trage în jos cât ești pe primul eveniment (scrollTop 0)
   const [pullDistance, setPullDistance] = useState(0);
@@ -352,7 +353,7 @@ export default function App() {
       clearTimeout(followNotifyTimers.current.get(organizerId));
       await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", organizerId);
     } else {
-      await supabase.from("follows").insert([{ follower_id: user.id, following_id: organizerId }]);
+      await supabase.from("follows").upsert([{ follower_id: user.id, following_id: organizerId }], { onConflict: "follower_id,following_id" });
       const followerName = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "Cineva";
       clearTimeout(followNotifyTimers.current.get(organizerId));
       followNotifyTimers.current.set(organizerId, setTimeout(() => {
@@ -564,16 +565,25 @@ export default function App() {
   // Deschide un eveniment specific (din Căutare sau cod) — comută pe feed și
   // derulează exact la el.
   const openSpecificEvent = (event) => {
-    const idx = slides.findIndex(s => s.type === "single"
-      ? (s.event.id === event.id || s.event.rawId === event.rawId)
-      : s.events.some(e => e.id === event.id || e.rawId === event.rawId));
+    const matchFn = (e) => e.id === event.id || e.rawId === event.rawId;
+    const idx = slides.findIndex(s => s.type === "single" ? matchFn(s.event) : s.events.some(matchFn));
     setActiveTab("feed");
-    setTimeout(() => {
-      if (feedRef.current && idx >= 0) {
-        feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
-        setCurrentIndex(idx);
-      }
-    }, 50);
+    if (idx >= 0) {
+      setTimeout(() => {
+        if (feedRef.current) {
+          feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
+          setCurrentIndex(idx);
+        }
+      }, 50);
+      return;
+    }
+    // Evenimentul nu e printre slide-urile curente — probabil ascuns de un
+    // filtru activ sau de tabul "Urmăriți". Fără reset, comutam pe feed și nu
+    // se întâmpla nimic vizibil (eșec silențios). Resetăm și reîncercăm în
+    // efectul de mai jos, odată ce slide-urile se recalculează.
+    pendingNavRef.current = { matchFn, commentId: null };
+    setActiveFilters(new Set());
+    setFeedMode("foryou");
   };
 
   // Deschide harta centrată pe locația unui eveniment, la tap pe locație în feed.
@@ -585,23 +595,60 @@ export default function App() {
   // Deschide evenimentul (și, dacă vine dintr-o notificare de comentariu,
   // comentariul exact) legat de o notificare de like/comentariu.
   const openEventFromNotification = (eventId, commentId) => {
-    const idx = slides.findIndex(s => s.type === "single" ? s.event.id === eventId : s.events.some(e => e.id === eventId));
+    const matchFn = (e) => e.id === eventId;
+    const idx = slides.findIndex(s => s.type === "single" ? matchFn(s.event) : s.events.some(matchFn));
     setActiveTab("feed");
+    if (idx >= 0) {
+      setTimeout(() => {
+        if (feedRef.current) {
+          feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
+          setCurrentIndex(idx);
+        }
+        if (commentId) {
+          const slide = slides[idx];
+          const foundEvent = slide.type === "single" ? slide.event : slide.events.find(matchFn);
+          if (foundEvent) {
+            setCommentsHighlightId(commentId);
+            setCommentsEvent(foundEvent);
+          }
+        }
+      }, 50);
+      return;
+    }
+    // La fel ca la openSpecificEvent: un filtru activ sau tabul "Urmăriți"
+    // poate ascunde exact evenimentul din notificare — fără reset, tab-ul
+    // comuta pe feed fără să ducă nicăieri.
+    pendingNavRef.current = { matchFn, commentId };
+    setActiveFilters(new Set());
+    setFeedMode("foryou");
+  };
+
+  // Finalizează openSpecificEvent/openEventFromNotification când evenimentul
+  // țintă a fost ascuns de filtrele active — rulează după ce resetul lor de
+  // mai sus recalculează slide-urile. Dacă tot nu se găsește (eveniment
+  // șters), anunțăm explicit în loc să rămânem tăcuți pe tabul feed.
+  useEffect(() => {
+    const pending = pendingNavRef.current;
+    if (!pending) return;
+    pendingNavRef.current = null;
+    const { matchFn, commentId } = pending;
+    const idx = slides.findIndex(s => s.type === "single" ? matchFn(s.event) : s.events.some(matchFn));
+    if (idx < 0) { alert("Evenimentul nu mai există sau a fost șters."); return; }
     setTimeout(() => {
-      if (feedRef.current && idx >= 0) {
+      if (feedRef.current) {
         feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
         setCurrentIndex(idx);
       }
-      if (commentId && idx >= 0) {
+      if (commentId) {
         const slide = slides[idx];
-        const foundEvent = slide.type === "single" ? slide.event : slide.events.find(e => e.id === eventId);
+        const foundEvent = slide.type === "single" ? slide.event : slide.events.find(matchFn);
         if (foundEvent) {
           setCommentsHighlightId(commentId);
           setCommentsEvent(foundEvent);
         }
       }
     }, 50);
-  };
+  }, [activeFilters, feedMode]);
 
   return (
     <>

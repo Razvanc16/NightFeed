@@ -224,7 +224,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
       clearTimeout(likeNotifyTimers.current.get(comment.id)); // te-ai răzgândit înainte să trimită
       await supabase.from("comment_likes").delete().eq("comment_id", comment.id).eq("user_id", user.id);
     } else {
-      await supabase.from("comment_likes").insert([{ comment_id: comment.id, user_id: user.id }]);
+      await supabase.from("comment_likes").upsert([{ comment_id: comment.id, user_id: user.id }], { onConflict: "comment_id,user_id" });
       if (comment.user_id && comment.user_id !== user.id) {
         // Debounce — like/unlike rapid repetat pe același comentariu trimitea
         // o notificare la fiecare apăsare.
