@@ -24,7 +24,18 @@ const filterFn = (event, filter) => {
   if (filter === "official") return event.type === "official";
   if (filter === "homemade") return event.type === "homemade";
   if (filter === "today") return event.date?.toLowerCase().includes("azi");
-  if (filter === "free") return event.price === "Gratuit";
+  // !event.price acoperă preț gol/null din bază — filtrul rulează pe datele
+  // brute, înainte de conversia care rezolvă "" spre textul "Gratuit".
+  if (filter === "free") return !event.price || event.price === "Gratuit";
+  return true;
+};
+
+// Mai multe filtre simultan (ex: Oficial + Gratuit) — set gol = "Toate".
+const matchesFilters = (event, activeFilters) => {
+  if (activeFilters.size === 0) return true;
+  for (const f of activeFilters) {
+    if (!filterFn(event, f)) return false;
+  }
   return true;
 };
 
@@ -63,7 +74,21 @@ export default function MapPage({ user, isActive }) {
   const markersRef = useRef([]);
   const circlesRef = useRef([]);
   const homemadeLayersRef = useRef([]);
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilters, setActiveFilters] = useState(new Set());
+  const toggleFilter = (id) => {
+    if (id === "all") { setActiveFilters(new Set()); return; }
+    setActiveFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (id === "official") next.delete("homemade");
+        if (id === "homemade") next.delete("official");
+        next.add(id);
+      }
+      return next;
+    });
+  };
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [attending, setAttending] = useState({});
   const [toast, setToast] = useState(null);
@@ -72,9 +97,13 @@ export default function MapPage({ user, isActive }) {
   const [postedEvents, setPostedEvents] = useState([]);
   const [myRequests, setMyRequests] = useState({}); // { [rawId]: "pending" | "accepted" | "rejected" }
 
+  // Harta rămâne montată permanent (vezi comentariul de mai jos), deci fără
+  // isActive în deps, evenimentele s-ar încărca o singură dată la pornirea
+  // aplicației și n-ar mai prinde niciodată evenimente noi postate ulterior —
+  // trebuia să închizi și să redeschizi aplicația ca să le vezi.
   useEffect(() => {
-    loadPostedEvents();
-  }, []);
+    if (isActive) loadPostedEvents();
+  }, [isActive]);
 
   // Harta rămâne montată (ascunsă cu display:none) și cât timp nu ești pe tab-ul
   // ei — dar Leaflet calculează dimensiunea containerului la inițializare, iar
@@ -222,10 +251,10 @@ export default function MapPage({ user, isActive }) {
 
     // Static events
     const allEvents = [
-      ...staticEvents.filter(e => filterFn(e, activeFilter)).map(e => ({
+      ...staticEvents.filter(e => matchesFilters(e, activeFilters)).map(e => ({
         ...e, coords: staticCoords[e.id], isHomemade: e.type === "homemade", isPosted: false,
       })),
-      ...postedEvents.filter(e => filterFn(e, activeFilter)).map(e => ({
+      ...postedEvents.filter(e => matchesFilters(e, activeFilters)).map(e => ({
         id: `posted_${e.id}`,
         title: e.title, venue: e.venue, date: (e.event_date && formatEventDateTime(e.event_date)) || e.date, price: e.price || "Gratuit",
         type: e.type, description: e.description, age_restricted: !!e.age_restricted,
@@ -344,7 +373,7 @@ export default function MapPage({ user, isActive }) {
       const marker = L.marker(event.coords, { icon }).addTo(map).on("click", () => setSelectedEvent(event));
       markersRef.current.push(marker);
     });
-  }, [leafletLoaded, activeFilter, attending, postedEvents, myRequests]);
+  }, [leafletLoaded, activeFilters, attending, postedEvents, myRequests]);
 
   // Doar actualizăm opacitatea elementelor deja desenate la schimbarea zoom-ului
   // (nu le recreăm) — așa tranziția CSS chiar animă lin, nu sare brusc.
@@ -453,13 +482,16 @@ export default function MapPage({ user, isActive }) {
         `,
       }} />
 
-      {/* Filter chips */}
+      {/* Filter chips — pot fi combinate (ex: Oficial + Gratuit), nu doar unul */}
       <div style={{ position: "absolute", top: 16, left: 0, right: 0, display: "flex", gap: 6, padding: "0 12px", overflowX: "auto", zIndex: 500, scrollbarWidth: "none" }}>
-        {filters.map(f => (
-          <button key={f.id} onClick={() => setActiveFilter(f.id)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 20, background: activeFilter === f.id ? "rgba(255,51,102,0.9)" : "rgba(8,8,10,0.92)", border: `1px solid ${activeFilter === f.id ? "#FF3366" : "rgba(255,255,255,0.25)"}`, color: activeFilter === f.id ? "#fff" : "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", cursor: "pointer", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5, transition: "all 0.2s", boxShadow: activeFilter === f.id ? "0 0 16px rgba(255,51,102,0.5)" : "none" }}>
-            <f.icon size={13} /> {f.label}
-          </button>
-        ))}
+        {filters.map(f => {
+          const selected = f.id === "all" ? activeFilters.size === 0 : activeFilters.has(f.id);
+          return (
+            <button key={f.id} onClick={() => toggleFilter(f.id)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 20, background: selected ? "rgba(255,51,102,0.9)" : "rgba(8,8,10,0.92)", border: `1px solid ${selected ? "#FF3366" : "rgba(255,255,255,0.25)"}`, color: selected ? "#fff" : "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", cursor: "pointer", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5, transition: "all 0.2s", boxShadow: selected ? "0 0 16px rgba(255,51,102,0.5)" : "none" }}>
+              <f.icon size={13} /> {f.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Selected event popup */}

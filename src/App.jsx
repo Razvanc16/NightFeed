@@ -45,7 +45,21 @@ const filterFn = (event, filter) => {
     }
     return event.date?.toLowerCase().includes("weekend") || event.date?.toLowerCase().includes("sâmbătă");
   }
-  if (filter === "free") return event.price === "Gratuit";
+  // !event.price acoperă și cazul brut din bază (preț gol/null la evenimentele
+  // gratuite postate) — nu doar "Gratuit" (textul afișat, rezolvat abia după
+  // conversie); altfel filtrul rata evenimentele gratuite acolo unde filtrul
+  // rulează înainte de conversie (ex: pe hartă).
+  if (filter === "free") return !event.price || event.price === "Gratuit";
+  return true;
+};
+
+// Mai multe filtre simultan (ex: Oficial + Gratuit) — un eveniment trebuie
+// să treacă de TOATE filtrele active (AND), nu doar de unul (set gol = "Toate").
+const matchesFilters = (event, activeFilters) => {
+  if (activeFilters.size === 0) return true;
+  for (const f of activeFilters) {
+    if (!filterFn(event, f)) return false;
+  }
   return true;
 };
 
@@ -120,7 +134,23 @@ export default function App() {
   useEffect(() => {
     try { localStorage.setItem("nf_active_tab", activeTab); } catch {}
   }, [activeTab]);
-  const [activeFilter, setActiveFilter] = useState("all");
+  // Set gol = "Toate" — poți combina mai multe filtre simultan (ex: Oficial + Gratuit).
+  const [activeFilters, setActiveFilters] = useState(new Set());
+  const toggleFilter = (id) => {
+    if (id === "all") { setActiveFilters(new Set()); return; }
+    setActiveFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        // Oficial/Neoficial sunt mutual exclusive — un eveniment are un singur tip.
+        if (id === "official") next.delete("homemade");
+        if (id === "homemade") next.delete("official");
+        next.add(id);
+      }
+      return next;
+    });
+  };
   const [feedMode, setFeedMode] = useState("foryou"); // "foryou" | "following"
   const [followingIds, setFollowingIds] = useState(null); // null = încă neîncărcat
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -154,7 +184,7 @@ export default function App() {
 
   // Combine static + posted events
   const allEvents = [...staticEvents, ...postedEvents];
-  const byFilter = allEvents.filter(e => filterFn(e, activeFilter));
+  const byFilter = allEvents.filter(e => matchesFilters(e, activeFilters));
   // Tab-ul "Urmăriți" arată doar evenimente postate de conturi pe care le urmărești —
   // evenimentele statice/oficiale (fără organizer_id real) nu apar niciodată acolo.
   const filtered = feedMode === "following"
@@ -519,7 +549,7 @@ export default function App() {
       feedRef.current.scrollTo({ top: 0, behavior: "instant" });
       setCurrentIndex(0);
     }
-  }, [activeFilter, feedMode]);
+  }, [activeFilters, feedMode]);
 
   const handleTabChange = (tab) => {
     if (tab === "post") { setShowPost(true); return; }
@@ -788,7 +818,7 @@ export default function App() {
                     <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
                       {feedMode === "following"
                         ? "Nu urmărești pe nimeni care a postat încă. Descoperă evenimente la Pentru tine și urmărește organizatori."
-                        : activeFilter !== "all"
+                        : activeFilters.size > 0
                         ? "Niciun eveniment pentru acest filtru. Încearcă altul sau postează tu ceva."
                         : "Niciun eveniment încă. Fii primul care aprinde noaptea — postează un eveniment."}
                     </div>
@@ -826,24 +856,24 @@ export default function App() {
               style={{
                 position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", left: 16, zIndex: 50,
                 display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
-                padding: activeFilter !== "all" ? "9px 10px 9px 14px" : "10px",
+                padding: activeFilters.size > 0 ? "9px 10px 9px 14px" : "10px",
                 borderRadius: 22,
-                background: activeFilter !== "all" ? "linear-gradient(120deg, rgba(255,51,102,0.25), rgba(180,79,255,0.25))" : "rgba(255,255,255,0.08)",
-                border: `1px solid ${activeFilter !== "all" ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.14)"}`,
-                boxShadow: activeFilter !== "all" ? "0 6px 22px rgba(255,51,102,0.3)" : "0 2px 12px rgba(0,0,0,0.25)",
+                background: activeFilters.size > 0 ? "linear-gradient(120deg, rgba(255,51,102,0.25), rgba(180,79,255,0.25))" : "rgba(255,255,255,0.08)",
+                border: `1px solid ${activeFilters.size > 0 ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.14)"}`,
+                boxShadow: activeFilters.size > 0 ? "0 6px 22px rgba(255,51,102,0.3)" : "0 2px 12px rgba(0,0,0,0.25)",
                 backdropFilter: "blur(14px)",
                 transition: "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
               }}
             >
-              <FilterIcon size={17} style={{ color: activeFilter !== "all" ? "#fff" : "rgba(255,255,255,0.85)", flexShrink: 0 }} />
-              {activeFilter !== "all" && (
+              <FilterIcon size={17} style={{ color: activeFilters.size > 0 ? "#fff" : "rgba(255,255,255,0.85)", flexShrink: 0 }} />
+              {activeFilters.size > 0 && (
                 <>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap" }}>
-                    {filterLabels[activeFilter] || activeFilter}
+                    {activeFilters.size === 1 ? (filterLabels[[...activeFilters][0]] || [...activeFilters][0]) : `${activeFilters.size} filtre`}
                   </span>
                   <span
                     role="button"
-                    onClick={(e) => { e.stopPropagation(); setActiveFilter("all"); }}
+                    onClick={(e) => { e.stopPropagation(); setActiveFilters(new Set()); }}
                     style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 18, height: 18, borderRadius: "50%", background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 12, lineHeight: 1, marginLeft: 2 }}
                   >
                     ×
@@ -852,7 +882,7 @@ export default function App() {
               )}
             </button>
 
-            <FilterDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} active={activeFilter} onChange={setActiveFilter} />
+            <FilterDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} active={activeFilters} onToggle={toggleFilter} />
           </div>
 
           <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => { setCommentsEvent(null); setCommentsHighlightId(null); }} onViewProfile={(uid) => { setCommentsEvent(null); setViewingProfile(uid); }} highlightCommentId={commentsHighlightId} />

@@ -9,7 +9,7 @@ const filters = [
   { id: "free", label: "Gratuit", icon: TagIcon },
 ];
 
-export default function FilterDrawer({ open, onClose, active, onChange }) {
+export default function FilterDrawer({ open, onClose, active, onToggle }) {
   return (
     <>
       {/* Backdrop */}
@@ -93,49 +93,54 @@ export default function FilterDrawer({ open, onClose, active, onChange }) {
             Filtre
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            {filters.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => { onChange(f.id); onClose(); }}
-                style={{
-                  background: active === f.id ? "rgba(255,51,102,0.15)" : "transparent",
-                  border: `1px solid ${active === f.id ? "rgba(255,51,102,0.4)" : "transparent"}`,
-                  borderRadius: 12,
-                  padding: "10px 12px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                  textAlign: "left",
-                  width: "100%",
-                }}
-              >
-                <span style={{ width: 24, display: "flex", justifyContent: "center", color: active === f.id ? "#FF3366" : "rgba(255,255,255,0.7)" }}><f.icon size={17} /></span>
-                <span
+            {filters.map((f) => {
+              // "Toate" e reprezentat de un set gol, nu de un id în set — selectarea
+              // lui golește tot și închide drawer-ul (e un reset, nu o alegere de combinat).
+              const selected = f.id === "all" ? active.size === 0 : active.has(f.id);
+              return (
+                <button
+                  key={f.id}
+                  onClick={() => { onToggle(f.id); if (f.id === "all") onClose(); }}
                   style={{
-                    fontSize: 14,
-                    fontWeight: active === f.id ? 700 : 400,
-                    color: active === f.id ? "#FF3366" : "rgba(255,255,255,0.7)",
-                    fontFamily: "'DM Sans', sans-serif",
-                    transition: "color 0.15s",
+                    background: selected ? "rgba(255,51,102,0.15)" : "transparent",
+                    border: `1px solid ${selected ? "rgba(255,51,102,0.4)" : "transparent"}`,
+                    borderRadius: 12,
+                    padding: "10px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    textAlign: "left",
+                    width: "100%",
                   }}
                 >
-                  {f.label}
-                </span>
-                {active === f.id && (
-                  <div
+                  <span style={{ width: 24, display: "flex", justifyContent: "center", color: selected ? "#FF3366" : "rgba(255,255,255,0.7)" }}><f.icon size={17} /></span>
+                  <span
                     style={{
-                      marginLeft: "auto",
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      background: "#FF3366",
+                      fontSize: 14,
+                      fontWeight: selected ? 700 : 400,
+                      color: selected ? "#FF3366" : "rgba(255,255,255,0.7)",
+                      fontFamily: "'DM Sans', sans-serif",
+                      transition: "color 0.15s",
                     }}
-                  />
-                )}
-              </button>
-            ))}
+                  >
+                    {f.label}
+                  </span>
+                  {/* Pentru filtrele combinabile (nu "Toate"), o bifă în loc de punct —
+                      arată clar că poți selecta mai multe deodată, nu doar una. */}
+                  {selected && (
+                    f.id === "all" ? (
+                      <div style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: "#FF3366" }} />
+                    ) : (
+                      <div style={{ marginLeft: "auto", width: 16, height: 16, borderRadius: 5, background: "#FF3366", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                      </div>
+                    )
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 

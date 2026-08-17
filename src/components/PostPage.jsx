@@ -460,11 +460,14 @@ export default function PostPage({ user, onClose, editEvent }) {
             <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
               <div style={{ position: "relative" }}>
                 <div ref={pickerMapRef} style={{ width: "100%", height: 260, background: "rgba(255,255,255,0.04)" }} />
-                {/* Pinul stă fix în centru, ca la Uber — muți harta pe sub el */}
+                {/* Pinul stă fix în centru, ca la Uber — muți harta pe sub el.
+                    Vârful din PinIcon nu e chiar la marginea de jos a SVG-ului
+                    (e la y=21 dintr-un viewBox de 24), deci -100% l-ar plasa
+                    puțin mai sus decât punctul real — de-asta -87.5%, nu -100%. */}
                 <div style={{
                   position: "absolute", top: "50%", left: "50%", zIndex: 401, pointerEvents: "none", color: "#FF3366",
                   filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
-                  transform: `translate(-50%, ${pickerMoving ? "-16px" : "-100%"})`,
+                  transform: `translate(-50%, ${pickerMoving ? "calc(-87.5% - 16px)" : "-87.5%"})`,
                   transition: "transform 0.15s ease-out",
                 }}>
                   <PinIcon size={34} />
