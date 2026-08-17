@@ -63,6 +63,9 @@ export default function Navbar({ active, onChange }) {
               style={{
                 position: "relative",
                 zIndex: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontSize: isPost ? 22 : 18,
                 color: isPost
                   ? "#fff"

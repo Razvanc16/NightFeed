@@ -522,7 +522,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       {!isSetup && profile && (
         <div style={{ position: "relative", animation: "slideUp 0.3s ease-out" }}>
           <div style={{ position: "absolute", top: 14, right: 16, zIndex: 6, display: "flex", gap: 8 }}>
-            <button onClick={() => setShowNotifications(true)} style={{ position: "relative", width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
+            <button onClick={() => setShowNotifications(true)} style={{
+              position: "relative", width: 32, height: 32, borderRadius: 10, color: "rgba(255,255,255,0.85)",
+              display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0,
+              border: "1px solid transparent",
+              backgroundImage: "linear-gradient(#141418, #141418), linear-gradient(135deg, #FF3366, #B44FFF)",
+              backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box",
+            }}>
               <BellIcon size={15} />
               {unreadNotifCount > 0 && (
                 <div style={{ position: "absolute", top: -5, right: -5, minWidth: 16, height: 16, padding: "0 3px", borderRadius: 8, background: "#FF3366", border: "2px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace" }}>
@@ -530,7 +536,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 </div>
               )}
             </button>
-            <button onClick={() => setShowSettings(true)} style={{ width: 32, height: 32, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}>
+            <button onClick={() => setShowSettings(true)} style={{
+              width: 32, height: 32, borderRadius: 10, color: "rgba(255,255,255,0.85)",
+              display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0,
+              border: "1px solid transparent",
+              backgroundImage: "linear-gradient(#141418, #141418), linear-gradient(135deg, #FF3366, #B44FFF)",
+              backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box",
+            }}>
               <GearIcon size={15} />
             </button>
           </div>
@@ -569,7 +581,14 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             ].map(stat => {
               const isActive = stat.id !== "requests" && activeTab === stat.id;
               return (
-                <button key={stat.id} onClick={() => stat.id === "requests" ? setShowRequests(true) : setActiveTab(stat.id)} style={{ flex: 1, background: isActive ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${isActive ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer" }}>
+                <button key={stat.id} onClick={() => stat.id === "requests" ? setShowRequests(true) : setActiveTab(stat.id)} style={{
+                  flex: 1, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer",
+                  border: "1px solid transparent",
+                  backgroundImage: isActive
+                    ? "linear-gradient(120deg, rgba(255,51,102,0.16), rgba(180,79,255,0.16)), linear-gradient(135deg, #FF3366, #B44FFF)"
+                    : "linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04)), linear-gradient(rgba(255,255,255,0.07), rgba(255,255,255,0.07))",
+                  backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box",
+                }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.5)" }}>{stat.icon}</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
                   <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
@@ -578,7 +597,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             })}
           </div>
 
-          <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div key={activeTab + postedView} style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 10, animation: "fadeIn 0.2s ease-out" }}>
             {activeTab === "posted" && (
               <div style={{ display: "flex", gap: 8, marginBottom: 2 }}>
                 {[{ id: "active", label: "Active" }, { id: "archived", label: `Arhivă${archivedEvents.length ? ` (${archivedEvents.length})` : ""}` }].map(v => (

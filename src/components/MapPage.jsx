@@ -94,7 +94,21 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
   const [insightsEvent, setInsightsEvent] = useState(null);
   const [popupDragY, setPopupDragY] = useState(0);
   const [popupClosing, setPopupClosing] = useState(false);
+  const [popupEntering, setPopupEntering] = useState(false);
   const popupDragRef = useRef(null);
+  const prevSelectedRef = useRef(null);
+
+  // La deschidere, cardul pornește din afara ecranului (jos de tot) și
+  // culisează în sus — nu doar un mic slideUp de 30px, ca să se simtă
+  // vizual la fel ca la închidere (deci și gestul de swipe jos să pară
+  // intuitiv, "se întoarce de unde a venit").
+  useEffect(() => {
+    if (selectedEvent && !prevSelectedRef.current) {
+      setPopupEntering(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setPopupEntering(false)));
+    }
+    prevSelectedRef.current = selectedEvent;
+  }, [selectedEvent]);
 
   // Închide cu animație (slide jos + fade), nu instant — setSelectedEvent(null)
   // direct demonta cardul fără nicio tranziție de ieșire. Durata de aici
@@ -564,10 +578,9 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
           style={{
             position: "absolute", bottom: 80, left: 16, right: 16, background: "rgba(10,10,12,0.98)", border: `1px solid ${selectedEvent.color}60`, borderRadius: 20, padding: "16px", backdropFilter: "blur(20px)", zIndex: 600, boxShadow: `0 8px 40px rgba(0,0,0,0.6), 0 0 30px ${selectedEvent.color}20`,
             touchAction: "none",
-            transform: `translateY(${popupClosing ? 400 : popupDragY}px)`,
+            transform: `translateY(${popupClosing || popupEntering ? 400 : popupDragY}px)`,
             opacity: popupClosing ? 0 : 1,
-            transition: popupDragRef.current ? "none" : `transform ${POPUP_CLOSE_MS}ms cubic-bezier(0.32, 0, 0.15, 1), opacity ${POPUP_CLOSE_MS}ms ease`,
-            animation: (!popupClosing && popupDragY === 0) ? "slideUp 0.25s ease-out" : "none",
+            transition: (popupDragRef.current || popupEntering) ? "none" : `transform ${POPUP_CLOSE_MS}ms cubic-bezier(0.32, 0, 0.15, 1), opacity ${POPUP_CLOSE_MS}ms ease`,
           }}
         >
           <div style={{ position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)", width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)" }} />
