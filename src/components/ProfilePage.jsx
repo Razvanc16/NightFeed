@@ -8,6 +8,7 @@ import FollowListSheet from "./FollowListSheet";
 import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
 import NotificationsPage from "./NotificationsPage";
+import AvatarCropSheet from "./AvatarCropSheet";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
 import {
@@ -102,6 +103,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", avatar_url: "" });
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [cropFile, setCropFile] = useState(null);
 
   useEffect(() => {
     getPushStatus().then(setPushStatus);
@@ -212,9 +214,16 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
+    e.target.value = ""; // altfel re-selectarea aceluiași fișier nu mai declanșează onChange
     if (!file) return;
+    setCropFile(file);
+  };
+
+  const handleCropConfirm = (blob) => {
+    const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
     setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarPreview(URL.createObjectURL(blob));
+    setCropFile(null);
   };
 
   const uploadAvatar = async (profileId) => {
@@ -632,6 +641,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           onClose={() => setFollowSheet(null)}
           onViewProfile={(uid) => onViewProfile && onViewProfile(uid)}
         />,
+        document.body
+      )}
+
+      {cropFile && createPortal(
+        <AvatarCropSheet file={cropFile} onCancel={() => setCropFile(null)} onConfirm={handleCropConfirm} />,
         document.body
       )}
 

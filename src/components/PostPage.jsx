@@ -290,6 +290,24 @@ export default function PostPage({ user, onClose, editEvent }) {
       const { error: locError } = await supabase.from("event_locations").upsert([{ event_id: eventId, venue, lat, lng }]);
       if (locError) throw locError;
 
+      // Notificăm participanții deja înscriși dacă hostul mută evenimentul —
+      // altfel ajung la adresa veche fără să știe că s-a schimbat.
+      if (isEdit && (editEvent.venue !== venue || editEvent.lat !== lat || editEvent.lng !== lng)) {
+        const { data: attendees } = await supabase.from("attendances").select("user_id").eq("event_id", `posted_${eventId}`);
+        const posterName = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "Organizatorul";
+        (attendees || []).forEach(a => {
+          if (a.user_id === user.id) return;
+          notifyUser({
+            targetUserId: a.user_id,
+            title: "Locație schimbată",
+            body: `${posterName} a schimbat locația pentru „${payload.title}”.`,
+            type: "event_update",
+            actorId: user.id,
+            eventId: `posted_${eventId}`,
+          });
+        });
+      }
+
       // Evenimentele oficiale nu apar în feed până nu sunt aprobate — trimitem
       // un "ticket" cu toate detaliile ca să poată fi validat manual.
       if (!isEdit && payload.type === "official") {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
 import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
@@ -68,7 +68,7 @@ const applyOffset = (lat, lng, id) => {
   return [lat + dLat, lng + dLng];
 };
 
-export default function MapPage({ user, isActive }) {
+export default function MapPage({ user, isActive, focusTarget }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -238,6 +238,32 @@ export default function MapPage({ user, isActive }) {
     };
   }, [leafletLoaded]);
 
+  // Toate evenimentele cu coordonate, nefiltrate — separat de efectul care
+  // desenează marker-ele (acela mai aplică și activeFilters), ca să putem
+  // găsi orice eveniment după id pentru focus (tap pe locație în feed),
+  // indiferent ce filtre sunt active în hartă în acel moment.
+  const allMapEvents = useMemo(() => [
+    ...staticEvents.map(e => ({
+      ...e, coords: staticCoords[e.id], isHomemade: e.type === "homemade", isPosted: false,
+    })),
+    ...postedEvents.map(e => ({
+      id: `posted_${e.id}`,
+      title: e.title, venue: e.venue, date: (e.event_date && formatEventDateTime(e.event_date)) || e.date, price: e.price || "Gratuit",
+      type: e.type, description: e.description, age_restricted: !!e.age_restricted,
+      color: e.type === "official" ? "#FF3366" : "#FFB800",
+      vibe: e.vibe || null,
+      // Coordonatele exacte vs fuzzate depind acum de location_visible (setat
+      // de host la postare), nu de tip — un eveniment oficial poate alege să
+      // rămână aproximativ, unul neoficial poate alege să fie exact.
+      coords: e.location_visible ? [e.lat, e.lng] : [e.lat_approx, e.lng_approx],
+      location_visible: !!e.location_visible,
+      isHomemade: e.type === "homemade",
+      isPosted: true,
+      rawId: e.id,
+      hostId: e.user_id,
+    })),
+  ].filter(e => e.coords), [postedEvents]);
+
   useEffect(() => {
     if (!leafletLoaded || !mapInstanceRef.current) return;
     const L = window.L;
@@ -249,28 +275,7 @@ export default function MapPage({ user, isActive }) {
     circlesRef.current = [];
     homemadeLayersRef.current = [];
 
-    // Static events
-    const allEvents = [
-      ...staticEvents.filter(e => matchesFilters(e, activeFilters)).map(e => ({
-        ...e, coords: staticCoords[e.id], isHomemade: e.type === "homemade", isPosted: false,
-      })),
-      ...postedEvents.filter(e => matchesFilters(e, activeFilters)).map(e => ({
-        id: `posted_${e.id}`,
-        title: e.title, venue: e.venue, date: (e.event_date && formatEventDateTime(e.event_date)) || e.date, price: e.price || "Gratuit",
-        type: e.type, description: e.description, age_restricted: !!e.age_restricted,
-        color: e.type === "official" ? "#FF3366" : "#FFB800",
-        vibe: e.vibe || null,
-        // Coordonatele exacte vs fuzzate depind acum de location_visible (setat
-        // de host la postare), nu de tip — un eveniment oficial poate alege să
-        // rămână aproximativ, unul neoficial poate alege să fie exact.
-        coords: e.location_visible ? [e.lat, e.lng] : [e.lat_approx, e.lng_approx],
-        location_visible: !!e.location_visible,
-        isHomemade: e.type === "homemade",
-        isPosted: true,
-        rawId: e.id,
-        hostId: e.user_id,
-      })),
-    ].filter(e => e.coords);
+    const allEvents = allMapEvents.filter(e => matchesFilters(e, activeFilters));
 
     allEvents.forEach(event => {
       const isHomemade = event.isHomemade;
@@ -373,7 +378,18 @@ export default function MapPage({ user, isActive }) {
       const marker = L.marker(event.coords, { icon }).addTo(map).on("click", () => setSelectedEvent(event));
       markersRef.current.push(marker);
     });
-  }, [leafletLoaded, activeFilters, attending, postedEvents, myRequests]);
+  }, [leafletLoaded, activeFilters, attending, allMapEvents, myRequests]);
+
+  // Focus venit din feed (tap pe locația unui eveniment) — sare peste filtrele
+  // active (userul a cerut explicit locația asta) și deschide fișa de jos.
+  useEffect(() => {
+    if (!focusTarget?.id || !leafletLoaded || !mapInstanceRef.current) return;
+    const target = allMapEvents.find(e => String(e.id) === focusTarget.id);
+    if (!target) return;
+    setActiveFilters(new Set());
+    mapInstanceRef.current.flyTo(target.coords, 16, { duration: 0.6 });
+    setSelectedEvent(target);
+  }, [focusTarget, leafletLoaded, allMapEvents]);
 
   // Doar actualizăm opacitatea elementelor deja desenate la schimbarea zoom-ului
   // (nu le recreăm) — așa tranziția CSS chiar animă lin, nu sare brusc.

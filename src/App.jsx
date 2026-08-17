@@ -157,6 +157,7 @@ export default function App() {
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [commentsHighlightId, setCommentsHighlightId] = useState(null);
+  const [mapFocus, setMapFocus] = useState(null); // { id, ts } — ts schimbă identitatea ca să poți reapăsa același eveniment de mai multe ori
   const [postedEvents, setPostedEvents] = useState([]);
   const [notifToast, setNotifToast] = useState(null); // { title, body } — rămâne montat în timpul ieșirii
   const [notifToastShow, setNotifToastShow] = useState(false); // controlează animația de intrare/ieșire
@@ -575,6 +576,12 @@ export default function App() {
     }, 50);
   };
 
+  // Deschide harta centrată pe locația unui eveniment, la tap pe locație în feed.
+  const openEventLocation = (event) => {
+    setActiveTab("map");
+    setMapFocus({ id: String(event.id), ts: Date.now() });
+  };
+
   // Deschide evenimentul (și, dacă vine dintr-o notificare de comentariu,
   // comentariul exact) legat de o notificare de like/comentariu.
   const openEventFromNotification = (eventId, commentId) => {
@@ -686,7 +693,7 @@ export default function App() {
               internet, reconstruia toate marker-ele), ceea ce o făcea să se simtă
               foarte lentă. Exact ca la Feed, care are același tipar. */}
           <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10 }}>
-            <MapPage user={user} isActive={activeTab === "map"} />
+            <MapPage user={user} isActive={activeTab === "map"} focusTarget={mapFocus} />
           </div>
 
           {/* PROFILE PAGE */}
@@ -836,7 +843,7 @@ export default function App() {
                 slides.map((slide, i) => (
                   <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
                     {slide.type === "single" ? (
-                      <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} />
+                      <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} onOpenLocation={openEventLocation} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", background: "#050506", padding: "70px 12px 12px", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 10 }}>
                         {slide.events.map(ev => (

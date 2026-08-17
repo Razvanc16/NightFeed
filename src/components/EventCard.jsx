@@ -101,7 +101,7 @@ const Toast = ({ message, show, color }) => (
   </div>
 );
 
-export default function EventCard({ event, isActive, user, onComment, onViewProfile, isFollowingOrganizer, onToggleFollowOrganizer }) {
+export default function EventCard({ event, isActive, user, onComment, onViewProfile, isFollowingOrganizer, onToggleFollowOrganizer, onOpenLocation }) {
   // Like-urile și attend-ul (pentru evenimente non-homemade) sunt acum în Supabase,
   // vizibile pentru toți userii, pe orice device.
   const [liked, setLiked] = useState(false);
@@ -566,7 +566,10 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8, fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
+          <span
+            onClick={(e) => { if (onOpenLocation) { e.stopPropagation(); onOpenLocation(event); } }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace", cursor: onOpenLocation ? "pointer" : "default" }}
+          >
             <PinIcon size={13} />
             {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
           </span>

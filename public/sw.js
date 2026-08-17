@@ -51,9 +51,15 @@ self.addEventListener("push", (event) => {
   const title = data.title || "NightFeed";
   const options = {
     body: data.body || "",
-    tag: data.tag || "nightfeed",
+    icon: "/icon-512.png",
+    badge: "/icon-512.png",
+    vibrate: [120, 60, 120],
     data: { url: data.url || "/" },
   };
+  // Fără tag fix — cu unul static, o a doua notificare venită cât timp prima
+  // era încă pe ecran o înlocuia silențios (fără vibrație/sunet nou), fiindcă
+  // browserul tratează tag-urile identice ca update, nu ca notificare nouă.
+  if (data.tag) { options.tag = data.tag; options.renotify = true; }
 
   event.waitUntil(
     Promise.all([
