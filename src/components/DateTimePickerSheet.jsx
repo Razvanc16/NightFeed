@@ -84,7 +84,7 @@ export default function DateTimePickerSheet({ initialDate, initialHour, initialM
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 10100, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "flex-end" }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 10100, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "flex-end", animation: "backdropIn 0.2s ease-out" }} onClick={onClose}>
       <style>{`
         .ntf-wheel::-webkit-scrollbar { display: none; }
         .ntf-wheel { scrollbar-width: none; -webkit-overflow-scrolling: touch; }

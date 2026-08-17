@@ -502,7 +502,7 @@ export default function PostPage({ user, onClose, editEvent }) {
 
           {/* Suggestions dropdown */}
           {addressResults.length > 0 && addressFocused && (
-            <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "rgba(15,15,18,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, zIndex: 100, overflow: "hidden", marginTop: 4, boxShadow: "0 8px 30px rgba(0,0,0,0.5)" }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "rgba(15,15,18,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, zIndex: 100, overflow: "hidden", marginTop: 4, boxShadow: "0 8px 30px rgba(0,0,0,0.5)", animation: "fadeIn 0.15s ease-out" }}>
               {addressResults.map((r, i) => (
                 <div key={i} onClick={() => handleSelectAddress(r)} style={{ padding: "12px 16px", cursor: "pointer", borderBottom: i < addressResults.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none", transition: "background 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
@@ -643,7 +643,7 @@ export default function PostPage({ user, onClose, editEvent }) {
 
       {showNoPhotoConfirm && (
         <>
-          <div onClick={() => setShowNoPhotoConfirm(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 500 }} />
+          <div onClick={() => setShowNoPhotoConfirm(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 500, animation: "backdropIn 0.2s ease-out" }} />
           <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 501, background: "#0f0f12", borderTop: "2px solid rgba(255,51,102,0.3)", borderRadius: "24px 24px 0 0", padding: "22px 20px 40px", animation: "slideUp 0.25s ease-out" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 6, color: "#FF3366" }}><CameraIcon size={36} /></div>
             <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", textAlign: "center", marginBottom: 8 }}>

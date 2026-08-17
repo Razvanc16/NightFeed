@@ -746,8 +746,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       )}
 
       {ticketFor && createPortal(
-        <div onClick={() => setTicketFor(null)} style={{ position: "fixed", inset: 0, zIndex: 10350, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <div onClick={() => setTicketFor(null)} style={{ position: "fixed", inset: 0, zIndex: 10350, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <TicketQR token={ticketFor} />
             </div>
@@ -760,7 +760,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       )}
 
       {showDeleteConfirm && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end" }} onClick={() => !deletingAccount && setShowDeleteConfirm(false)}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end", animation: "backdropIn 0.2s ease-out" }} onClick={() => !deletingAccount && setShowDeleteConfirm(false)}>
           <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxHeight: "85vh", overflowY: "auto", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "22px 20px 32px", borderTop: "1px solid rgba(255,51,102,0.2)", animation: "slideUp 0.25s ease-out" }}>
             <div style={{ marginBottom: 12, color: "#FFB800" }}><WarningIcon size={36} /></div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 8 }}>Ștergi contul definitiv?</div>
@@ -811,7 +811,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       )}
 
       {editingEvent && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#080808" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#080808", animation: "tabEnter 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
           <PostPage user={user} editEvent={editingEvent} onClose={() => { setEditingEvent(null); loadMyPostedEvents(); }} />
         </div>
       )}
