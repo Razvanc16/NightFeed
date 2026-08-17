@@ -54,26 +54,48 @@ const convertPostedEventMinimal = (e) => ({
 // iconiță care deschide lista de acțiuni.
 const ActionMenu = ({ items }) => {
   const [open, setOpen] = useState(false);
+  // Rămâne montat câteva zeci de ms peste închidere, ca tranziția de ieșire
+  // (scale+fade) chiar să apuce să se joace — altfel React demontează
+  // instant și dropdown-ul dispare fără nicio animație.
+  const [rendered, setRendered] = useState(false);
+  const closeTimer = useRef(null);
   const ref = useRef(null);
 
+  const openMenu = () => {
+    clearTimeout(closeTimer.current);
+    setRendered(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => setOpen(true)));
+  };
+  const closeMenu = () => {
+    setOpen(false);
+    closeTimer.current = setTimeout(() => setRendered(false), 160);
+  };
+
   useEffect(() => {
-    if (!open) return;
-    const onDocClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    if (!rendered) return;
+    const onDocClick = (e) => { if (ref.current && !ref.current.contains(e.target)) closeMenu(); };
     document.addEventListener("pointerdown", onDocClick);
     return () => document.removeEventListener("pointerdown", onDocClick);
-  }, [open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rendered]);
 
   return (
     <div ref={ref} style={{ position: "relative", flexShrink: 0 }}>
-      <button onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }} style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>
+      <button onClick={(e) => { e.stopPropagation(); open ? closeMenu() : openMenu(); }} style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>
         <MoreIcon size={16} />
       </button>
-      {open && (
-        <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#15151a", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, overflow: "hidden", zIndex: 50, minWidth: 170, boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
+      {rendered && (
+        <div style={{
+          position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#15151a", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, overflow: "hidden", zIndex: 50, minWidth: 170, boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+          transformOrigin: "top right",
+          transform: open ? "scale(1)" : "scale(0.9)",
+          opacity: open ? 1 : 0,
+          transition: "transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.14s ease",
+        }}>
           {items.map((it, i) => (
             <button
               key={i}
-              onClick={(e) => { e.stopPropagation(); setOpen(false); it.onClick(); }}
+              onClick={(e) => { e.stopPropagation(); closeMenu(); it.onClick(); }}
               style={{ width: "100%", padding: "11px 14px", display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none", color: it.color || "rgba(255,255,255,0.8)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", textAlign: "left" }}
             >
               {it.icon} {it.label}
