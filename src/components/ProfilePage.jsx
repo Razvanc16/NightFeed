@@ -59,7 +59,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-  const [usernameRow, setUsernameRow] = useState(null); // { username, updated_at }
 
   const copyCode = (code) => {
     navigator.clipboard?.writeText(code);
@@ -81,12 +80,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     setPendingRequestsCount(count || 0);
   };
 
-  const loadUsername = async () => {
-    if (!user) return;
-    const { data } = await supabase.from("usernames").select("username, updated_at").eq("user_id", user.id).maybeSingle();
-    setUsernameRow(data || null);
-  };
-
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const loadUnreadNotifCount = async () => {
@@ -96,52 +89,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   };
 
   const [showRequests, setShowRequests] = useState(false);
-  const [showUsernameEdit, setShowUsernameEdit] = useState(false);
-  const [newUsername, setNewUsername] = useState("");
-  const [usernameCheckStatus, setUsernameCheckStatus] = useState(null); // null | "checking" | "available" | "taken" | "same"
-  const [savingUsername, setSavingUsername] = useState(false);
-  const usernameCheckTimer = useRef(null);
-
-  const USERNAME_COOLDOWN_DAYS = 30;
-  const daysSinceUsernameChange = usernameRow?.updated_at
-    ? Math.floor((Date.now() - new Date(usernameRow.updated_at).getTime()) / 86400000)
-    : Infinity;
-  const usernameCooldownDaysLeft = Math.max(0, USERNAME_COOLDOWN_DAYS - daysSinceUsernameChange);
-
-  const openUsernameEdit = () => {
-    setNewUsername(usernameRow?.username || "");
-    setUsernameCheckStatus(null);
-    setShowUsernameEdit(true);
-  };
-
-  const handleNewUsernameChange = (val) => {
-    setNewUsername(val);
-    clearTimeout(usernameCheckTimer.current);
-    const trimmed = val.trim();
-    if (trimmed.length < 3) { setUsernameCheckStatus(null); return; }
-    if (trimmed.toLowerCase() === (usernameRow?.username || "").toLowerCase()) { setUsernameCheckStatus("same"); return; }
-    setUsernameCheckStatus("checking");
-    usernameCheckTimer.current = setTimeout(async () => {
-      const { data } = await supabase.from("usernames").select("username_lower").eq("username_lower", trimmed.toLowerCase()).maybeSingle();
-      setUsernameCheckStatus(data ? "taken" : "available");
-    }, 500);
-  };
-
-  const handleSaveUsername = async () => {
-    if (usernameCheckStatus !== "available") return;
-    setSavingUsername(true);
-    const trimmed = newUsername.trim();
-    const { error } = await supabase.from("usernames")
-      .update({ username: trimmed, username_lower: trimmed.toLowerCase(), updated_at: new Date().toISOString() })
-      .eq("user_id", user.id);
-    setSavingUsername(false);
-    if (error) {
-      alert("Nu am putut schimba username-ul: " + error.message);
-      return;
-    }
-    setUsernameRow({ username: trimmed, updated_at: new Date().toISOString() });
-    setShowUsernameEdit(false);
-  };
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const [showLegal, setShowLegal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -194,7 +141,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     loadMyPostedEvents();
     loadFollowCounts();
     loadPendingRequestsCount();
-    loadUsername();
     loadUnreadNotifCount();
 
     // Realtime: actualizează numărul de urmăritori/urmăriri, cereri și
@@ -310,6 +256,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         setProfile(data);
       }
 
+      // Sincronizăm numele și în user_metadata (nu doar în profiles) — mai
+      // multe locuri din aplicație (texte de notificare etc.) au nevoie de un
+      // nume afișabil sincron, fără un query separat către profiles.
+      supabase.auth.updateUser({ data: { prenume: form.prenume, nume: form.nume } }).catch(() => {});
+
       setEditing(false);
       setView("profile");
     } catch (err) {
@@ -368,7 +319,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         supabase.from("likes").delete().eq("user_id", user.id),
         supabase.from("follows").delete().eq("follower_id", user.id),
         supabase.from("follows").delete().eq("following_id", user.id),
-        supabase.from("usernames").delete().eq("user_id", user.id),
         supabase.from("profiles").delete().eq("user_id", user.id),
       ]);
       const firstError = results.find(r => r.error)?.error;
@@ -464,13 +414,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{profile.prenume} {profile.nume}</div>
-              {usernameRow?.username ? (
-                <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>@{usernameRow.username}</div>
-              ) : (
-                <button onClick={openUsernameEdit} style={{ background: "none", border: "none", padding: 0, marginTop: 2, cursor: "pointer", fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", textDecoration: "underline" }}>
-                  + Setează username
-                </button>
-              )}
               <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
                 <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
                   <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
@@ -628,8 +571,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           onClose={() => setShowSettings(false)}
           onEditProfile={() => { setShowSettings(false); setEditing(true); }}
           onShowLiked={() => { setShowSettings(false); setActiveTab("liked"); }}
-          onChangeUsername={() => { setShowSettings(false); openUsernameEdit(); }}
-          username={usernameRow?.username}
           onShowLegal={() => setShowLegal(true)}
           onShowNotifications={() => { setShowSettings(false); setShowNotifications(true); }}
           unreadNotifCount={unreadNotifCount}
@@ -683,53 +624,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       )}
 
       {showRequests && createPortal(<RequestsPage user={user} onClose={() => setShowRequests(false)} />, document.body)}
-
-      {showUsernameEdit && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end" }} onClick={() => !savingUsername && setShowUsernameEdit(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxHeight: "85vh", overflowY: "auto", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "22px 20px 32px", borderTop: "1px solid rgba(255,51,102,0.2)", animation: "slideUp 0.25s ease-out" }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>Schimbă username-ul</div>
-            {usernameCooldownDaysLeft > 0 ? (
-              <div style={{ fontSize: 13, color: "#FFB800", lineHeight: 1.6, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 12, padding: "12px 14px" }}>
-                Ai schimbat deja username-ul recent. Mai poți schimba din nou peste {usernameCooldownDaysLeft} {usernameCooldownDaysLeft === 1 ? "zi" : "zile"}.
-              </div>
-            ) : (
-              <>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 16 }}>
-                  Poți schimba username-ul o dată la {USERNAME_COOLDOWN_DAYS} de zile.
-                </div>
-                <input
-                  value={newUsername}
-                  onChange={e => handleNewUsernameChange(e.target.value)}
-                  placeholder="username nou"
-                  style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${usernameCheckStatus === "taken" ? "rgba(255,51,102,0.5)" : usernameCheckStatus === "available" ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", marginBottom: 8 }}
-                />
-                <div style={{ minHeight: 18, marginBottom: 14 }}>
-                  {usernameCheckStatus === "checking" && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Se verifică...</div>}
-                  {usernameCheckStatus === "available" && <div style={{ fontSize: 12, color: "#00C864" }}>Disponibil</div>}
-                  {usernameCheckStatus === "taken" && <div style={{ fontSize: 12, color: "#FF3366" }}>Deja folosit, alege altul</div>}
-                  {usernameCheckStatus === "same" && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>E deja username-ul tău</div>}
-                </div>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button onClick={() => setShowUsernameEdit(false)} disabled={savingUsername} style={{ flex: 1, padding: "13px", borderRadius: 14, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>Anulează</button>
-                  <button
-                    onClick={handleSaveUsername}
-                    disabled={usernameCheckStatus !== "available" || savingUsername}
-                    style={{
-                      flex: 1, padding: "13px", borderRadius: 14, border: "none",
-                      background: usernameCheckStatus === "available" ? "linear-gradient(135deg, #FF3366, #B44FFF)" : "rgba(255,51,102,0.25)",
-                      color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif",
-                      cursor: (usernameCheckStatus === "available" && !savingUsername) ? "pointer" : "not-allowed",
-                    }}
-                  >
-                    {savingUsername ? "Se salvează..." : "Salvează"}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
 
       {followSheet && createPortal(
         <FollowListSheet

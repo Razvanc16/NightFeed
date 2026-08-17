@@ -320,7 +320,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           // repetat) trimitea o notificare la fiecare apăsare. Așteptăm puțin ca
           // starea să se stabilizeze; dacă dai unlike înainte să treacă timpul,
           // notificarea se anulează (vezi ramura else de mai jos).
-          const likerName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
+          const likerName = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "Cineva";
           clearTimeout(likeNotifyTimer.current);
           likeNotifyTimer.current = setTimeout(() => {
             notifyUser({
@@ -552,7 +552,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               {event.organizer_avatar ? <img src={event.organizer_avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.organizer || "?").charAt(0).toUpperCase()}
             </div>
             <span style={{ fontSize: 11, color: event.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", opacity: 0.9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {event.organizer_username ? `@${event.organizer_username}` : event.organizer}{event.organizer_id && " ›"}
+              {event.organizer}{event.organizer_id && " ›"}
             </span>
           </div>
           {!isOwnEvent && event.organizer_id && onToggleFollowOrganizer && (

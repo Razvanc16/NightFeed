@@ -23,7 +23,6 @@ const convertPostedEvent = (e) => ({
 
 export default function PublicProfilePage({ profileUserId, currentUser, onBack, onOpenEvent, onViewProfile }) {
   const [profile, setProfile] = useState(null);
-  const [username, setUsername] = useState("");
   const [events, setEvents] = useState([]);
   const [followers, setFollowers] = useState(0);
   const [following, setFollowing] = useState(0);
@@ -58,8 +57,6 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
     setLoading(true);
     const { data: prof } = await supabase.from("profiles").select("*").eq("user_id", profileUserId).single();
     setProfile(prof);
-    const { data: uname } = await supabase.from("usernames").select("username").eq("user_id", profileUserId).single();
-    setUsername(uname?.username || "");
     const { data: evs } = await supabase.from("posted_events_feed").select("*").eq("user_id", profileUserId).eq("archived", false).or("type.neq.official,verified.eq.true").order("created_at", { ascending: false });
     setEvents(filterActiveEvents(evs).map(convertPostedEvent));
     await loadCounts();
@@ -91,7 +88,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
       setFollowers(f => f + 1);
       // Debounce, ca la like — follow/unfollow rapid repetat trimitea o
       // notificare la fiecare apăsare.
-      const followerName = currentUser.user_metadata?.username || currentUser.email?.split("@")[0] || "Cineva";
+      const followerName = [currentUser.user_metadata?.prenume, currentUser.user_metadata?.nume].filter(Boolean).join(" ") || currentUser.email?.split("@")[0] || "Cineva";
       clearTimeout(followNotifyTimer.current);
       followNotifyTimer.current = setTimeout(() => {
         notifyUser({
@@ -106,7 +103,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
     setBusy(false);
   };
 
-  const displayName = profile ? [profile.prenume, profile.nume].filter(Boolean).join(" ") || username || "Utilizator" : "Utilizator";
+  const displayName = profile ? [profile.prenume, profile.nume].filter(Boolean).join(" ") || "Utilizator" : "Utilizator";
 
   if (loading) {
     return (
@@ -129,7 +126,6 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
           {profile?.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : displayName.charAt(0).toUpperCase()}
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{displayName}</div>
-        {username && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>@{username}</div>}
         {profile?.hobby && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 8, maxWidth: 300 }}>{profile.hobby}</div>}
 
         {/* Statistici */}

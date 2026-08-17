@@ -225,7 +225,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
       if (comment.user_id && comment.user_id !== user.id) {
         // Debounce — like/unlike rapid repetat pe același comentariu trimitea
         // o notificare la fiecare apăsare.
-        const likerName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
+        const likerName = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "Cineva";
         clearTimeout(likeNotifyTimers.current.get(comment.id));
         likeNotifyTimers.current.set(comment.id, setTimeout(() => {
           notifyUser({
@@ -251,7 +251,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
     if (!text.trim()) return;
     if (!user) { alert("Trebuie să fii autentificat pentru a comenta!"); return; }
     setSending(true);
-    const username = user.user_metadata?.username || user.email?.split("@")[0] || "User";
+    const username = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "User";
     const parent_id = replyingTo?.id || null;
     const { data: inserted, error } = await supabase.from("comments").insert([{
       event_id: event.id, user_id: user.id, username, text: text.trim(), parent_id,

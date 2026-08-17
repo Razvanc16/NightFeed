@@ -293,7 +293,7 @@ export default function PostPage({ user, onClose, editEvent }) {
       // Evenimentele oficiale nu apar în feed până nu sunt aprobate — trimitem
       // un "ticket" cu toate detaliile ca să poată fi validat manual.
       if (!isEdit && payload.type === "official") {
-        const posterName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
+        const posterName = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "Cineva";
         notifyUser({
           targetUserId: OFFICIAL_REVIEWER_ID,
           title: "Cerere eveniment oficial",

@@ -1,5 +1,5 @@
 import {
-  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, HeartOutlineIcon, PersonIcon, PencilIcon,
+  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, HeartOutlineIcon, PencilIcon,
 } from "./Icons";
 
 const NotifRow = ({ label, onClick, count }) => (
@@ -55,7 +55,7 @@ const SectionLabel = ({ children }) => (
 
 export default function SettingsPage({
   onClose, onEditProfile, onShowLegal, onShowLiked, onDeleteAccount, onLogout,
-  onChangeUsername, username, onShowNotifications, unreadNotifCount,
+  onShowNotifications, unreadNotifCount,
   profile, pushStatus, pushBusy, onTogglePush, onToggleNotifPref,
 }) {
   return (
@@ -71,7 +71,6 @@ export default function SettingsPage({
         <SectionLabel>Cont</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Row icon={<PencilIcon size={15} />} label="Editează profilul" onClick={onEditProfile} />
-          <Row icon={<PersonIcon size={16} />} label={username ? `Username: @${username}` : "Setează username"} onClick={onChangeUsername} />
           <NotifRow label="Notificări" onClick={onShowNotifications} count={unreadNotifCount} />
           <Row icon={<HeartOutlineIcon size={16} />} label="Evenimente apreciate" onClick={onShowLiked} />
           <Row icon={<LogoutIcon size={16} />} label="Ieși din cont" onClick={onLogout} />

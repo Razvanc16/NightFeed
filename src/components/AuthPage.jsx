@@ -1,20 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
 import PasswordChecklist from "./PasswordChecklist";
 import PasswordInput from "./PasswordInput";
 import LegalPage from "./LegalPage";
-import { EnvelopeIcon, KeyIcon, RocketIcon, CheckCircleIcon, CrossCircleIcon } from "./Icons";
+import { EnvelopeIcon, KeyIcon, RocketIcon } from "./Icons";
 
 export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [mode, setMode] = useState(initialMode || "login"); // login | register | verify | forgot | forgot-sent
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [usernameStatus, setUsernameStatus] = useState(null); // null | "checking" | "available" | "taken"
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const usernameCheckTimer = useRef(null);
 
   // Protecție client-side împotriva încercărilor repetate de login/reset — NU
   // înlocuiește rate limiting-ul real (care trebuie configurat în Supabase
@@ -34,33 +31,10 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     return () => clearInterval(t);
   }, []);
 
-  // Verificare live a disponibilității username-ului (cu debounce), doar la înregistrare
-  useEffect(() => {
-    if (mode !== "register") return;
-    clearTimeout(usernameCheckTimer.current);
-    if (username.trim().length < 3) {
-      setUsernameStatus(null);
-      return;
-    }
-    setUsernameStatus("checking");
-    usernameCheckTimer.current = setTimeout(async () => {
-      const { data } = await supabase
-        .from("usernames")
-        .select("username_lower")
-        .eq("username_lower", username.trim().toLowerCase())
-        .maybeSingle();
-      setUsernameStatus(data ? "taken" : "available");
-    }, 500);
-    return () => clearTimeout(usernameCheckTimer.current);
-  }, [username, mode]);
-
   const handleSubmit = async () => {
     setError("");
     if (mode === "login" && loginCooldown > 0) return;
     if (!email || !password) { setError("Completează email și parola!"); return; }
-    if (mode === "register" && !username) { setError("Completează username-ul!"); return; }
-    if (mode === "register" && usernameStatus === "taken") { setError("Acest username este deja folosit!"); return; }
-    if (mode === "register" && usernameStatus === "checking") { setError("Se verifică username-ul, mai așteaptă puțin..."); return; }
     if (mode === "register" && !acceptedTerms) { setError("Trebuie să accepți Termenii și Politica de Confidențialitate!"); return; }
     if (mode === "register" && !validatePassword(password)) {
       setError("Parola nu îndeplinește toate condițiile de mai jos!");
@@ -91,10 +65,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
         setLoginCooldown(0);
         onAuth(data.user);
       } else {
-        const { data, error } = await supabase.auth.signUp({
-          email, password,
-          options: { data: { username } }
-        });
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) {
           if (error.message.includes("already registered")) {
             setError("Există deja un cont cu acest email!");
@@ -103,22 +74,6 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           }
           setLoading(false);
           return;
-        }
-
-        // Rezervăm username-ul acum, cât timp încă avem id-ul userului la îndemână
-        // (userul nu are sesiune activă până nu confirmă emailul, de-asta trecem
-        // prin funcția specială din baza de date, nu print-un insert direct)
-        if (data.user) {
-          const { error: usernameError } = await supabase.rpc("register_username", {
-            p_user_id: data.user.id,
-            p_username: username.trim(),
-          });
-          if (usernameError) {
-            // Cursă rară: cineva a apucat username-ul exact în timp ce completai formularul
-            setError("Acest username tocmai a fost luat de altcineva. Contul a fost creat, dar te rugăm contactează suportul pentru a schimba username-ul, sau folosește alt email pentru a reîncerca cu un username liber.");
-            setLoading(false);
-            return;
-          }
         }
 
         setMode("verify");
@@ -311,26 +266,6 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
             </div>
           </div>
 
-          {mode === "register" && (
-            <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Username</div>
-              <input
-                type="text" placeholder="Alege un username"
-                value={username} onChange={e => setUsername(e.target.value)}
-                style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${usernameStatus === "taken" ? "rgba(255,51,102,0.5)" : usernameStatus === "available" ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
-              />
-              {usernameStatus === "checking" && (
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>Se verifică...</div>
-              )}
-              {usernameStatus === "available" && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00C864", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}><CheckCircleIcon size={12} /> Disponibil</div>
-              )}
-              {usernameStatus === "taken" && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}><CrossCircleIcon size={12} /> Deja folosit, alege altul</div>
-              )}
-            </div>
-          )}
-
           <div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
             <input
@@ -384,7 +319,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
           <button
             onClick={handleSubmit}
-            disabled={loading || (mode === "login" && loginCooldown > 0) || (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken" || !acceptedTerms))}
+            disabled={loading || (mode === "login" && loginCooldown > 0) || (mode === "register" && !acceptedTerms)}
             style={{
               width: "100%", padding: "14px",
               background: (loading || (mode === "login" && loginCooldown > 0)) ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
@@ -394,7 +329,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
               cursor: (loading || (mode === "login" && loginCooldown > 0)) ? "not-allowed" : "pointer",
               boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
               marginTop: 4,
-              opacity: (mode === "register" && (usernameStatus === "checking" || usernameStatus === "taken" || !acceptedTerms)) ? 0.6 : 1,
+              opacity: (mode === "register" && !acceptedTerms) ? 0.6 : 1,
             }}
           >
             {loading

@@ -70,8 +70,7 @@ const convertPostedEvent = (e, organizerMap = {}) => ({
   color: e.type === "official" ? "#FF3366" : "#FFB800",
   bgColor: e.type === "official" ? "#1a0010" : "#110d00",
   description: e.description || "",
-  organizer: organizerMap[e.user_id]?.name || organizerMap[e.user_id]?.username || "Organizator",
-  organizer_username: organizerMap[e.user_id]?.username || "",
+  organizer: organizerMap[e.user_id]?.name || "Organizator",
   organizer_avatar: organizerMap[e.user_id]?.avatar_url || "",
   cover_url: e.cover_url,
   ticket_link: e.ticket_link,
@@ -323,7 +322,7 @@ export default function App() {
       await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", organizerId);
     } else {
       await supabase.from("follows").insert([{ follower_id: user.id, following_id: organizerId }]);
-      const followerName = user.user_metadata?.username || user.email?.split("@")[0] || "Cineva";
+      const followerName = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "Cineva";
       clearTimeout(followNotifyTimers.current.get(organizerId));
       followNotifyTimers.current.set(organizerId, setTimeout(() => {
         notifyUser({
@@ -342,6 +341,20 @@ export default function App() {
   // (profil public), să prindă imediat schimbarea.
   useEffect(() => { loadFollowingIds(); }, [user]);
   useEffect(() => { if (feedMode === "following") loadFollowingIds(); }, [feedMode]);
+
+  // Backfill, o singură dată per sesiune: userii care și-au completat deja
+  // profilul înainte ca prenume/nume să înceapă să se sincronizeze automat în
+  // user_metadata (la Salvare profil) nu au încă acea sincronizare — o facem
+  // aici la prima încărcare, ca fallback-urile de nume din notificări etc. să
+  // aibă imediat ce le trebuie, fără să aștepte o resalvare de profil.
+  useEffect(() => {
+    if (!user || user.user_metadata?.prenume) return;
+    supabase.from("profiles").select("prenume, nume").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      if (data?.prenume || data?.nume) {
+        supabase.auth.updateUser({ data: { prenume: data.prenume || "", nume: data.nume || "" } }).catch(() => {});
+      }
+    });
+  }, [user?.id]);
 
   // Cât timp ai tab-ul NightFeed deschis și vizibil, notificările noi apar
   // direct în aplicație (toast + sunet propriu) — service worker-ul (sw.js)
@@ -384,14 +397,10 @@ export default function App() {
     const hostIds = [...new Set(data.map(e => e.user_id).filter(Boolean))];
     let organizerMap = {};
     if (hostIds.length > 0) {
-      const [{ data: profiles }, { data: usernames }] = await Promise.all([
-        supabase.from("profiles").select("user_id, nume, prenume, avatar_url").in("user_id", hostIds),
-        supabase.from("usernames").select("user_id, username").in("user_id", hostIds),
-      ]);
-      const unameMap = Object.fromEntries((usernames || []).map(u => [u.user_id, u.username]));
+      const { data: profiles } = await supabase.from("profiles").select("user_id, nume, prenume, avatar_url").in("user_id", hostIds);
       organizerMap = Object.fromEntries((profiles || []).map(p => [
         p.user_id,
-        { name: [p.prenume, p.nume].filter(Boolean).join(" "), username: unameMap[p.user_id] || "", avatar_url: p.avatar_url || "" },
+        { name: [p.prenume, p.nume].filter(Boolean).join(" "), avatar_url: p.avatar_url || "" },
       ]));
     }
 

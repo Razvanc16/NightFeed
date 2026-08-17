@@ -21,7 +21,6 @@ const convertPostedEvent = (e, organizerMap = {}) => {
     description: e.description || "",
     cover_url: e.cover_url,
     organizerName: organizer.displayName || "",
-    organizerUsername: organizer.username || "",
   };
 };
 
@@ -37,17 +36,12 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
 
   useEffect(() => {
     (async () => {
-      const [{ data: profiles }, { data: usernames }] = await Promise.all([
-        supabase.from("profiles").select("user_id, nume, prenume, avatar_url"),
-        supabase.from("usernames").select("user_id, username"),
-      ]);
-      const unameMap = Object.fromEntries((usernames || []).map(u => [u.user_id, u.username]));
+      const { data: profiles } = await supabase.from("profiles").select("user_id, nume, prenume, avatar_url");
       setPeople((profiles || []).map(p => ({
         user_id: p.user_id,
         displayName: [p.prenume, p.nume].filter(Boolean).join(" ").trim(),
-        username: unameMap[p.user_id] || "",
         avatar_url: p.avatar_url,
-      })).filter(p => p.displayName || p.username));
+      })).filter(p => p.displayName));
       setPeopleLoading(false);
     })();
   }, []);
@@ -57,19 +51,15 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
       const { data } = await supabase.from("posted_events_feed").select("*").eq("archived", false).or("type.neq.official,verified.eq.true").order("created_at", { ascending: false });
       const active = filterActiveEvents(data);
 
-      // Aducem numele/username-ul hostilor, ca să poți căuta și după numele lor,
+      // Aducem numele hostilor, ca să poți căuta și după numele lor,
       // nu doar după titlul/locația evenimentului.
       const hostIds = [...new Set(active.map(e => e.user_id).filter(Boolean))];
       let organizerMap = {};
       if (hostIds.length > 0) {
-        const [{ data: profiles }, { data: usernames }] = await Promise.all([
-          supabase.from("profiles").select("user_id, nume, prenume").in("user_id", hostIds),
-          supabase.from("usernames").select("user_id, username").in("user_id", hostIds),
-        ]);
-        const unameMap = Object.fromEntries((usernames || []).map(u => [u.user_id, u.username]));
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nume, prenume").in("user_id", hostIds);
         organizerMap = Object.fromEntries((profiles || []).map(p => [
           p.user_id,
-          { displayName: [p.prenume, p.nume].filter(Boolean).join(" "), username: unameMap[p.user_id] || "" },
+          { displayName: [p.prenume, p.nume].filter(Boolean).join(" ") },
         ]));
       }
 
@@ -95,11 +85,10 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
     e.venue.toLowerCase().includes(q) ||
     e.description.toLowerCase().includes(q) ||
     e.tags.some(t => t.toLowerCase().includes(q)) ||
-    e.organizerName.toLowerCase().includes(q) ||
-    e.organizerUsername.toLowerCase().includes(q)
+    e.organizerName.toLowerCase().includes(q)
   );
   const peopleResults = q.length === 0 ? [] : people.filter(p =>
-    p.displayName.toLowerCase().includes(q) || p.username.toLowerCase().includes(q)
+    p.displayName.toLowerCase().includes(q)
   );
 
   const handleCodeSubmit = () => {
@@ -140,7 +129,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder={searchMode === "events" ? "Caută după nume, host, loc, tag..." : "Caută după nume sau username..."}
+            placeholder={searchMode === "events" ? "Caută după nume, host, loc, tag..." : "Caută după nume..."}
             style={{ width: "100%", padding: "13px 16px 13px 44px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
           />
         </div>
@@ -201,18 +190,17 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
           ) : peopleResults.length === 0 ? (
             <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
               <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}><PersonIcon size={36} /></div>
-              <div style={{ fontSize: 14 }}>{q ? "Niciun om găsit pentru căutarea ta." : "Caută după nume sau username."}</div>
+              <div style={{ fontSize: 14 }}>{q ? "Niciun om găsit pentru căutarea ta." : "Caută după nume."}</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {peopleResults.map(p => (
                 <button key={p.user_id} onClick={() => onViewProfile(p.user_id)} style={{ textAlign: "left", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ width: 46, height: 46, borderRadius: "50%", background: p.avatar_url ? "transparent" : "linear-gradient(135deg, #FF3366, #B44FFF)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", flexShrink: 0, overflow: "hidden", fontSize: 16, fontWeight: 800 }}>
-                    {p.avatar_url ? <img src={p.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (p.displayName || p.username || "?").charAt(0).toUpperCase()}
+                    {p.avatar_url ? <img src={p.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (p.displayName || "?").charAt(0).toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName || p.username}</div>
-                    {p.username && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>@{p.username}</div>}
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName}</div>
                   </div>
                 </button>
               ))}

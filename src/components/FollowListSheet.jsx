@@ -25,22 +25,17 @@ export default function FollowListSheet({ userId, mode, onClose, onViewProfile }
 
     if (ids.length === 0) { setPeople([]); setLoading(false); return; }
 
-    const [{ data: profiles }, { data: usernames }] = await Promise.all([
-      supabase.from("profiles").select("*").in("user_id", ids),
-      supabase.from("usernames").select("*").in("user_id", ids),
-    ]);
-    const unameMap = Object.fromEntries((usernames || []).map(u => [u.user_id, u.username]));
+    const { data: profiles } = await supabase.from("profiles").select("*").in("user_id", ids);
     const merged = ids
       .map(id => {
         const p = (profiles || []).find(pr => pr.user_id === id);
         return {
           user_id: id,
           displayName: p ? [p.prenume, p.nume].filter(Boolean).join(" ") : "",
-          username: unameMap[id] || "",
           avatar_url: p?.avatar_url || null,
         };
       })
-      .filter(p => p.displayName || p.username);
+      .filter(p => p.displayName);
     setPeople(merged);
     setLoading(false);
   };
@@ -77,11 +72,10 @@ export default function FollowListSheet({ userId, mode, onClose, onViewProfile }
                 }}
               >
                 <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: p.avatar_url ? "transparent" : "linear-gradient(135deg, #FF3366, #B44FFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#fff" }}>
-                  {p.avatar_url ? <img src={p.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (p.displayName || p.username || "?").charAt(0).toUpperCase()}
+                  {p.avatar_url ? <img src={p.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (p.displayName || "?").charAt(0).toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName || p.username || "Utilizator"}</div>
-                  {p.username && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>@{p.username}</div>}
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName || "Utilizator"}</div>
                 </div>
                 <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 16 }}>›</div>
               </button>
