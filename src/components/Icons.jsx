@@ -52,6 +52,18 @@ export const ConfettiIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M4 20l3.5-1M20 4l-1 3.5M6 6.5l1.5 1.5M17.5 16.5 16 18" /><circle cx="12" cy="12" r="2.2" /></svg>
 );
 
+export const QrCodeIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" /></svg>
+);
+
+export const ScanIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" /><line x1="3" y1="12" x2="21" y2="12" /></svg>
+);
+
+export const TicketIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M3 9a2 2 0 0 0 0 4v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 1 0-4V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" /><line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 3" /></svg>
+);
+
 export const TagIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M3 12 12 3h6a3 3 0 0 1 3 3v6l-9 9a2 2 0 0 1-2.8 0l-6.2-6.2a2 2 0 0 1 0-2.8z" /><circle cx="16" cy="8" r="1.3" fill="currentColor" stroke="none" /></svg>
 );

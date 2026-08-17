@@ -114,7 +114,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase().slice(0, 6))}
               onKeyDown={e => e.key === "Enter" && handleCodeSubmit()}
-              placeholder="Cod eveniment"
+              placeholder=""
               maxLength={6}
               style={{ flex: 1, padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 18, fontFamily: "'DM Mono', monospace", letterSpacing: "0.2em", outline: "none", textTransform: "uppercase" }}
             />

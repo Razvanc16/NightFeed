@@ -9,12 +9,14 @@ import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
 import NotificationsPage from "./NotificationsPage";
 import AvatarCropSheet from "./AvatarCropSheet";
+import MyTicketsPage from "./MyTicketsPage";
+import CheckinScannerSheet from "./CheckinScannerSheet";
 import { filterActiveEvents, cleanupOwnExpiredEvents } from "../utils/eventTime";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon, BellIcon, PencilIcon,
+  WarningIcon, GearIcon, BellIcon, PencilIcon, ScanIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -93,6 +95,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const [showLegal, setShowLegal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTickets, setShowTickets] = useState(false);
+  const [scannerEvent, setScannerEvent] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -529,6 +533,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                       </div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <button onClick={() => setScannerEvent(event)} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,200,100,0.12)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, padding: "5px 10px", color: "#00C864", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><ScanIcon size={12} /> Scanează</button>
                       <button onClick={() => setEditingEvent(event)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Editează</button>
                       <button onClick={() => handleArchivePosted(event.id)} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 8, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Arhivează</button>
                     </div>
@@ -601,6 +606,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           onShowLiked={() => { setShowSettings(false); setActiveTab("liked"); }}
           onShowLegal={() => setShowLegal(true)}
           onShowNotifications={() => { setShowSettings(false); setShowNotifications(true); }}
+          onShowTickets={() => { setShowSettings(false); setShowTickets(true); }}
           unreadNotifCount={unreadNotifCount}
           onDeleteAccount={() => setShowDeleteConfirm(true)}
           onLogout={onLogout}
@@ -616,6 +622,10 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} onViewProfile={onViewProfile} onOpenEvent={onOpenEvent} />, document.body)}
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
+
+      {showTickets && createPortal(<MyTicketsPage user={user} onClose={() => setShowTickets(false)} />, document.body)}
+
+      {scannerEvent && createPortal(<CheckinScannerSheet event={scannerEvent} onClose={() => setScannerEvent(null)} />, document.body)}
 
       {showDeleteConfirm && createPortal(
         <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end" }} onClick={() => !deletingAccount && setShowDeleteConfirm(false)}>

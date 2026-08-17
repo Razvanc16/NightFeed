@@ -1,5 +1,5 @@
 import {
-  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, HeartOutlineIcon, PencilIcon,
+  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, HeartOutlineIcon, PencilIcon, TicketIcon,
 } from "./Icons";
 
 const NotifRow = ({ label, onClick, count }) => (
@@ -55,7 +55,7 @@ const SectionLabel = ({ children }) => (
 
 export default function SettingsPage({
   onClose, onEditProfile, onShowLegal, onShowLiked, onDeleteAccount, onLogout,
-  onShowNotifications, unreadNotifCount,
+  onShowNotifications, unreadNotifCount, onShowTickets,
   profile, pushStatus, pushBusy, onTogglePush, onToggleNotifPref,
 }) {
   return (
@@ -73,6 +73,7 @@ export default function SettingsPage({
           <Row icon={<PencilIcon size={15} />} label="Editează profilul" onClick={onEditProfile} />
           <NotifRow label="Notificări" onClick={onShowNotifications} count={unreadNotifCount} />
           <Row icon={<HeartOutlineIcon size={16} />} label="Evenimente apreciate" onClick={onShowLiked} />
+          <Row icon={<TicketIcon size={16} />} label="Biletele mele" onClick={onShowTickets} />
           <Row icon={<LogoutIcon size={16} />} label="Ieși din cont" onClick={onLogout} />
         </div>
 
