@@ -60,6 +60,10 @@ export const ScanIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" /><line x1="3" y1="12" x2="21" y2="12" /></svg>
 );
 
+export const InfoIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><circle cx="12" cy="12" r="9" /><line x1="12" y1="11" x2="12" y2="16" /><circle cx="12" cy="8" r="0.5" fill="currentColor" /></svg>
+);
+
 export const TicketIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M3 9a2 2 0 0 0 0 4v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 1 0-4V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" /><line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 3" /></svg>
 );

@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../supabase";
-import { SpeechBubbleIcon } from "./Icons";
+import { SpeechBubbleIcon, HeartOutlineIcon, ConfettiIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
+import EventPeopleSheet from "./EventPeopleSheet";
 
 const HeartIcon = ({ filled, size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "#FF3366" : "none"} stroke={filled ? "#FF3366" : "rgba(255,255,255,0.5)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -65,6 +67,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
   // s-ar demonta instant, fără să apuce să joace tranziția de translateY.
   const [displayEvent, setDisplayEvent] = useState(event);
   useEffect(() => { if (event) setDisplayEvent(event); }, [event]);
+  const [peopleSheet, setPeopleSheet] = useState(null); // "likes" | "attend" | null
 
   const [comments, setComments] = useState([]);
   // Comentariile din încărcarea inițială nu trebuie animate — dacă toată
@@ -337,7 +340,15 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
             <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Comentarii</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{displayEvent.title}</div>
           </div>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "50%", width: 30, height: 30, color: "rgba(255,255,255,0.5)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <button onClick={() => setPeopleSheet("likes")} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "6px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+              <HeartOutlineIcon size={12} /> Aprecieri
+            </button>
+            <button onClick={() => setPeopleSheet("attend")} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "6px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+              <ConfettiIcon size={12} /> Participă
+            </button>
+            <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "50%", width: 30, height: 30, color: "rgba(255,255,255,0.5)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
+          </div>
         </div>
 
         {/* Comments list */}
@@ -417,6 +428,17 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
           </button>
         </div>
       </div>
+
+      {peopleSheet && createPortal(
+        <EventPeopleSheet
+          title={peopleSheet === "likes" ? "Aprecieri" : "Participă"}
+          source={peopleSheet === "likes" ? "likes" : (displayEvent.isPosted && displayEvent.type === "homemade" && !displayEvent.location_visible ? "requests" : "attendances")}
+          eventId={displayEvent.id}
+          onClose={() => setPeopleSheet(null)}
+          onViewProfile={onViewProfile}
+        />,
+        document.body
+      )}
     </>
   );
 }

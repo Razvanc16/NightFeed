@@ -95,14 +95,18 @@ export default function MapPage({ user, isActive, focusTarget }) {
   const popupDragRef = useRef(null);
 
   // Închide cu animație (slide jos + fade), nu instant — setSelectedEvent(null)
-  // direct demonta cardul fără nicio tranziție de ieșire.
+  // direct demonta cardul fără nicio tranziție de ieșire. Durata de aici
+  // trebuie să fie IDENTICĂ cu cea din style.transition de mai jos, altfel
+  // fie se taie cardul brusc înainte să termine animația, fie rămâne un gol
+  // (unmount întârziat) după ce a terminat deja de dispărut vizual.
+  const POPUP_CLOSE_MS = 300;
   const closePopup = () => {
     setPopupClosing(true);
     setTimeout(() => {
       setSelectedEvent(null);
       setPopupClosing(false);
       setPopupDragY(0);
-    }, 220);
+    }, POPUP_CLOSE_MS);
   };
 
   const handlePopupPointerDown = (e) => {
@@ -553,7 +557,7 @@ export default function MapPage({ user, isActive, focusTarget }) {
             touchAction: "none",
             transform: `translateY(${popupClosing ? 400 : popupDragY}px)`,
             opacity: popupClosing ? 0 : 1,
-            transition: popupDragRef.current ? "none" : "transform 0.22s ease, opacity 0.22s ease",
+            transition: popupDragRef.current ? "none" : `transform ${POPUP_CLOSE_MS}ms cubic-bezier(0.32, 0, 0.15, 1), opacity ${POPUP_CLOSE_MS}ms ease`,
             animation: (!popupClosing && popupDragY === 0) ? "slideUp 0.25s ease-out" : "none",
           }}
         >

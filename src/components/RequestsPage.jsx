@@ -66,11 +66,15 @@ export default function RequestsPage({ user, onClose }) {
     }
 
     setRequests(incoming || []);
-    setMyRequests((outgoing || []).map(r => ({
-      ...r,
-      posted_events: { ...r.posted_events, ...addressByEventId[String(r.event_id)] },
-      checkin: checkinByEventId[String(r.event_id)] || null,
-    })));
+    setMyRequests((outgoing || [])
+      // Evenimentul poate fi șters între timp (embed-ul FK vine null) — nu
+      // are rost să arătăm o cerere pentru ceva ce nu mai există.
+      .filter(r => r.posted_events?.title)
+      .map(r => ({
+        ...r,
+        posted_events: { ...r.posted_events, ...addressByEventId[String(r.event_id)] },
+        checkin: checkinByEventId[String(r.event_id)] || null,
+      })));
     setLoading(false);
   };
 
