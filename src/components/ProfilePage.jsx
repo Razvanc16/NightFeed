@@ -14,7 +14,7 @@ import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pu
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon, BellIcon,
+  WarningIcon, GearIcon, BellIcon, PencilIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -103,7 +103,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", avatar_url: "" });
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
-  const [cropFile, setCropFile] = useState(null);
+  const [cropSource, setCropSource] = useState(null); // { file } sau { url } — vezi handleAvatarChange
 
   useEffect(() => {
     getPushStatus().then(setPushStatus);
@@ -216,14 +216,14 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     const file = e.target.files[0];
     e.target.value = ""; // altfel re-selectarea aceluiași fișier nu mai declanșează onChange
     if (!file) return;
-    setCropFile(file);
+    setCropSource({ file });
   };
 
   const handleCropConfirm = (blob) => {
     const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(blob));
-    setCropFile(null);
+    setCropSource(null);
   };
 
   const uploadAvatar = async (profileId) => {
@@ -369,8 +369,19 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginBottom: 28 }}>Apare pe NightFeed</div>
 
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 28 }}>
-            <div onClick={() => fileRef.current?.click()} style={{ width: 90, height: 90, borderRadius: "50%", background: avatarSrc ? "transparent" : "rgba(255,51,102,0.15)", border: "2px dashed rgba(255,51,102,0.4)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" }}>
-              {avatarSrc ? <img src={avatarSrc} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ color: "rgba(255,51,102,0.6)" }}><CameraIcon size={30} /></span>}
+            <div style={{ position: "relative" }}>
+              <div onClick={() => fileRef.current?.click()} style={{ width: 90, height: 90, borderRadius: "50%", background: avatarSrc ? "transparent" : "rgba(255,51,102,0.15)", border: "2px dashed rgba(255,51,102,0.4)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" }}>
+                {avatarSrc ? <img src={avatarSrc} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ color: "rgba(255,51,102,0.6)" }}><CameraIcon size={30} /></span>}
+              </div>
+              {avatarSrc && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCropSource({ url: avatarSrc }); }}
+                  title="Ajustează poza actuală"
+                  style={{ position: "absolute", bottom: -2, right: -2, width: 28, height: 28, borderRadius: "50%", background: "#FF3366", border: "2px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff" }}
+                >
+                  <PencilIcon size={13} />
+                </button>
+              )}
             </div>
             <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 8 }}>Apasă pentru poză</div>
@@ -380,7 +391,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             { key: "prenume", label: "Prenume", placeholder: "ex: Ion", type: "text" },
             { key: "nume", label: "Nume", placeholder: "ex: Popescu", type: "text" },
             { key: "varsta", label: "Vârstă", placeholder: "ex: 22", type: "number" },
-            { key: "hobby", label: "Hobby-uri", placeholder: "ex: muzică, fotbal", type: "text" },
           ].map(field => (
             <div key={field.key} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>{field.label}</div>
@@ -388,6 +398,15 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
             </div>
           ))}
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Bio</div>
+            <textarea
+              rows={3} placeholder="Câteva cuvinte despre tine" value={form.hobby}
+              onChange={e => setForm(f => ({ ...f, hobby: e.target.value }))}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+            />
+          </div>
 
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>Gen</div>
@@ -644,8 +663,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         document.body
       )}
 
-      {cropFile && createPortal(
-        <AvatarCropSheet file={cropFile} onCancel={() => setCropFile(null)} onConfirm={handleCropConfirm} />,
+      {cropSource && createPortal(
+        <AvatarCropSheet file={cropSource.file} imageUrl={cropSource.url} onCancel={() => setCropSource(null)} onConfirm={handleCropConfirm} />,
         document.body
       )}
 
