@@ -506,7 +506,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[
               { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={18} /> },
-              { id: "liked", label: "Apreciate", value: likedEvents.length, icon: <HeartOutlineIcon size={18} /> },
               { id: "requests", label: "Cereri", value: pendingRequestsCount, icon: <EnvelopeIcon size={18} /> },
               { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={18} /> },
             ].map(stat => {
