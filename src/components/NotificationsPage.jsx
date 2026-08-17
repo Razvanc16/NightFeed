@@ -84,8 +84,13 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
           const rowClickable = rowGoesToEvent || rowGoesToProfile;
           const avatarClickable = !!(n.actor_id && onViewProfile);
           const handleRowClick = () => {
+            // Spre eveniment: schimbă tab-ul pe feed, n-are sens să rămână
+            // deschisă pe sub el. Spre profil: profilul e un overlay peste tot
+            // (vezi App.jsx, zIndex 9996 > 300 de aici) — o lăsăm deschisă
+            // dedesubt, ca "Înapoi" din profil să te aducă înapoi la notificări,
+            // nu să te scoată de tot din ele.
             if (rowGoesToEvent) { onOpenEvent(n.event_id, n.comment_id); onClose(); }
-            else if (rowGoesToProfile) { onViewProfile(n.actor_id); onClose(); }
+            else if (rowGoesToProfile) { onViewProfile(n.actor_id); }
           };
           return (
             <div
@@ -94,7 +99,7 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
               style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", borderRadius: 14, background: n.read ? "rgba(255,255,255,0.03)" : `${color}0d`, border: `1px solid ${n.read ? "rgba(255,255,255,0.07)" : color + "30"}`, cursor: rowClickable ? "pointer" : "default" }}
             >
               <div
-                onClick={avatarClickable ? (e) => { e.stopPropagation(); onViewProfile(n.actor_id); onClose(); } : undefined}
+                onClick={avatarClickable ? (e) => { e.stopPropagation(); onViewProfile(n.actor_id); } : undefined}
                 style={{ position: "relative", flexShrink: 0, cursor: avatarClickable ? "pointer" : "default" }}
               >
                 <div style={{ width: 36, height: 36, borderRadius: "50%", overflow: "hidden", background: avatarUrl ? "transparent" : `${color}20`, border: `1px solid ${color}40`, display: "flex", alignItems: "center", justifyContent: "center", color }}>

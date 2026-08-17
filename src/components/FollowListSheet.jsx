@@ -43,7 +43,9 @@ export default function FollowListSheet({ userId, mode, onClose, onViewProfile }
   const title = mode === "followers" ? "Urmăritori" : "Urmărește";
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 10050, background: "#080808", animation: "tabEnter 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
+    // zIndex sub 9996 (vezi App.jsx, wrapper-ul profilului public) — nu peste,
+    // altfel profilul deschis de-aici ar apărea ascuns dedesubtul acestei liste.
+    <div style={{ position: "fixed", inset: 0, zIndex: 400, background: "#080808", animation: "tabEnter 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
       <div style={{ padding: "50px 20px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>← Înapoi</button>
         <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{title}</div>
@@ -64,7 +66,7 @@ export default function FollowListSheet({ userId, mode, onClose, onViewProfile }
             {people.map(p => (
               <button
                 key={p.user_id}
-                onClick={() => { onViewProfile && onViewProfile(p.user_id); onClose(); }}
+                onClick={() => onViewProfile && onViewProfile(p.user_id)}
                 style={{
                   display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 14,
                   background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
