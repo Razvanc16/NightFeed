@@ -13,14 +13,16 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
     setSending(true);
 
     const username = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "User";
-    const { error } = await supabase.from("attendance_requests").insert([{
+    // upsert, nu insert simplu — apăsat rapid/repetat pe "Trimite cererea"
+    // crea mai multe cereri pentru același eveniment.
+    const { error } = await supabase.from("attendance_requests").upsert([{
       event_id: (event.rawId || event.id).toString().replace('posted_', ''),
       requester_id: user.id,
       requester_username: username,
       host_id: event.organizer_id,
       status: "pending",
       message: message.trim() || null,
-    }]);
+    }], { onConflict: "event_id,requester_id" });
 
     if (!error) {
       setSent(true);

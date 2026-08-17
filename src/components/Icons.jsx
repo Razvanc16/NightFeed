@@ -64,6 +64,10 @@ export const InfoIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><circle cx="12" cy="12" r="9" /><line x1="12" y1="11" x2="12" y2="16" /><circle cx="12" cy="8" r="0.5" fill="currentColor" /></svg>
 );
 
+export const MoreIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><circle cx="12" cy="5" r="1.3" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="12" cy="19" r="1.3" fill="currentColor" stroke="none" /></svg>
+);
+
 export const TicketIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M3 9a2 2 0 0 0 0 4v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 1 0-4V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" /><line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 3" /></svg>
 );

@@ -19,7 +19,7 @@ import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pu
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon, BellIcon, PencilIcon, ScanIcon, InfoIcon, QrCodeIcon, CrossCircleIcon,
+  WarningIcon, GearIcon, BellIcon, PencilIcon, ScanIcon, InfoIcon, QrCodeIcon, CrossCircleIcon, MoreIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -48,6 +48,42 @@ const convertPostedEventMinimal = (e) => ({
   color: e.type === "official" ? "#FF3366" : "#FFB800",
   bgColor: e.type === "official" ? "#1a0010" : "#110d00",
 });
+
+// Meniu "⋮" pentru acțiunile pe un card (Postate / Particip) — înainte erau
+// 3 butoane înghesuite unul sub altul pe fiecare card, acum o singură
+// iconiță care deschide lista de acțiuni.
+const ActionMenu = ({ items }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("pointerdown", onDocClick);
+    return () => document.removeEventListener("pointerdown", onDocClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: "relative", flexShrink: 0 }}>
+      <button onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }} style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>
+        <MoreIcon size={16} />
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#15151a", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, overflow: "hidden", zIndex: 50, minWidth: 170, boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
+          {items.map((it, i) => (
+            <button
+              key={i}
+              onClick={(e) => { e.stopPropagation(); setOpen(false); it.onClick(); }}
+              style={{ width: "100%", padding: "11px 14px", display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none", color: it.color || "rgba(255,255,255,0.8)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", textAlign: "left" }}
+            >
+              {it.icon} {it.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent }) {
   const [view, setView] = useState("loading");
@@ -571,11 +607,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                         )}
                       </div>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <button onClick={() => setScannerEvent(event)} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(0,200,100,0.12)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, padding: "5px 10px", color: "#00C864", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><ScanIcon size={12} /> Scanează</button>
-                      <button onClick={() => setEditingEvent(event)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Editează</button>
-                      <button onClick={() => handleArchivePosted(event.id)} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 8, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Arhivează</button>
-                    </div>
+                    <ActionMenu items={[
+                      { label: "Scanează", icon: <ScanIcon size={14} />, onClick: () => setScannerEvent(event), color: "#00C864" },
+                      { label: "Editează", icon: <PencilIcon size={14} />, onClick: () => setEditingEvent(event) },
+                      { label: "Arhivează", icon: <OutboxIcon size={14} />, onClick: () => handleArchivePosted(event.id), color: "#FF3366" },
+                    ]} />
                   </div>
                 </div>
               ))
@@ -596,11 +632,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                         <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{event.title}</div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {event.price || "Gratuit"}</div>
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        <button onClick={() => setInfoEvent(event)} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}><InfoIcon size={12} /> Info</button>
-                        <button onClick={() => handleRestorePosted(event.id)} style={{ background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.25)", borderRadius: 8, padding: "5px 10px", color: "#00C864", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Restaurează</button>
-                        <button onClick={() => handlePermanentDeletePosted(event.id)} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 8, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Șterge definitiv</button>
-                      </div>
+                      <ActionMenu items={[
+                        { label: "Info", icon: <InfoIcon size={14} />, onClick: () => setInfoEvent(event) },
+                        { label: "Restaurează", icon: <CheckCircleIcon size={14} />, onClick: () => handleRestorePosted(event.id), color: "#00C864" },
+                        { label: "Șterge definitiv", icon: <WarningIcon size={14} />, onClick: () => handlePermanentDeletePosted(event.id), color: "#FF3366" },
+                      ]} />
                     </div>
                   </div>
                 ))
@@ -631,13 +667,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                       <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {event.price}</div>
                     </div>
-                    {activeTab === "attending" && myCheckins[event.id] && (
-                      <button onClick={(e) => { e.stopPropagation(); setTicketFor(myCheckins[event.id].token); }} style={{ width: 30, height: 30, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#fff", cursor: "pointer" }}>
-                        <QrCodeIcon size={15} />
-                      </button>
-                    )}
                     {activeTab === "attending" && (
-                      <button onClick={(e) => { e.stopPropagation(); handleRemoveAttending(event.id); }} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "5px 10px", color: "rgba(255,255,255,0.35)", fontSize: 11, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Renunț</button>
+                      <ActionMenu items={[
+                        ...(myCheckins[event.id] ? [{ label: "Biletul meu", icon: <QrCodeIcon size={14} />, onClick: () => setTicketFor(myCheckins[event.id].token) }] : []),
+                        { label: "Renunț", icon: <CrossCircleIcon size={14} />, onClick: () => handleRemoveAttending(event.id), color: "#FF3366" },
+                      ]} />
                     )}
                   </div>
                 </div>

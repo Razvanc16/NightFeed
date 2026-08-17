@@ -456,7 +456,12 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
     setSelectedEvent(null);
     try {
       if (newVal) {
-        const { error } = await supabase.from("attendances").insert([{ event_id: String(event.id), user_id: user.id }]);
+        // upsert + ignoreDuplicates, nu insert simplu — apăsat rapid/repetat
+        // altfel crea mai multe rânduri (același bug fixat deja la EventCard).
+        const { error } = await supabase.from("attendances").upsert(
+          [{ event_id: String(event.id), user_id: user.id }],
+          { onConflict: "event_id,user_id", ignoreDuplicates: true }
+        );
         if (error) throw error;
       } else {
         const { error } = await supabase.from("attendances").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
@@ -480,13 +485,15 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
     setSelectedEvent(null);
     try {
       const username = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "User";
-      const { error } = await supabase.from("attendance_requests").insert([{
+      // upsert, nu insert simplu — apăsat rapid/repetat crea mai multe cereri
+      // pentru același eveniment (constrângerea unică e pe event_id+requester_id).
+      const { error } = await supabase.from("attendance_requests").upsert([{
         event_id: rawId,
         requester_id: user.id,
         requester_username: username,
         host_id: event.hostId,
         status: "pending",
-      }]);
+      }], { onConflict: "event_id,requester_id" });
       if (error) throw error;
       setMyRequests(prev => ({ ...prev, [rawId]: "pending" }));
       if (event.hostId) {
