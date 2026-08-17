@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import { supabase } from "../supabase";
 import { TicketIcon, LightningIcon, HouseIcon, CheckCircleIcon, ClockIcon, CrossCircleIcon } from "./Icons";
 
-const TicketQR = ({ token }) => {
+export const TicketQR = ({ token }) => {
   const [dataUrl, setDataUrl] = useState(null);
   useEffect(() => {
     let active = true;

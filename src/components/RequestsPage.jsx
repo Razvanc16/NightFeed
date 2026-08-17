@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
-import { ClockIcon, CheckCircleIcon, CrossCircleIcon, InboxIcon, PersonIcon, OutboxIcon, LightningIcon, HouseIcon, PinIcon, MapIcon } from "./Icons";
+import { ClockIcon, CheckCircleIcon, CrossCircleIcon, InboxIcon, PersonIcon, OutboxIcon, LightningIcon, HouseIcon, PinIcon, MapIcon, TicketIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
+import { TicketQR } from "./MyTicketsPage";
 
 export default function RequestsPage({ user, onClose }) {
   const [requests, setRequests] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("incoming");
+  const [openTicket, setOpenTicket] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -45,18 +47,29 @@ export default function RequestsPage({ user, onClose }) {
       .map(r => r.event_id);
 
     let addressByEventId = {};
+    let checkinByEventId = {};
     if (acceptedEventIds.length) {
       const { data: addresses } = await supabase
         .from("posted_events_feed")
         .select("id, venue, lat, lng")
         .in("id", acceptedEventIds);
       (addresses || []).forEach(a => { addressByEventId[String(a.id)] = a; });
+
+      // Biletul (token QR) apărut automat la acceptare — vezi triggerul
+      // checkin_create_from_request din migrația event_checkins.
+      const { data: checkins } = await supabase
+        .from("event_checkins")
+        .select("event_id, token, checked_in")
+        .eq("user_id", user.id)
+        .in("event_id", acceptedEventIds.map(id => `posted_${id}`));
+      (checkins || []).forEach(c => { checkinByEventId[c.event_id.replace("posted_", "")] = c; });
     }
 
     setRequests(incoming || []);
     setMyRequests((outgoing || []).map(r => ({
       ...r,
       posted_events: { ...r.posted_events, ...addressByEventId[String(r.event_id)] },
+      checkin: checkinByEventId[String(r.event_id)] || null,
     })));
     setLoading(false);
   };
@@ -206,10 +219,41 @@ export default function RequestsPage({ user, onClose }) {
                   )}
                 </div>
               )}
+
+              {req.status === "accepted" && req.checkin && (
+                <button onClick={() => setOpenTicket(req)} style={{ marginTop: 10, width: "100%", padding: "9px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.25)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                  <TicketIcon size={13} /> {req.checkin.checked_in ? "Ai intrat — vezi biletul" : "Vezi biletul"}
+                </button>
+              )}
             </div>
           ))
         )}
       </div>
+
+      {openTicket && (
+        <div onClick={() => setOpenTicket(null)} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>{openTicket.posted_events?.title}</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 20 }}>Arată codul la intrare</div>
+
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <TicketQR token={openTicket.checkin.token} />
+            </div>
+
+            {openTicket.checkin.checked_in ? (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, padding: "6px 14px", borderRadius: 20, background: "rgba(0,200,100,0.15)", color: "#00C864", fontFamily: "'DM Sans', sans-serif", fontWeight: 700 }}>
+                <CheckCircleIcon size={14} /> Ai intrat deja
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif" }}>Nescanat încă</div>
+            )}
+
+            <button onClick={() => setOpenTicket(null)} style={{ marginTop: 20, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <CrossCircleIcon size={13} /> Închide
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

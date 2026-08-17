@@ -477,7 +477,7 @@ export default function PostPage({ user, onClose, editEvent }) {
           {showMapPicker && (
             <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
               <div style={{ position: "relative" }}>
-                <div ref={pickerMapRef} style={{ width: "100%", height: 260, background: "rgba(255,255,255,0.04)" }} />
+                <div ref={pickerMapRef} style={{ width: "100%", height: 260, background: "linear-gradient(135deg, rgba(255,51,102,0.18), rgba(180,79,255,0.18))" }} />
                 {/* Pinul stă fix în centru, ca la Uber — muți harta pe sub el.
                     Vârful din PinIcon nu e chiar la marginea de jos a SVG-ului
                     (e la y=21 dintr-un viewBox de 24), deci -100% l-ar plasa
@@ -491,7 +491,7 @@ export default function PostPage({ user, onClose, editEvent }) {
                   <PinIcon size={34} />
                 </div>
                 {pickerMoving && (
-                  <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, 0)", width: 6, height: 6, borderRadius: "50%", background: "rgba(0,0,0,0.4)", zIndex: 400 }} />
+                  <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, 0)", width: 6, height: 6, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #B44FFF)", zIndex: 400 }} />
                 )}
               </div>
               <div style={{ padding: "6px 10px", fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", background: "rgba(255,255,255,0.03)" }}>
