@@ -53,6 +53,12 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
     if (unreadIds.length) await supabase.from("notifications").update({ read: true }).in("id", unreadIds);
   };
 
+  const handleDismiss = async (id) => {
+    // Optimist — dispare imediat din listă, nu așteptăm răspunsul serverului.
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    await supabase.from("notifications").delete().eq("id", id);
+  };
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "#080808", zIndex: 300, overflowY: "auto", paddingBottom: 40, animation: "slideUp 0.3s ease-out" }}>
       <div style={{ padding: "50px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -120,7 +126,16 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
                 {n.body && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 2, lineHeight: 1.4 }}>{n.body}</div>}
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>{timeAgo(n.created_at)}</div>
               </div>
-              {!n.read && <div style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0, marginTop: 4 }} />}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDismiss(n.id); }}
+                  aria-label="Șterge notificarea"
+                  style={{ background: "none", border: "none", padding: 2, cursor: "pointer", color: "rgba(255,255,255,0.3)", fontSize: 16, lineHeight: 1 }}
+                >
+                  ×
+                </button>
+                {!n.read && <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />}
+              </div>
             </div>
           );
         })}

@@ -10,6 +10,7 @@ export default function RequestsPage({ user, onClose }) {
   const [myRequests, setMyRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("incoming");
+  const [statusFilter, setStatusFilter] = useState("all"); // all | pending | accepted | rejected
   const [openTicket, setOpenTicket] = useState(null);
 
   useEffect(() => {
@@ -120,13 +121,14 @@ export default function RequestsPage({ user, onClose }) {
   };
 
   const pendingCount = requests.filter(r => r.status === "pending").length;
+  const filteredRequests = statusFilter === "all" ? requests : requests.filter(r => r.status === statusFilter);
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "#080808", zIndex: 300, overflowY: "auto", paddingBottom: 80, animation: "slideUp 0.3s ease-out" }}>
       {/* Header */}
       <div style={{ padding: "50px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>
             Cereri participare
             {pendingCount > 0 && (
               <span style={{ marginLeft: 8, background: "#FF3366", color: "#fff", fontSize: 11, borderRadius: 20, padding: "2px 8px", fontFamily: "'DM Mono', monospace" }}>{pendingCount}</span>
@@ -152,16 +154,45 @@ export default function RequestsPage({ user, onClose }) {
         ))}
       </div>
 
+      {/* Filtru pe status — altfel cererile acceptate/refuzate se pierd în
+          aceeași listă cu cele în așteptare, greu de găsit "cine e acceptat". */}
+      {activeTab === "incoming" && (
+        <div style={{ display: "flex", padding: "0 16px 8px", gap: 6, overflowX: "auto" }}>
+          {[
+            { id: "all", label: "Toate" },
+            { id: "pending", label: "În așteptare" },
+            { id: "accepted", label: "Acceptați" },
+            { id: "rejected", label: "Refuzați" },
+          ].map(f => (
+            <button
+              key={f.id}
+              onClick={() => setStatusFilter(f.id)}
+              style={{
+                flexShrink: 0, padding: "6px 12px", borderRadius: 20, cursor: "pointer",
+                border: `1px solid ${statusFilter === f.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.08)"}`,
+                background: statusFilter === f.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)",
+                color: statusFilter === f.id ? "#FF3366" : "rgba(255,255,255,0.4)",
+                fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
         {loading ? (
           <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", padding: "40px 0" }}>Se încarcă...</div>
         ) : activeTab === "incoming" ? (
-          requests.length === 0 ? (
+          filteredRequests.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 20px" }}>
               <div style={{ marginBottom: 10, color: "rgba(255,255,255,0.25)", display: "flex", justifyContent: "center" }}><InboxIcon size={36} /></div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>Nicio cerere primită</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>
+                {statusFilter === "all" ? "Nicio cerere primită" : statusFilter === "accepted" ? "Niciun participant acceptat încă" : statusFilter === "pending" ? "Nicio cerere în așteptare" : "Nicio cerere refuzată"}
+              </div>
             </div>
-          ) : requests.map(req => (
+          ) : filteredRequests.map(req => (
             <div key={req.id} style={{ borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#FF3366", flexShrink: 0 }}>
@@ -206,7 +237,7 @@ export default function RequestsPage({ user, onClose }) {
                   {req.posted_events?.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{req.posted_events?.title}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{req.posted_events?.title}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{req.posted_events?.date}</div>
                   <div style={{ marginTop: 6 }}>{statusBadge(req.status)}</div>
                 </div>
