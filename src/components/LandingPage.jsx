@@ -131,19 +131,6 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
             Am cont
           </motion.button>
         </motion.div>
-
-        <motion.div variants={item} className="mt-7 flex items-center gap-2">
-          {[0, 1, 2, 3].map((i) => (
-            <span
-              key={i}
-              className={
-                i === 0
-                  ? "h-[7px] w-6 rounded-full bg-gradient-to-r from-[#FF3366] to-[#B44FFF]"
-                  : "h-[7px] w-[7px] rounded-full bg-white/15"
-              }
-            />
-          ))}
-        </motion.div>
       </motion.div>
     </div>
   );
