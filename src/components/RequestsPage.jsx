@@ -11,6 +11,7 @@ export default function RequestsPage({ user, onClose }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("incoming");
   const [statusFilter, setStatusFilter] = useState("all"); // all | pending | accepted | rejected
+  const [eventFilter, setEventFilter] = useState("all"); // "all" sau event_id — relevant doar când hostul are cereri la mai multe petreceri deodată
   const [openTicket, setOpenTicket] = useState(null);
 
   useEffect(() => {
@@ -125,7 +126,17 @@ export default function RequestsPage({ user, onClose }) {
   };
 
   const pendingCount = requests.filter(r => r.status === "pending").length;
-  const filteredRequests = statusFilter === "all" ? requests : requests.filter(r => r.status === statusFilter);
+
+  // Evenimentele distincte pentru care ai primit cereri — dacă ai mai multe
+  // petreceri active deodată, meniul de mai jos apare ca să poți vedea
+  // cererile unei singure petreceri, nu pe toate amestecate.
+  const eventOptions = [...new Map(requests.map(r => [r.event_id, r.posted_events?.title])).entries()]
+    .filter(([, title]) => !!title)
+    .map(([id, title]) => ({ id, title }));
+
+  const filteredRequests = requests
+    .filter(r => statusFilter === "all" || r.status === statusFilter)
+    .filter(r => eventFilter === "all" || r.event_id === eventFilter);
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "#080808", zIndex: 300, overflowY: "auto", paddingBottom: 80, animation: "slideUp 0.3s ease-out" }}>
@@ -182,6 +193,26 @@ export default function RequestsPage({ user, onClose }) {
               {f.label}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Mini meniu de petrecere — doar dacă ai cereri la mai mult de o petrecere */}
+      {activeTab === "incoming" && eventOptions.length > 1 && (
+        <div style={{ padding: "0 16px 8px" }}>
+          <select
+            value={eventFilter}
+            onChange={e => setEventFilter(e.target.value)}
+            style={{
+              width: "100%", padding: "10px 12px", borderRadius: 12, cursor: "pointer",
+              border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)",
+              color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none",
+            }}
+          >
+            <option value="all">Toate petrecerile</option>
+            {eventOptions.map(ev => (
+              <option key={ev.id} value={ev.id}>{ev.title}</option>
+            ))}
+          </select>
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
-import { formatEventDateTime, toDateInputValue, toTimeInputValue } from "../utils/eventTime";
+import { formatEventDateTime, toDateInputValue, toTimeInputValue, filterActiveEvents } from "../utils/eventTime";
 import { notifyUser } from "../utils/pushNotifications";
 import LegalPage from "./LegalPage";
 import { CheckCircleIcon, ConfettiIcon, CameraIcon, LightningIcon, HouseIcon, NoEntryIcon, PinIcon, LockIcon, RocketIcon, VIBE_OPTIONS } from "./Icons";
@@ -9,6 +9,11 @@ import { CheckCircleIcon, ConfettiIcon, CameraIcon, LightningIcon, HouseIcon, No
 // rămân ascunse din feed până le validează manual (verified=true în Supabase),
 // ca oricine să nu poată posta ca eveniment oficial fără control.
 const OFFICIAL_REVIEWER_ID = "0185e56d-fa21-4d25-a6e0-9885fc08743f";
+
+// Fără limită, un user putea posta oricâte petreceri simultan — feed-ul unei
+// singure persoane putea acoperi tot feed-ul general. Se aplică doar la
+// evenimente noi, nu și la editarea uneia deja postate.
+const MAX_ACTIVE_EVENTS = 2;
 
 const searchAddress = async (query) => {
   if (!query || query.length < 3) return [];
@@ -251,7 +256,7 @@ export default function PostPage({ user, onClose, editEvent }) {
 
   const [showNoPhotoConfirm, setShowNoPhotoConfirm] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.title || !form.venue || !form.eventDate || !form.eventTime) {
       alert("Completează titlul, locația și data/ora!"); return;
     }
@@ -260,6 +265,18 @@ export default function PostPage({ user, onClose, editEvent }) {
     }
     if (!user) { alert("Trebuie să fii autentificat!"); return; }
     if (!acceptedTerms) { alert("Trebuie să accepți Termenii și Condițiile înainte să postezi!"); return; }
+
+    // Maxim MAX_ACTIVE_EVENTS petreceri active (nearhivate, neexpirate) simultan
+    // per user — doar la postare nouă, editarea uneia existente nu numără a doua oară.
+    if (!isEdit) {
+      setLoading(true);
+      const { data: mine } = await supabase.from("posted_events_feed").select("id, event_date").eq("user_id", user.id).eq("archived", false);
+      setLoading(false);
+      if (filterActiveEvents(mine).length >= MAX_ACTIVE_EVENTS) {
+        alert(`Poți avea maxim ${MAX_ACTIVE_EVENTS} petreceri active simultan. Arhivează sau așteaptă să expire una dintre cele curente înainte să postezi alta.`);
+        return;
+      }
+    }
 
     // Evenimentele fără poză se văd mult mai slab în feed (doar gradient) —
     // înainte să postăm, dăm ocazia să adauge una, fără să blocăm pe cine
