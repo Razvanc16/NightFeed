@@ -21,6 +21,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [loginCooldown, setLoginCooldown] = useState(0); // secunde rămase
   const [resetCooldown, setResetCooldown] = useState(0); // secunde rămase
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [confirmedAge, setConfirmedAge] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     if (mode === "login" && loginCooldown > 0) return;
     if (!email || !password) { setError("Completează email și parola!"); return; }
     if (mode === "register" && !acceptedTerms) { setError("Trebuie să accepți Termenii și Politica de Confidențialitate!"); return; }
+    if (mode === "register" && !confirmedAge) { setError("Trebuie să confirmi că ai cel puțin 16 ani!"); return; }
     if (mode === "register" && !validatePassword(password)) {
       setError("Parola nu îndeplinește toate condițiile de mai jos!");
       return;
@@ -294,20 +296,33 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           )}
 
           {mode === "register" && (
-            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "2px 0" }}>
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={e => setAcceptedTerms(e.target.checked)}
-                style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0, cursor: "pointer" }}
-              />
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.5 }}>
-                Am citit și accept{" "}
-                <span onClick={(e) => { e.preventDefault(); setShowLegal(true); }} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>
-                  Termenii și Politica de Confidențialitate
+            <>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "2px 0" }}>
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={e => setAcceptedTerms(e.target.checked)}
+                  style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0, cursor: "pointer" }}
+                />
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.5 }}>
+                  Am citit și accept{" "}
+                  <span onClick={(e) => { e.preventDefault(); setShowLegal(true); }} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>
+                    Termenii și Politica de Confidențialitate
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "2px 0" }}>
+                <input
+                  type="checkbox"
+                  checked={confirmedAge}
+                  onChange={e => setConfirmedAge(e.target.checked)}
+                  style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0, cursor: "pointer" }}
+                />
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.5 }}>
+                  Confirm că am cel puțin 16 ani
+                </span>
+              </label>
+            </>
           )}
 
           {error && (

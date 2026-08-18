@@ -499,12 +499,21 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       const coverPaths = myPostedEvents.map(e => extractStoragePath(e.cover_url, "covers")).filter(Boolean);
       if (coverPaths.length) await supabase.storage.from("covers").remove(coverPaths);
 
+      // Ștergere explicită pe fiecare tabel, fără să ne bazăm doar pe cascadă
+      // din auth.users — comentariile, cererile de participare și abonamentele
+      // push conțin date personale (text scris de user, mesaj către host,
+      // identificator de dispozitiv) și trebuie să dispară garantat la
+      // ștergerea contului (drept la ștergere, GDPR art. 17).
       const results = await Promise.all([
         supabase.from("posted_events").delete().eq("user_id", user.id),
         supabase.from("attendances").delete().eq("user_id", user.id),
         supabase.from("likes").delete().eq("user_id", user.id),
         supabase.from("follows").delete().eq("follower_id", user.id),
         supabase.from("follows").delete().eq("following_id", user.id),
+        supabase.from("comments").delete().eq("user_id", user.id),
+        supabase.from("attendance_requests").delete().eq("requester_id", user.id),
+        supabase.from("attendance_requests").delete().eq("host_id", user.id),
+        supabase.from("push_subscriptions").delete().eq("user_id", user.id),
         supabase.from("profiles").delete().eq("user_id", user.id),
       ]);
       const firstError = results.find(r => r.error)?.error;

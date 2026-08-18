@@ -58,7 +58,7 @@ export default function LegalPage({ onClose }) {
         </Section>
 
         <Section title="9. Vârstă minimă">
-          Aplicația e destinată persoanelor de minim 16 ani. Unele evenimente postate de useri pot fi marcate suplimentar ca fiind destinate exclusiv persoanelor de 18+ ani — acest marcaj e informativ, stabilit de hostul evenimentului, și nu implică o verificare automată de vârstă.
+          Aplicația e destinată persoanelor de minim 16 ani — confirmi asta explicit la crearea contului. Unele evenimente postate de useri pot fi marcate suplimentar ca fiind destinate exclusiv persoanelor de 18+ ani — acest marcaj e informativ, stabilit de hostul evenimentului, și nu implică o verificare automată de vârstă.
         </Section>
 
         <Section title="10. Termeni de utilizare — reguli de conduită">
