@@ -1,5 +1,5 @@
 import {
-  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, PencilIcon, TicketIcon, ClockIcon, HeartOutlineIcon,
+  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, PencilIcon, TicketIcon, ClockIcon, HeartOutlineIcon, EnvelopeIcon,
 } from "./Icons";
 
 const NOTIF_PREF_TYPES = [
@@ -100,6 +100,7 @@ export default function SettingsPage({
         <SectionLabel>Legal</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Row icon={<DocumentIcon size={16} />} label="Confidențialitate & Termeni" onClick={onShowLegal} />
+          <Row icon={<EnvelopeIcon size={16} />} label="contact@nightfeed.ro" onClick={() => { window.location.href = "mailto:contact@nightfeed.ro"; }} />
         </div>
 
         <SectionLabel>Zonă periculoasă</SectionLabel>

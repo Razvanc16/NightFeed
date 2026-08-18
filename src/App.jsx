@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import EventCard from "./components/EventCard";
 import MiniEventCard from "./components/MiniEventCard";
 import FilterDrawer from "./components/FilterDrawer";
@@ -104,11 +105,16 @@ export default function App() {
   useEffect(() => { userRef.current = user; }, [user]);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [authScreen, setAuthScreen] = useState(null); // null = landing, "login" | "register" = AuthPage
+  // Direcția tranziției dintre landing și auth — 1 la intrare (slide din
+  // dreapta), -1 la "Back" (slide din stânga), ca să știe AnimatePresence
+  // în ce sens să alunece ecranele, nu doar să facă fade.
+  const [authNavDirection, setAuthNavDirection] = useState(1);
   const [viewingProfile, setViewingProfile] = useState(null); // user_id of profile being viewed publicly
 
   // Când intri în login/register, împingem o intrare în istoricul browserului,
   // ca săgeata "Back" a browserului să te aducă înapoi la landing, nu să te scoată din site.
   const openAuthScreen = (mode) => {
+    setAuthNavDirection(1);
     setAuthScreen(mode);
     window.history.pushState({ authScreen: mode }, "");
   };
@@ -116,11 +122,18 @@ export default function App() {
   useEffect(() => {
     const handlePop = () => {
       // La "Back", dacă eram în login/register, revenim la landing
+      setAuthNavDirection(-1);
       setAuthScreen(null);
     };
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
+
+  const authSlideVariants = {
+    enter: (dir) => ({ x: dir > 0 ? "100%" : "-100%" }),
+    center: { x: 0 },
+    exit: (dir) => ({ x: dir > 0 ? "-100%" : "100%" }),
+  };
   const [currentIndex, setCurrentIndex] = useState(0);
   // Reținem ultimul tab vizitat (localStorage) — altfel, de fiecare dată când
   // PWA-ul e repornit din fundal (iOS descarcă des tab-uri/PWA-uri din memorie),
@@ -690,15 +703,39 @@ export default function App() {
           {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
           {/* AUTH GATE — landing întâi, apoi login/register */}
           {!authLoading && !user && !showSplash && (
-            <div style={{ position: "fixed", inset: 0, zIndex: 9997 }}>
-              {authScreen === null ? (
-                <LandingPage
-                  onNewUser={() => openAuthScreen("register")}
-                  onExistingUser={() => openAuthScreen("login")}
-                />
-              ) : (
-                <AuthPage onAuth={(u) => setUser(u)} initialMode={authScreen} onBack={() => window.history.back()} />
-              )}
+            <div style={{ position: "fixed", inset: 0, zIndex: 9997, overflow: "hidden" }}>
+              <AnimatePresence custom={authNavDirection} initial={false}>
+                {authScreen === null ? (
+                  <motion.div
+                    key="landing"
+                    custom={authNavDirection}
+                    variants={authSlideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.35, ease: [0.32, 0, 0.15, 1] }}
+                    style={{ position: "absolute", inset: 0 }}
+                  >
+                    <LandingPage
+                      onNewUser={() => openAuthScreen("register")}
+                      onExistingUser={() => openAuthScreen("login")}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="auth"
+                    custom={authNavDirection}
+                    variants={authSlideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.35, ease: [0.32, 0, 0.15, 1] }}
+                    style={{ position: "absolute", inset: 0 }}
+                  >
+                    <AuthPage onAuth={(u) => setUser(u)} initialMode={authScreen} onBack={() => window.history.back()} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 

@@ -26,7 +26,7 @@ export default function LegalPage({ onClose }) {
         </div>
 
         <Section title="1. Cine suntem">
-          NightFeed este operat de <strong style={{ color: "#fff" }}>NightFeed SRL</strong> (societate în curs de înființare), asociați Chiceanu Armand Răzvan și Ionescu Victor Mihai. Până la finalizarea înregistrării firmei, operatorul de date este persoana fizică Chiceanu Armand Răzvan. Pentru orice solicitare legată de datele tale personale, ne poți scrie la adresa de contact afișată în aplicație.
+          NightFeed este operat de <strong style={{ color: "#fff" }}>NightFeed SRL</strong> (societate în curs de înființare), asociați Chiceanu Armand Răzvan și Ionescu Victor Mihai. Până la finalizarea înregistrării firmei, operatorul de date este persoana fizică Chiceanu Armand Răzvan. Pentru orice solicitare legată de datele tale personale, ne poți scrie la <a href="mailto:contact@nightfeed.ro" style={{ color: "#FF3366" }}>contact@nightfeed.ro</a>.
         </Section>
 
         <Section title="2. Ce date colectăm">

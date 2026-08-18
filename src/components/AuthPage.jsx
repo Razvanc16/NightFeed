@@ -58,19 +58,31 @@ function PrimaryButton({ children, disabled, ...props }) {
 }
 
 // Card comun pentru toate modurile — AnimatePresence face tranziția între
-// ecrane (login/register/forgot/verify) o alunecare lină, nu un flash brusc.
-function Card({ modeKey, children }) {
+// ecrane (login/register/forgot/verify) o alunecare orizontală (aceeași
+// convenție ca la Landing→Auth): mergi "mai departe" → intri din dreapta,
+// te întorci → intri din stânga.
+const slideVariants = {
+  enter: (dir) => ({ opacity: 0, x: dir > 0 ? 40 : -40 }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir) => ({ opacity: 0, x: dir > 0 ? -40 : 40, transition: { duration: 0.2 } }),
+};
+
+function Card({ modeKey, dir, children }) {
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence custom={dir}>
       <motion.div
         key={modeKey}
-        variants={container}
-        initial="hidden"
-        animate="show"
-        exit={{ opacity: 0, y: -12, transition: { duration: 0.2 } }}
+        custom={dir}
+        variants={slideVariants}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-20 flex w-full max-w-[360px] flex-col gap-3 rounded-[32px] border border-white/10 bg-white/[0.03] px-7 py-9 text-center shadow-[0_30px_100px_rgba(0,0,0,0.55)] backdrop-blur-xl md:max-w-md md:px-10"
       >
-        {children}
+        <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-3">
+          {children}
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
@@ -78,6 +90,8 @@ function Card({ modeKey, children }) {
 
 export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [mode, setMode] = useState(initialMode || "login"); // login | register | verify | forgot | forgot-sent
+  const [dir, setDir] = useState(1); // 1 = mergi mai departe, -1 = te întorci
+  const goTo = (nextMode, direction) => { setDir(direction); setMode(nextMode); };
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -137,7 +151,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
         setLoginCooldown(0);
         onAuth(data.user);
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) {
           if (error.message.includes("already registered")) {
             setError("Există deja un cont cu acest email!");
@@ -147,8 +161,17 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           setLoading(false);
           return;
         }
+        // Cu email confirmations activate, Supabase NU întoarce error pentru un
+        // email deja înregistrat (ca să nu poată cineva "ghici" ce email-uri
+        // există în bază) — în schimb întoarce un user fals, cu identities: [].
+        // E singurul mod de a detecta cazul ăsta din client.
+        if (data.user && data.user.identities?.length === 0) {
+          setError("Există deja un cont cu acest email!");
+          setLoading(false);
+          return;
+        }
 
-        setMode("verify");
+        goTo("verify", 1);
       }
     } catch (err) {
       setError(err.message);
@@ -169,7 +192,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     // Blocăm retrimiterea 45s — Supabase oricum limitează emailurile de auth la
     // 2/oră, dar asta previne spam-ul accidental din interfață.
     setResetCooldown(45);
-    setMode("forgot-sent");
+    goTo("forgot-sent", 1);
   };
 
   return (
@@ -201,14 +224,14 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       </motion.div>
 
       {mode === "verify" && (
-        <Card modeKey="verify">
+        <Card modeKey="verify" dir={dir}>
           <motion.div variants={item} className="mx-auto flex text-white/60"><Mail size={48} strokeWidth={1.5} /></motion.div>
           <motion.div variants={item} className="font-sans text-xl font-extrabold text-white">Verifică emailul!</motion.div>
           <motion.div variants={item} className="mb-2 font-sans text-[14px] leading-relaxed text-white/50">
             Am trimis un link de confirmare la <span className="text-[#FF3366]">{email}</span>. Dă click pe link și revino aici să te loghezi.
           </motion.div>
           <motion.div variants={item}>
-            <PrimaryButton onClick={() => setMode("login")}>
+            <PrimaryButton onClick={() => goTo("login", -1)}>
               Mergi la login <ArrowRight size={16} />
             </PrimaryButton>
           </motion.div>
@@ -216,7 +239,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       )}
 
       {mode === "forgot" && (
-        <Card modeKey="forgot">
+        <Card modeKey="forgot" dir={dir}>
           <motion.div variants={item} className="mb-1 flex flex-col items-center gap-1.5">
             <div className="flex items-center gap-2 font-sans text-base font-bold text-white">
               Resetează parola <KeyRound size={16} />
@@ -243,7 +266,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
           <motion.button
             variants={item}
-            onClick={() => { setMode("login"); setError(""); }}
+            onClick={() => { goTo("login", -1); setError(""); }}
             className="border-0 bg-transparent font-sans text-[13px] text-white/35"
           >
             ← Înapoi la login
@@ -252,14 +275,14 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       )}
 
       {mode === "forgot-sent" && (
-        <Card modeKey="forgot-sent">
+        <Card modeKey="forgot-sent" dir={dir}>
           <motion.div variants={item} className="mx-auto flex text-white/60"><Mail size={48} strokeWidth={1.5} /></motion.div>
           <motion.div variants={item} className="font-sans text-xl font-extrabold text-white">Verifică emailul!</motion.div>
           <motion.div variants={item} className="mb-2 font-sans text-[14px] leading-relaxed text-white/50">
             Ți-am trimis un link de resetare la <span className="text-[#FF3366]">{email}</span>. Dă click pe el și vei putea seta o parolă nouă.
           </motion.div>
           <motion.div variants={item}>
-            <PrimaryButton onClick={() => setMode("login")}>
+            <PrimaryButton onClick={() => goTo("login", -1)}>
               Mergi la login <ArrowRight size={16} />
             </PrimaryButton>
           </motion.div>
@@ -267,7 +290,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       )}
 
       {(mode === "login" || mode === "register") && (
-        <Card modeKey={mode}>
+        <Card modeKey={mode} dir={dir}>
           <motion.div variants={item} className="mb-1 flex items-center justify-center gap-2 font-sans text-base font-bold text-white">
             {mode === "login" ? "Bine ai revenit" : <>Cont nou <Rocket size={15} /></>}
           </motion.div>
@@ -292,7 +315,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           {mode === "login" && (
             <motion.button
               variants={item}
-              onClick={() => { setMode("forgot"); setError(""); }}
+              onClick={() => { goTo("forgot", 1); setError(""); }}
               className="self-end border-0 bg-transparent font-sans text-xs text-[#FF3366]"
             >
               Am uitat parola?
@@ -349,7 +372,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
               {mode === "login" ? "Nu ai cont? " : "Ai deja cont? "}
             </span>
             <button
-              onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}
+              onClick={() => { goTo(mode === "login" ? "register" : "login", mode === "login" ? 1 : -1); setError(""); }}
               className="border-0 bg-transparent font-sans text-[13px] font-bold text-[#FF3366]"
             >
               {mode === "login" ? "Înregistrează-te" : "Autentifică-te"}
