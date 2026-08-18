@@ -24,6 +24,7 @@ export default function FilterDrawer({ open, onClose, active, onToggle }) {
           pointerEvents: open ? "auto" : "none",
           transition: "opacity 0.3s, backdrop-filter 0.3s",
           zIndex: 200,
+          touchAction: "none",
         }}
       />
 
@@ -44,6 +45,7 @@ export default function FilterDrawer({ open, onClose, active, onToggle }) {
           display: "flex",
           flexDirection: "column",
           padding: "60px 0 40px",
+          touchAction: "none",
         }}
       >
         {/* Logo in drawer */}

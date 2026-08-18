@@ -309,6 +309,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
           pointerEvents: open ? "auto" : "none",
           transition: "opacity 0.3s",
           zIndex: 200,
+          touchAction: "none",
         }}
       />
 
@@ -330,12 +331,13 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
         paddingBottom: "env(safe-area-inset-bottom, 0)",
       }}>
         {/* Handle */}
-        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0" }}>
+        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0", touchAction: "none" }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
         </div>
 
-        {/* Header */}
-        <div style={{ padding: "10px 20px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        {/* Header — touchAction:none doar aici și pe zonele fără scroll propriu;
+            lista de comentarii (mai jos) trebuie să rămână scrollabilă normal. */}
+        <div style={{ padding: "10px 20px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", touchAction: "none" }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Comentarii</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{displayEvent.title}</div>
@@ -387,14 +389,14 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
 
         {/* Banner de răspuns */}
         {replyingTo && (
-          <div style={{ padding: "6px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.04)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ padding: "6px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.04)", borderTop: "1px solid rgba(255,255,255,0.06)", touchAction: "none" }}>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace" }}>Răspunzi lui @{replyingTo.username}</span>
             <button onClick={() => setReplyingTo(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
           </div>
         )}
 
         {/* Input — cu padding pentru navbar */}
-        <div style={{ padding: "10px 16px 78px", borderTop: replyingTo ? "none" : "1px solid rgba(255,255,255,0.06)", display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ padding: "10px 16px 78px", borderTop: replyingTo ? "none" : "1px solid rgba(255,255,255,0.06)", display: "flex", gap: 10, alignItems: "center", touchAction: "none" }}>
           <input
             ref={inputRef}
             placeholder={user ? (replyingTo ? `Răspunde lui @${replyingTo.username}...` : "Scrie un comentariu...") : "Autentifică-te pentru a comenta"}
