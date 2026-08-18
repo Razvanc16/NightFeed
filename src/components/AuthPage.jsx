@@ -1,10 +1,80 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
 import PasswordChecklist from "./PasswordChecklist";
 import PasswordInput from "./PasswordInput";
 import LegalPage from "./LegalPage";
-import { EnvelopeIcon, KeyIcon, RocketIcon } from "./Icons";
+import BrandBackdrop from "./BrandBackdrop";
+import { Mail, KeyRound, Rocket, ArrowLeft, ArrowRight } from "lucide-react";
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
+};
+
+function Field({ label, children }) {
+  return (
+    <motion.div variants={item}>
+      <div className="mb-1.5 font-sans text-[11px] uppercase tracking-[0.08em] text-white/40">{label}</div>
+      {children}
+    </motion.div>
+  );
+}
+
+const inputClass =
+  "w-full rounded-xl border border-white/10 bg-white/[0.06] px-4 py-[13px] font-sans text-[15px] text-white outline-none placeholder:text-white/30 focus:border-[#FF3366]/50 focus:ring-2 focus:ring-[#FF3366]/15";
+
+function ErrorBox({ children }) {
+  if (!children) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-[10px] border border-[#FF3366]/30 bg-[#FF3366]/15 px-3.5 py-2.5 font-sans text-[13px] text-[#FF3366]"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function PrimaryButton({ children, disabled, ...props }) {
+  return (
+    <motion.button
+      {...props}
+      disabled={disabled}
+      whileHover={disabled ? {} : { scale: 1.015, boxShadow: "0 10px 34px rgba(255,51,102,0.5)" }}
+      whileTap={disabled ? {} : { scale: 0.97 }}
+      className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-gradient-to-r from-[#FF3366] to-[#B44FFF] px-6 py-[15px] font-sans text-[15px] font-bold text-white shadow-[0_8px_34px_rgba(255,51,102,0.4)] disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+// Card comun pentru toate modurile — AnimatePresence face tranziția între
+// ecrane (login/register/forgot/verify) o alunecare lină, nu un flash brusc.
+function Card({ modeKey, children }) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={modeKey}
+        variants={container}
+        initial="hidden"
+        animate="show"
+        exit={{ opacity: 0, y: -12, transition: { duration: 0.2 } }}
+        className="relative z-20 flex w-full max-w-[360px] flex-col gap-3 rounded-[32px] border border-white/10 bg-white/[0.03] px-7 py-9 text-center shadow-[0_30px_100px_rgba(0,0,0,0.55)] backdrop-blur-xl md:max-w-md md:px-10"
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [mode, setMode] = useState(initialMode || "login"); // login | register | verify | forgot | forgot-sent
@@ -103,270 +173,190 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
   };
 
   return (
-    <div style={{
-      width: "100%", height: "100%",
-      background: "#060608",
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      padding: "0 24px",
-      position: "relative", overflow: "hidden",
-    }}>
-      {/* Fundal cinematic — orbi neon care plutesc lent (doar CSS, ușor pe telefon) */}
-      <style>{`
-        @keyframes floatOrb1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-30px) scale(1.1); } }
-        @keyframes floatOrb2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-30px,40px) scale(1.05); } }
-        @keyframes floatOrb3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,30px) scale(1.12); } }
-        @keyframes authGrain { 0%,100% { opacity: 0.03; } 50% { opacity: 0.05; } }
-        .auth-card input[type="text"]:focus, .auth-card input[type="email"]:focus {
-          border-color: rgba(255,51,102,0.5) !important;
-          box-shadow: 0 0 0 3px rgba(255,51,102,0.12);
-        }
-      `}</style>
-      <div style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", top: "-120px", left: "-100px", background: "radial-gradient(circle, rgba(255,51,102,0.35), transparent 70%)", filter: "blur(70px)", animation: "floatOrb1 14s ease-in-out infinite", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", width: 460, height: 460, borderRadius: "50%", bottom: "-140px", right: "-120px", background: "radial-gradient(circle, rgba(180,79,255,0.30), transparent 70%)", filter: "blur(70px)", animation: "floatOrb2 18s ease-in-out infinite", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", width: 340, height: 340, borderRadius: "50%", top: "45%", left: "55%", background: "radial-gradient(circle, rgba(0,229,255,0.16), transparent 70%)", filter: "blur(80px)", animation: "floatOrb3 16s ease-in-out infinite", pointerEvents: "none" }} />
+    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-[#09090b] px-6 py-10 md:px-10">
+      <BrandBackdrop />
 
-      <div style={{ position: "relative", zIndex: 2, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", animation: "slideUp 0.3s ease-out" }}>
-      {/* Buton înapoi la landing */}
       {onBack && (
-        <button onClick={onBack} style={{
-          position: "absolute", top: -20, left: 0, background: "rgba(255,255,255,0.06)",
-          border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 16px",
-          color: "rgba(255,255,255,0.7)", fontSize: 13, fontFamily: "'Instrument Sans', sans-serif",
-          cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-        }}>
-          ← Înapoi
+        <button
+          onClick={onBack}
+          className="absolute left-6 top-[calc(env(safe-area-inset-top,0px)+20px)] z-30 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 font-sans text-[13px] font-semibold text-white/70 backdrop-blur-md md:left-10"
+        >
+          <ArrowLeft size={14} /> Înapoi
         </button>
       )}
-      {/* Logo */}
-      <div style={{ marginBottom: 40, textAlign: "center" }}>
-        <div style={{
-          width: 64, height: 64, borderRadius: 20,
-          background: "linear-gradient(135deg, #FF3366, #FF6B35)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          margin: "0 auto 16px",
-          boxShadow: "0 0 40px rgba(255,51,102,0.4)",
-        }}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5a6.5 6.5 0 0 0 10 10z" />
-          </svg>
-        </div>
-        <div style={{ fontSize: 28, fontWeight: 900, color: "#fff", fontFamily: "'Inter', sans-serif" }}>
-          Night<span style={{ color: "#FF3366" }}>Feed</span>
-        </div>
-      </div>
 
-      {/* Verify email screen */}
-      {mode === "verify" && (
-        <div className="auth-card" style={{ width: "100%", maxWidth: 340, textAlign: "center", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "30px 24px", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
-          <div style={{ marginBottom: 16, color: "rgba(255,255,255,0.6)", display: "flex", justifyContent: "center" }}><EnvelopeIcon size={56} /></div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>
-            Verifică emailul!
-          </div>
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
-            Am trimis un link de confirmare la <span style={{ color: "#FF3366" }}>{email}</span>. Dă click pe link și revino aici să te loghezi.
-          </div>
-          <button
-            onClick={() => setMode("login")}
-            style={{
-              width: "100%", padding: "14px",
-              background: "linear-gradient(135deg, #FF3366, #FF6B35)",
-              border: "none", borderRadius: 14,
-              color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Inter', sans-serif", cursor: "pointer",
-            }}
-          >
-            Mergi la login →
-          </button>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-20 mb-7 flex flex-col items-center"
+      >
+        <div className="relative mb-3 flex h-14 w-14 items-center justify-center">
+          <div className="absolute inset-0 rounded-full bg-[#FF3366] opacity-40 blur-xl" />
+          <img src="/icon-512.png" alt="NightFeed" className="relative h-full w-full rounded-2xl object-cover shadow-[0_0_40px_rgba(255,51,102,0.4)]" />
         </div>
+        <div className="font-sans text-2xl font-[900] tracking-tight text-white">
+          Night<span className="text-[#FF3366]">Feed</span>
+        </div>
+      </motion.div>
+
+      {mode === "verify" && (
+        <Card modeKey="verify">
+          <motion.div variants={item} className="mx-auto flex text-white/60"><Mail size={48} strokeWidth={1.5} /></motion.div>
+          <motion.div variants={item} className="font-sans text-xl font-extrabold text-white">Verifică emailul!</motion.div>
+          <motion.div variants={item} className="mb-2 font-sans text-[14px] leading-relaxed text-white/50">
+            Am trimis un link de confirmare la <span className="text-[#FF3366]">{email}</span>. Dă click pe link și revino aici să te loghezi.
+          </motion.div>
+          <motion.div variants={item}>
+            <PrimaryButton onClick={() => setMode("login")}>
+              Mergi la login <ArrowRight size={16} />
+            </PrimaryButton>
+          </motion.div>
+        </Card>
       )}
 
-      {/* Forgot password: request screen */}
       {mode === "forgot" && (
-        <div className="auth-card" style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "26px 24px", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
-          <div style={{ textAlign: "center", marginBottom: 4 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Inter', sans-serif", display: "inline-flex", alignItems: "center", gap: 6 }}>Resetează parola <KeyIcon size={15} /></div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 6 }}>
-              Îți trimitem un link de resetare pe email.
+        <Card modeKey="forgot">
+          <motion.div variants={item} className="mb-1 flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-2 font-sans text-base font-bold text-white">
+              Resetează parola <KeyRound size={16} />
             </div>
-          </div>
+            <div className="font-sans text-xs text-white/40">Îți trimitem un link de resetare pe email.</div>
+          </motion.div>
 
-          <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
+          <Field label="Email">
             <input
               type="email" placeholder="email@exemplu.com"
               value={email} onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleForgotSubmit()}
-              style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+              className={inputClass}
             />
-          </div>
+          </Field>
 
-          {error && (
-            <div style={{ padding: "10px 14px", background: "rgba(255,51,102,0.15)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>
-              {error}
-            </div>
-          )}
+          <motion.div variants={item}><ErrorBox>{error}</ErrorBox></motion.div>
 
-          <button
-            onClick={handleForgotSubmit}
-            disabled={loading || resetCooldown > 0}
-            style={{
-              width: "100%", padding: "14px",
-              background: (loading || resetCooldown > 0) ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
-              border: "none", borderRadius: 14,
-              color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Inter', sans-serif",
-              cursor: (loading || resetCooldown > 0) ? "not-allowed" : "pointer",
-              boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
-              marginTop: 4,
-            }}
-          >
-            {loading ? "Se trimite..." : resetCooldown > 0 ? `Mai poți retrimite în ${resetCooldown}s` : "Trimite link de resetare"}
-          </button>
+          <motion.div variants={item}>
+            <PrimaryButton onClick={handleForgotSubmit} disabled={loading || resetCooldown > 0}>
+              {loading ? "Se trimite..." : resetCooldown > 0 ? `Mai poți retrimite în ${resetCooldown}s` : "Trimite link de resetare"}
+            </PrimaryButton>
+          </motion.div>
 
-          <button
+          <motion.button
+            variants={item}
             onClick={() => { setMode("login"); setError(""); }}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "'Instrument Sans', sans-serif", cursor: "pointer", padding: "8px 0" }}
+            className="border-0 bg-transparent font-sans text-[13px] text-white/35"
           >
             ← Înapoi la login
-          </button>
-        </div>
+          </motion.button>
+        </Card>
       )}
 
-      {/* Forgot password: confirmation screen */}
       {mode === "forgot-sent" && (
-        <div className="auth-card" style={{ width: "100%", maxWidth: 340, textAlign: "center", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "30px 24px", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
-          <div style={{ marginBottom: 16, color: "rgba(255,255,255,0.6)", display: "flex", justifyContent: "center" }}><EnvelopeIcon size={56} /></div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 8 }}>
-            Verifică emailul!
-          </div>
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, marginBottom: 24 }}>
-            Ți-am trimis un link de resetare la <span style={{ color: "#FF3366" }}>{email}</span>. Dă click pe el și vei putea seta o parolă nouă.
-          </div>
-          <button
-            onClick={() => setMode("login")}
-            style={{
-              width: "100%", padding: "14px",
-              background: "linear-gradient(135deg, #FF3366, #FF6B35)",
-              border: "none", borderRadius: 14,
-              color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Inter', sans-serif", cursor: "pointer",
-            }}
-          >
-            Mergi la login →
-          </button>
-        </div>
+        <Card modeKey="forgot-sent">
+          <motion.div variants={item} className="mx-auto flex text-white/60"><Mail size={48} strokeWidth={1.5} /></motion.div>
+          <motion.div variants={item} className="font-sans text-xl font-extrabold text-white">Verifică emailul!</motion.div>
+          <motion.div variants={item} className="mb-2 font-sans text-[14px] leading-relaxed text-white/50">
+            Ți-am trimis un link de resetare la <span className="text-[#FF3366]">{email}</span>. Dă click pe el și vei putea seta o parolă nouă.
+          </motion.div>
+          <motion.div variants={item}>
+            <PrimaryButton onClick={() => setMode("login")}>
+              Mergi la login <ArrowRight size={16} />
+            </PrimaryButton>
+          </motion.div>
+        </Card>
       )}
 
-      {/* Login / Register form */}
       {(mode === "login" || mode === "register") && (
-        <div className="auth-card" style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "26px 24px", backdropFilter: "blur(20px)", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
-          <div style={{ textAlign: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Inter', sans-serif", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              {mode === "login" ? "Bine ai revenit" : <>Cont nou <RocketIcon size={15} /></>}
-            </div>
-          </div>
+        <Card modeKey={mode}>
+          <motion.div variants={item} className="mb-1 flex items-center justify-center gap-2 font-sans text-base font-bold text-white">
+            {mode === "login" ? "Bine ai revenit" : <>Cont nou <Rocket size={15} /></>}
+          </motion.div>
 
-          <div>
-            <div style={{ fontSize: 11, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
+          <Field label="Email">
             <input
               type="email" placeholder="email@exemplu.com"
               value={email} onChange={e => setEmail(e.target.value)}
-              style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+              className={inputClass}
             />
-          </div>
+          </Field>
 
-          <div>
-            <div style={{ fontSize: 11, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă</div>
+          <Field label="Parolă">
             <PasswordInput
               placeholder={mode === "register" ? "creează o parolă puternică" : "parola ta"}
               value={password} onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSubmit()}
             />
             {mode === "register" && <PasswordChecklist password={password} />}
-          </div>
+          </Field>
 
           {mode === "login" && (
-            <button
+            <motion.button
+              variants={item}
               onClick={() => { setMode("forgot"); setError(""); }}
-              style={{ background: "none", border: "none", color: "#FF3366", fontSize: 12, fontFamily: "'Instrument Sans', sans-serif", cursor: "pointer", padding: 0, textAlign: "right", alignSelf: "flex-end" }}
+              className="self-end border-0 bg-transparent font-sans text-xs text-[#FF3366]"
             >
               Am uitat parola?
-            </button>
+            </motion.button>
           )}
 
           {mode === "register" && (
             <>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "2px 0" }}>
+              <motion.label variants={item} className="flex items-start gap-2.5 text-left">
                 <input
                   type="checkbox"
                   checked={acceptedTerms}
                   onChange={e => setAcceptedTerms(e.target.checked)}
-                  style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0, cursor: "pointer" }}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#FF3366]"
                 />
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.5 }}>
+                <span className="font-sans text-[12px] leading-relaxed text-white/50">
                   Am citit și accept{" "}
-                  <span onClick={(e) => { e.preventDefault(); setShowLegal(true); }} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>
+                  <span onClick={(e) => { e.preventDefault(); setShowLegal(true); }} className="cursor-pointer text-[#FF3366] underline">
                     Termenii și Politica de Confidențialitate
                   </span>
                 </span>
-              </label>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "2px 0" }}>
+              </motion.label>
+              <motion.label variants={item} className="flex items-start gap-2.5 text-left">
                 <input
                   type="checkbox"
                   checked={confirmedAge}
                   onChange={e => setConfirmedAge(e.target.checked)}
-                  style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0, cursor: "pointer" }}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#FF3366]"
                 />
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Instrument Sans', sans-serif", lineHeight: 1.5 }}>
+                <span className="font-sans text-[12px] leading-relaxed text-white/50">
                   Confirm că am cel puțin 16 ani
                 </span>
-              </label>
+              </motion.label>
             </>
           )}
 
-          {error && (
-            <div style={{ padding: "10px 14px", background: "rgba(255,51,102,0.15)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontFamily: "'Instrument Sans', sans-serif" }}>
-              {error}
-            </div>
-          )}
+          <motion.div variants={item}><ErrorBox>{error}</ErrorBox></motion.div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading || (mode === "login" && loginCooldown > 0) || (mode === "register" && !acceptedTerms)}
-            style={{
-              width: "100%", padding: "14px",
-              background: (loading || (mode === "login" && loginCooldown > 0)) ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
-              border: "none", borderRadius: 14,
-              color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Inter', sans-serif",
-              cursor: (loading || (mode === "login" && loginCooldown > 0)) ? "not-allowed" : "pointer",
-              boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
-              marginTop: 4,
-              opacity: (mode === "register" && !acceptedTerms) ? 0.6 : 1,
-            }}
-          >
-            {loading
-              ? "Se procesează..."
-              : mode === "login" && loginCooldown > 0
-                ? `Prea multe încercări — mai încearcă în ${loginCooldown}s`
-                : mode === "login" ? "Intră în cont" : "Creează contul"}
-          </button>
+          <motion.div variants={item}>
+            <PrimaryButton
+              onClick={handleSubmit}
+              disabled={loading || (mode === "login" && loginCooldown > 0) || (mode === "register" && !acceptedTerms)}
+            >
+              {loading
+                ? "Se procesează..."
+                : mode === "login" && loginCooldown > 0
+                  ? `Prea multe încercări — mai încearcă în ${loginCooldown}s`
+                  : mode === "login" ? "Intră în cont" : "Creează contul"}
+            </PrimaryButton>
+          </motion.div>
 
-          <div style={{ textAlign: "center", marginTop: 8 }}>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", fontFamily: "'Instrument Sans', sans-serif" }}>
+          <motion.div variants={item} className="mt-1 text-center">
+            <span className="font-sans text-[13px] text-white/35">
               {mode === "login" ? "Nu ai cont? " : "Ai deja cont? "}
             </span>
             <button
               onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}
-              style={{ background: "none", border: "none", color: "#FF3366", fontSize: 13, fontWeight: 700, fontFamily: "'Instrument Sans', sans-serif", cursor: "pointer" }}
+              className="border-0 bg-transparent font-sans text-[13px] font-bold text-[#FF3366]"
             >
               {mode === "login" ? "Înregistrează-te" : "Autentifică-te"}
             </button>
-          </div>
-        </div>
+          </motion.div>
+        </Card>
       )}
-      </div>
 
       {showLegal && <LegalPage onClose={() => setShowLegal(false)} />}
     </div>

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight, LogIn, Home, PartyPopper, MapPin } from "lucide-react";
+import BrandBackdrop from "./BrandBackdrop";
 
 const container = {
   hidden: {},
@@ -10,33 +11,6 @@ const item = {
   hidden: { opacity: 0, y: 22 },
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
 };
-
-// Glow-uri late/difuze care plutesc încet — sugerează lumini de club/oraș
-// noaptea, fără să depindă de vreo imagine externă.
-function GlowBlobs() {
-  return (
-    <>
-      <motion.div
-        className="pointer-events-none absolute -left-24 -top-32 h-[420px] w-[420px] rounded-full blur-[90px] md:h-[560px] md:w-[560px]"
-        style={{ background: "radial-gradient(circle, rgba(255,51,102,0.35), transparent 70%)" }}
-        animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="pointer-events-none absolute -bottom-40 -right-28 h-[460px] w-[460px] rounded-full blur-[90px] md:h-[600px] md:w-[600px]"
-        style={{ background: "radial-gradient(circle, rgba(180,79,255,0.32), transparent 70%)" }}
-        animate={{ x: [0, -30, 0], y: [0, 35, 0], scale: [1, 1.08, 1] }}
-        transition={{ duration: 19, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="pointer-events-none absolute left-1/2 top-1/3 h-[320px] w-[320px] -translate-x-1/2 rounded-full blur-[100px]"
-        style={{ background: "radial-gradient(circle, rgba(255,107,53,0.16), transparent 70%)" }}
-        animate={{ opacity: [0.5, 0.9, 0.5] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
-    </>
-  );
-}
 
 // Chip-uri de sticlă care plutesc discret în jurul cardului — umplu spațiul
 // gol din jur cu conținut relevant (categoriile reale din aplicație), nu cu
@@ -64,18 +38,7 @@ function FloatingBadge({ icon: Icon, label, className, delay = 0, floatY = 10, d
 export default function LandingPage({ onNewUser, onExistingUser }) {
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-[#09090b] px-6 py-10 md:px-10">
-      <GlowBlobs />
-
-      {/* subtilă textură de grid — dă adâncime fundalului fără să distragă */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-          maskImage: "radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 90%)",
-        }}
-      />
+      <BrandBackdrop />
 
       <FloatingBadge icon={Home} label="Petreceri homemade" className="left-[6%] top-[14%] md:left-[10%]" delay={0.5} />
       <FloatingBadge icon={PartyPopper} label="Cluburi & evenimente" className="right-[6%] top-[20%] md:right-[12%]" delay={0.7} floatY={8} duration={6} />
