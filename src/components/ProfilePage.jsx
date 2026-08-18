@@ -86,7 +86,7 @@ const ActionMenu = ({ items }) => {
       </button>
       {rendered && (
         <div style={{
-          position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#15151a", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, overflow: "hidden", zIndex: 50, minWidth: 170, boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+          position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#15151a", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, overflow: "hidden", zIndex: 200, minWidth: 170, boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
           transformOrigin: "top right",
           transform: open ? "scale(1)" : "scale(0.9)",
           opacity: open ? 1 : 0,
@@ -112,7 +112,9 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState("attending");
+  // Notificări e tab-ul implicit la deschiderea Profilului — restul (Postate/Particip)
+  // rămân alegerea userului, per cerere explicită.
+  const [activeTab, setActiveTab] = useState("notifications");
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [likedEvents, setLikedEvents] = useState([]);
   const [myCheckins, setMyCheckins] = useState({}); // { [eventId]: { token, checked_in } }
@@ -157,7 +159,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   };
 
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
   const loadUnreadNotifCount = async () => {
     if (!user) return;
     const { count } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("read", false);
@@ -660,20 +661,9 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       {!isSetup && profile && (
         <div style={{ position: "relative", animation: "slideUp 0.3s ease-out" }}>
           <div style={{ position: "absolute", top: 14, right: 16, zIndex: 6, display: "flex", gap: 8 }}>
-            <button onClick={() => setShowNotifications(true)} style={{
-              position: "relative", width: 32, height: 32, borderRadius: 10, color: "rgba(255,255,255,0.85)",
-              display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0,
-              border: "1px solid transparent",
-              backgroundImage: "linear-gradient(#141418, #141418), linear-gradient(135deg, #FF3366, #B44FFF)",
-              backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box",
-            }}>
-              <BellIcon size={15} />
-              {unreadNotifCount > 0 && (
-                <div style={{ position: "absolute", top: -5, right: -5, minWidth: 16, height: 16, padding: "0 3px", borderRadius: 8, background: "#FF3366", border: "2px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace" }}>
-                  {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
-                </div>
-              )}
-            </button>
+            {/* Clopoțelul separat a dispărut — Notificări e acum un tab propriu
+                (implicit la deschiderea Profilului), nu mai are sens un al
+                doilea acces la același conținut. */}
             <button onClick={() => setShowSettings(true)} style={{
               width: 32, height: 32, borderRadius: 10, color: "rgba(255,255,255,0.85)",
               display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0,
@@ -711,16 +701,20 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             </div>
           </div>
 
+          {/* 3 secțiuni ale Profilului — Notificări (implicit la deschidere),
+              Postate (unde acum trăiește și accesul la Cereri, per eveniment —
+              vezi meniul ⋮ din fiecare card) și Particip. Nu mai sunt simple
+              statistici, sunt chiar tab-urile paginii. */}
           <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[
+              { id: "notifications", label: "Notificări", value: unreadNotifCount, icon: <BellIcon size={18} /> },
+              { id: "posted", label: "Postate", value: myPostedEvents.length, badge: pendingRequestsCount, icon: <OutboxIcon size={18} /> },
               { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={18} /> },
-              { id: "requests", label: "Cereri", value: pendingRequestsCount, icon: <EnvelopeIcon size={18} /> },
-              { id: "posted", label: "Postate", value: myPostedEvents.length, icon: <OutboxIcon size={18} /> },
             ].map(stat => {
-              const isActive = stat.id !== "requests" && activeTab === stat.id;
+              const isActive = activeTab === stat.id;
               return (
-                <button key={stat.id} onClick={() => stat.id === "requests" ? setShowRequests(true) : setActiveTab(stat.id)} style={{
-                  flex: 1, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer",
+                <button key={stat.id} onClick={() => setActiveTab(stat.id)} style={{
+                  position: "relative", flex: 1, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer",
                   border: "1px solid transparent",
                   // Stratul opac "#141418" e obligatoriu aici — fără el, tonul
                   // alb foarte transparent de mai jos se aplică peste
@@ -731,6 +725,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                     : "linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04)), linear-gradient(#141418, #141418), linear-gradient(rgba(255,255,255,0.07), rgba(255,255,255,0.07))",
                   backgroundOrigin: "border-box", backgroundClip: "padding-box, padding-box, border-box",
                 }}>
+                  {!!stat.badge && (
+                    <div style={{ position: "absolute", top: -5, right: -5, minWidth: 16, height: 16, padding: "0 3px", borderRadius: 8, background: "#FF3366", border: "2px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace" }}>
+                      {stat.badge > 9 ? "9+" : stat.badge}
+                    </div>
+                  )}
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.5)" }}>{stat.icon}</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
                   <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
@@ -739,7 +738,17 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             })}
           </div>
 
-          <div key={activeTab + postedView} style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 10, animation: "fadeIn 0.2s ease-out" }}>
+          <div key={activeTab + postedView} style={{ padding: activeTab === "notifications" ? 0 : "8px 16px", display: "flex", flexDirection: "column", gap: 10, animation: "fadeIn 0.2s ease-out" }}>
+            {activeTab === "notifications" && (
+              <NotificationsPage
+                embedded
+                user={user}
+                onClose={() => {}}
+                onViewProfile={onViewProfile}
+                onOpenEvent={onOpenEvent}
+                onOpenLikes={onOpenLikes}
+              />
+            )}
             {activeTab === "posted" && (
               <div style={{ display: "flex", gap: 8, marginBottom: 2 }}>
                 {[{ id: "active", label: "Active" }, { id: "archived", label: `Arhivă${archivedEvents.length ? ` (${archivedEvents.length})` : ""}` }].map(v => (
@@ -759,7 +768,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 ))}
               </div>
             )}
-            {activeTab === "posted" ? (
+            {activeTab !== "notifications" && (activeTab === "posted" ? (
               postedView === "active" ? (
               myPostedEvents.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
@@ -861,7 +870,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                   </div>
                 </div>
               ))
-            )}
+            ))}
           </div>
 
         </div>
@@ -885,8 +894,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         />,
         document.body
       )}
-
-      {showNotifications && createPortal(<NotificationsPage user={user} onClose={() => { setShowNotifications(false); loadUnreadNotifCount(); }} onViewProfile={onViewProfile} onOpenEvent={onOpenEvent} onOpenLikes={onOpenLikes} />, document.body)}
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 

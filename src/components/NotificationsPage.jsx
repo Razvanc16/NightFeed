@@ -17,7 +17,9 @@ const timeAgo = (iso) => {
   return new Date(iso).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 };
 
-export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes }) {
+// embedded=true — randată ca tab în Profil (fără propriul overlay/header full-screen,
+// doar lista), în loc de propria pagină modală peste tot.
+export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes, embedded }) {
   const [notifications, setNotifications] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
@@ -59,15 +61,7 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
     await supabase.from("notifications").delete().eq("id", id);
   };
 
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "#080808", zIndex: 300, overflowY: "auto", paddingBottom: 40, animation: "slideUp 0.3s ease-out" }}>
-      <div style={{ padding: "50px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>Notificări</div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
-          Înapoi
-        </button>
-      </div>
-
+  const list = (
       <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
         {loading ? (
           <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", padding: "40px 0" }}>Se încarcă...</div>
@@ -140,6 +134,19 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
           );
         })}
       </div>
+  );
+
+  if (embedded) return list;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "#080808", zIndex: 300, overflowY: "auto", paddingBottom: 40, animation: "slideUp 0.3s ease-out" }}>
+      <div style={{ padding: "50px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>Notificări</div>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+          Înapoi
+        </button>
+      </div>
+      {list}
     </div>
   );
 }
