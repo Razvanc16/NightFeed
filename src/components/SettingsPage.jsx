@@ -61,7 +61,6 @@ export default function SettingsPage({
           <Row icon={<HeartOutlineIcon size={16} />} label="Evenimente apreciate" onClick={onShowLiked} />
           <Row icon={<TicketIcon size={16} />} label="Biletele mele" onClick={onShowTickets} />
           <Row icon={<ClockIcon size={16} />} label="Istoricul meu" onClick={onShowHistory} />
-          <Row icon={<LogoutIcon size={16} />} label="Ieși din cont" onClick={onLogout} />
         </div>
 
         <SectionLabel>Notificări</SectionLabel>
@@ -113,6 +112,7 @@ export default function SettingsPage({
 
         <SectionLabel>Zonă periculoasă</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <Row icon={<LogoutIcon size={16} />} label="Ieși din cont" onClick={onLogout} />
           <Row icon={<TrashIcon size={16} />} label="Șterge contul" subtitle="Definitiv — nu poate fi anulat" onClick={onDeleteAccount} color="#FF3366" danger />
         </div>
       </div>
