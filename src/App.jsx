@@ -148,6 +148,14 @@ export default function App() {
   useEffect(() => {
     try { localStorage.setItem("nf_active_tab", activeTab); } catch {}
   }, [activeTab]);
+  // Direcția din care alunecă tab-ul nou, după poziția lui în VALID_TABS
+  // față de tab-ul curent — calculată sincron (nu într-un efect) ca să fie
+  // deja corectă chiar la primul render în care tab-ul devine vizibil.
+  const [tabDirection, setTabDirection] = useState(1);
+  const navigateTab = (tab) => {
+    setTabDirection(VALID_TABS.indexOf(tab) >= VALID_TABS.indexOf(activeTab) ? 1 : -1);
+    setActiveTab(tab);
+  };
   // Set gol = "Toate" — poți combina mai multe filtre simultan (ex: Oficial + Gratuit).
   const [activeFilters, setActiveFilters] = useState(new Set());
   const toggleFilter = (id) => {
@@ -279,7 +287,7 @@ export default function App() {
       setUser(session?.user || null);
       setAuthLoading(false);
       if (session?.user && _event === "SIGNED_IN" && wasLoggedOut) {
-        setActiveTab("profile");
+        navigateTab("profile");
       }
     });
     return () => subscription.unsubscribe();
@@ -574,7 +582,7 @@ export default function App() {
     // meniul de jos, renunțăm direct la creare — nu mai trebuie neapărat să
     // apeși "Închide" din colțul din dreapta sus.
     if (showPost) setShowPost(false);
-    setActiveTab(tab);
+    navigateTab(tab);
   };
 
   // Deschide un eveniment specific (din Căutare sau cod) — comută pe feed și
@@ -582,7 +590,7 @@ export default function App() {
   const openSpecificEvent = (event) => {
     const matchFn = (e) => e.id === event.id || e.rawId === event.rawId;
     const idx = slides.findIndex(s => s.type === "single" ? matchFn(s.event) : s.events.some(matchFn));
-    setActiveTab("feed");
+    navigateTab("feed");
     if (idx >= 0) {
       setTimeout(() => {
         if (feedRef.current) {
@@ -603,7 +611,7 @@ export default function App() {
 
   // Deschide harta centrată pe locația unui eveniment, la tap pe locație în feed.
   const openEventLocation = (event) => {
-    setActiveTab("map");
+    navigateTab("map");
     setMapFocus({ id: String(event.id), ts: Date.now() });
   };
 
@@ -612,7 +620,7 @@ export default function App() {
   const openEventFromNotification = (eventId, commentId) => {
     const matchFn = (e) => e.id === eventId;
     const idx = slides.findIndex(s => s.type === "single" ? matchFn(s.event) : s.events.some(matchFn));
-    setActiveTab("feed");
+    navigateTab("feed");
     if (idx >= 0) {
       setTimeout(() => {
         if (feedRef.current) {
@@ -687,6 +695,17 @@ export default function App() {
         @keyframes modalPop { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
         @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
         @keyframes tabEnter { from{opacity:0;transform:translateY(12px) scale(0.99)} to{opacity:1;transform:translateY(0) scale(1)} }
+        /* Comutare între tab-urile din bara de jos (Feed/Caută/Hartă/Profil) —
+           direcția (din care parte alunecă) e aleasă în JS după ordinea lor în
+           bară, nu doar fade+scale ca tabEnter. Feed/Hartă rămân montate
+           permanent (vezi comentariul de la MAP PAGE mai jos), deci nu pot primi
+           o animație de ieșire sincronizată — doar cea de intrare, la fiecare
+           comutare display:none→block. */
+        @keyframes tabSlideFromRight { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes tabSlideFromLeft { from{opacity:0;transform:translateX(-28px)} to{opacity:1;transform:translateX(0)} }
+        /* Pagini "împinse" (profil public, setări, legal) — aceeași convenție
+           ca la Landing→Auth: alunecă din dreapta la intrare. */
+        @keyframes pageSlideInRight { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
         @keyframes ptrSpin { to { transform: rotate(360deg); } }
         @keyframes ptrPop { 0%{transform:scale(1)} 50%{transform:scale(1.22)} 100%{transform:scale(1)} }
         @keyframes toastGlow { 0%,100%{box-shadow:0 10px 34px rgba(255,51,102,0.22), 0 0 0 1px rgba(255,51,102,0.18) inset} 50%{box-shadow:0 10px 34px rgba(180,79,255,0.3), 0 0 0 1px rgba(180,79,255,0.25) inset} }
@@ -757,7 +776,7 @@ export default function App() {
 
           {/* PUBLIC PROFILE — overlay peste tot când vizitezi profilul cuiva */}
           {viewingProfile && (
-            <div style={{ position: "fixed", inset: 0, zIndex: 9996, background: "#080808", animation: "tabEnter 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+            <div style={{ position: "fixed", inset: 0, zIndex: 9996, background: "#080808", animation: "pageSlideInRight 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
               <PublicProfilePage
                 profileUserId={viewingProfile}
                 currentUser={user}
@@ -770,7 +789,7 @@ export default function App() {
 
           {/* SEARCH PAGE */}
           {activeTab === "search" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
+            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
               <SearchPage onOpenEvent={openSpecificEvent} onViewProfile={(uid) => setViewingProfile(uid)} />
             </div>
           )}
@@ -780,13 +799,13 @@ export default function App() {
               harta Leaflet (re-cerea locația GPS, redescărca toate tile-urile de pe
               internet, reconstruia toate marker-ele), ceea ce o făcea să se simtă
               foarte lentă. Exact ca la Feed, care are același tipar. */}
-          <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10 }}>
+          <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: activeTab === "map" ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
             <MapPage user={user} isActive={activeTab === "map"} focusTarget={mapFocus} onViewProfile={(uid) => setViewingProfile(uid)} />
           </div>
 
           {/* PROFILE PAGE */}
           {activeTab === "profile" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: "tabEnter 0.45s cubic-bezier(0.16,1,0.3,1)" }}>
+            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
               {user
                 ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} onOpenLikes={(eventId) => setLikesSheetEventId(eventId)} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
@@ -795,7 +814,7 @@ export default function App() {
           )}
 
           {/* FEED */}
-          <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none", position: "relative" }}>
+          <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none", position: "relative", animation: (activeTab === "feed" && !showPost) ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
             <div style={{
               position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", left: "50%", transform: "translateX(-50%)",
               zIndex: 50, display: "flex", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
