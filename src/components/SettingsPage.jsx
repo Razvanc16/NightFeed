@@ -9,19 +9,27 @@ const NOTIF_PREF_TYPES = [
   { key: "notif_followers", label: "Urmăritori noi" },
 ];
 
-const Row = ({ icon, label, onClick, color, disabled }) => (
+// danger=true — nu doar text roșu (ușor de confundat cu "Ieși din cont", care
+// unele obiceiuri de la alte aplicații îl asociază tot cu roșu), ci un fundal
+// și un chenar roșiatice distincte, plus un subtitlu explicit, ca rândul de
+// ștergere definitivă să nu semene vizual cu un rând normal din listă.
+const Row = ({ icon, label, subtitle, onClick, color, disabled, danger }) => (
   <button
     onClick={onClick}
     disabled={disabled}
     style={{
       width: "100%", padding: "13px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 10,
-      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+      background: danger ? "rgba(255,51,102,0.08)" : "rgba(255,255,255,0.03)",
+      border: `1px solid ${danger ? "rgba(255,51,102,0.3)" : "rgba(255,255,255,0.07)"}`,
       color: color || "rgba(255,255,255,0.75)", fontSize: 14, fontFamily: "'DM Sans', sans-serif",
       cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1, textAlign: "left",
     }}
   >
     {icon}
-    <span style={{ flex: 1 }}>{label}</span>
+    <span style={{ flex: 1 }}>
+      <div>{label}</div>
+      {subtitle && <div style={{ fontSize: 11, fontWeight: 400, color: "rgba(255,51,102,0.6)", marginTop: 2 }}>{subtitle}</div>}
+    </span>
     <ChevronRightIcon size={14} style={{ opacity: 0.3 }} />
   </button>
 );
@@ -105,7 +113,7 @@ export default function SettingsPage({
 
         <SectionLabel>Zonă periculoasă</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <Row icon={<TrashIcon size={16} />} label="Șterge contul" onClick={onDeleteAccount} color="#FF3366" />
+          <Row icon={<TrashIcon size={16} />} label="Șterge contul" subtitle="Definitiv — nu poate fi anulat" onClick={onDeleteAccount} color="#FF3366" danger />
         </div>
       </div>
     </div>
