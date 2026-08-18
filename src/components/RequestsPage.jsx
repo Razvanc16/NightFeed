@@ -257,6 +257,15 @@ export default function RequestsPage({ user, onClose }) {
                   </button>
                 </div>
               )}
+
+              {/* Te-ai răzgândit după ce ai refuzat pe cineva? Poți încă să-l
+                  accepți, cât timp evenimentul n-a avut loc — nu mai are sens
+                  o dată ce a trecut. */}
+              {req.status === "rejected" && !isEventExpired(req.posted_events) && (
+                <button onClick={() => handleDecision(req.id, "accepted")} style={{ width: "100%", padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(0,200,100,0.15)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                  <CheckCircleIcon size={14} /> Acceptă totuși
+                </button>
+              )}
             </div>
           ))
         ) : (
