@@ -31,7 +31,7 @@ export default function RequestsPage({ user, onClose }) {
     // Cereri primite (eu sunt host)
     const { data: incoming } = await supabase
       .from("attendance_requests")
-      .select("*, posted_events(title, type, date)")
+      .select("*, posted_events(title, type, date, event_date, archived)")
       .eq("host_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -67,7 +67,11 @@ export default function RequestsPage({ user, onClose }) {
       (checkins || []).forEach(c => { checkinByEventId[c.event_id.replace("posted_", "")] = c; });
     }
 
-    setRequests(incoming || []);
+    // Aceeași curățare ca la "Cereri trimise" — fără ea, cererile către
+    // evenimente șterse/arhivate/expirate rămâneau agățate în "Primite" la
+    // nesfârșit (era exact ce vedea hostul: participanți acceptați la
+    // evenimente care nu mai există).
+    setRequests((incoming || []).filter(r => r.posted_events?.title && !r.posted_events.archived && !isEventExpired(r.posted_events)));
     setMyRequests((outgoing || [])
       // Ascundem cererile către evenimente care nu mai există (șterse — embed-ul
       // FK vine null), arhivate de host sau deja trecute — nu mai e nimic de
