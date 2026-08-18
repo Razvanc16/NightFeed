@@ -164,7 +164,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     setUnreadNotifCount(count || 0);
   };
 
-  const [showRequests, setShowRequests] = useState(false);
+  const [showRequests, setShowRequests] = useState(false); // false | true (toate) | event_id (scopat la o singură petrecere)
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const [showLegal, setShowLegal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -791,6 +791,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                       </div>
                     </div>
                     <ActionMenu items={[
+                      { label: "Insights", icon: <InfoIcon size={14} />, onClick: () => setInfoEvent(event) },
+                      { label: "Cereri", icon: <EnvelopeIcon size={14} />, onClick: () => setShowRequests(event.id) },
                       { label: "Scanează", icon: <ScanIcon size={14} />, onClick: () => setScannerEvent(event), color: "#00C864" },
                       { label: "Editează", icon: <PencilIcon size={14} />, onClick: () => setEditingEvent(event) },
                       { label: "Arhivează", icon: <OutboxIcon size={14} />, onClick: () => handleArchivePosted(event.id), color: "#FF3366" },
@@ -954,7 +956,10 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         document.body
       )}
 
-      {showRequests && createPortal(<RequestsPage user={user} onClose={() => setShowRequests(false)} />, document.body)}
+      {showRequests && createPortal(
+        <RequestsPage user={user} onClose={() => setShowRequests(false)} initialEventId={typeof showRequests === "string" ? showRequests : undefined} />,
+        document.body
+      )}
 
       {followSheet && createPortal(
         <FollowListSheet
