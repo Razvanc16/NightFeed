@@ -126,6 +126,12 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
   };
 
   const handlePopupPointerDown = (e) => {
+    // Un click pornit pe un buton (×, "Cer să particip" etc.) nu trebuie să
+    // înceapă drag-ul de închidere — altfel micile mișcări ale mouse-ului
+    // dintre mousedown și mouseup (normale pe desktop, aproape inexistente
+    // pe touch) translatau popup-ul sub cursor înainte de mouseup, iar
+    // click-ul ajungea pe alt element decât butonul de sub deget/cursor.
+    if (e.target.closest?.("button")) return;
     popupDragRef.current = { startY: e.clientY };
     e.currentTarget.setPointerCapture?.(e.pointerId);
   };

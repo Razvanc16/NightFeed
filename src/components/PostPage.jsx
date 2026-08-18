@@ -47,10 +47,22 @@ const extractPriceAmount = (price) => {
   return match ? match[0] : "";
 };
 
+// Input-ul de preț era type=number fără max — nimic nu oprea un șir de sute
+// de cifre, care rupea layout-ul cardului în feed (vezi eveniment de test
+// cu preț de ~600 cifre). Clamp la o valoare rezonabilă, atât la tastare
+// cât și la editarea unui eveniment care are deja un preț invalid salvat.
+const MAX_PRICE = 100000;
+const clampPrice = (val) => {
+  if (!val) return val;
+  const n = Number(val);
+  if (!Number.isFinite(n) || n > MAX_PRICE) return String(MAX_PRICE);
+  return val;
+};
+
 export default function PostPage({ user, onClose, editEvent }) {
   const isEdit = !!editEvent;
   const [priceMode, setPriceMode] = useState(editEvent?.price && editEvent.price !== "Gratuit" ? "paid" : "free");
-  const [priceAmount, setPriceAmount] = useState(extractPriceAmount(editEvent?.price));
+  const [priceAmount, setPriceAmount] = useState(clampPrice(extractPriceAmount(editEvent?.price)));
   const [form, setForm] = useState({
     title: editEvent?.title || "",
     venue: editEvent?.venue || "",
@@ -594,9 +606,9 @@ export default function PostPage({ user, onClose, editEvent }) {
           {priceMode === "paid" && (
             <div style={{ position: "relative" }}>
               <input
-                type="number" min="0" placeholder="0" value={priceAmount}
+                type="number" min="0" max={MAX_PRICE} placeholder="0" value={priceAmount}
                 onChange={e => {
-                  const val = e.target.value;
+                  const val = clampPrice(e.target.value);
                   setPriceAmount(val);
                   setForm(f => ({ ...f, price: val ? `${val} RON` : "" }));
                 }}

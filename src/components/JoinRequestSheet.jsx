@@ -46,9 +46,13 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: open ? "blur(4px)" : "none", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "opacity 0.3s", zIndex: 400 }} />
+      {/* touchAction:none — fără el, sheet-ul (deși position:fixed) rămâne
+          descendent în DOM din containerul scrollabil al feed-ului, iar un
+          swipe pe backdrop/sheet era interpretat de browser ca pan nativ pe
+          acel ancestor scrollabil, scrolând feed-ul pe sub modal. */}
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: open ? "blur(4px)" : "none", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "opacity 0.3s", zIndex: 400, touchAction: "none" }} />
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(10,10,12,0.98)", borderTop: `2px solid ${event.color || "#FF3366"}40`, borderRadius: "24px 24px 0 0", transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)", zIndex: 401, padding: "16px 20px", paddingBottom: "80px" }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(10,10,12,0.98)", borderTop: `2px solid ${event.color || "#FF3366"}40`, borderRadius: "24px 24px 0 0", transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)", zIndex: 401, padding: "16px 20px", paddingBottom: "80px", touchAction: "none" }}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
         </div>

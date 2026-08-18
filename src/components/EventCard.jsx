@@ -172,6 +172,11 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   // ascuns/gol pentru ele — aici numărăm cererile acceptate din
   // attendance_requests, tabelul pe care chiar îl folosesc.
   const isJoinRequestEvent = event.isPosted && event.type === "homemade" && !event.location_visible;
+  // Statusul cererii proprii (null/"pending"/"accepted"/"rejected") — evenimentele
+  // cu cerere de participare nu primesc niciodată un rând în attendances (nici
+  // măcar după acceptare, RequestsPage doar face update la attendance_requests.status),
+  // deci "attending" de mai sus rămâne mereu false pentru ele. Trebuie citit separat.
+  const [requestStatus, setRequestStatus] = useState(null);
   useEffect(() => {
     if (!isJoinRequestEvent) return;
     let active = true;
@@ -185,12 +190,25 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         .eq("status", "accepted");
       if (active) setAcceptedCount(count || 0);
     };
+
+    const loadOwnRequest = async () => {
+      if (!user) { if (active) setRequestStatus(null); return; }
+      const { data } = await supabase
+        .from("attendance_requests")
+        .select("status")
+        .eq("event_id", rawId)
+        .eq("requester_id", user.id)
+        .maybeSingle();
+      if (active) setRequestStatus(data?.status || null);
+    };
+
     loadAccepted();
+    loadOwnRequest();
 
     const channel = supabase
       .channel(`accepted_requests:${rawId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance_requests", filter: `event_id=eq.${rawId}` },
-        loadAccepted
+        () => { loadAccepted(); loadOwnRequest(); }
       )
       .subscribe();
 
@@ -198,7 +216,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [event.id, isJoinRequestEvent]);
+  }, [event.id, isJoinRequestEvent, user?.id]);
 
   // Încarcă numărul real de like-uri + dacă userul curent a dat like, apoi ascultă live la schimbări
   useEffect(() => {
@@ -460,10 +478,10 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       ? {
           key: "attend",
           onClick: isOwnEvent ? undefined : (e) => { e.stopPropagation(); animateBtn("attend"); setShowJoinRequest(true); },
-          active: attending, disabled: isOwnEvent,
+          active: requestStatus === "accepted", disabled: isOwnEvent,
           title: isOwnEvent ? "Nu poți participa la propriul eveniment" : undefined,
           label: formatNum(acceptedCount),
-          icon: attending ? <CheckIcon color={event.color} /> : <PlusIcon />,
+          icon: requestStatus === "accepted" ? <CheckIcon color={event.color} /> : <PlusIcon />,
         }
       : {
           key: "attend", onClick: isOwnEvent ? undefined : handleAttend, active: attending, disabled: isOwnEvent,
@@ -622,7 +640,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         user={user}
         open={showJoinRequest}
         onClose={() => setShowJoinRequest(false)}
-        alreadyRequested={false}
+        alreadyRequested={requestStatus === "pending" || requestStatus === "accepted"}
       />
     </div>
   );
