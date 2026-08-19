@@ -133,6 +133,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   const cardRef = useRef(null);
   const toastTimer = useRef(null);
   const attendBusyRef = useRef(false);
+  const likeBusyRef = useRef(false);
   const likeNotifyTimer = useRef(null);
 
   // Attend count (Supabase, shared) — la fel ca la likes: bază demo + count real + realtime
@@ -328,7 +329,14 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       showToast("Autentifică-te pentru a da like!", "rgba(255,255,255,0.5)");
       return;
     }
+    // Fără astea două (la fel ca la attend), tap/dublu-tap rapid repetat trimitea
+    // mai multe apeluri înainte ca starea "liked" să apuce să se actualizeze —
+    // fiecare trecea de verificarea de mai jos (citea tot "liked" vechi din
+    // closure), umflând contorul local cu +1 la fiecare apăsare, deși în bază
+    // rămânea un singur rând real (upsert cu ignoreDuplicates).
+    if (likeBusyRef.current) return;
     if (newLiked === liked) return; // deja în starea cerută — evită operații redundante
+    likeBusyRef.current = true;
     setLiked(newLiked);
     // Optimistic și pe count, nu doar pe inimă — altfel numărul rămâne neschimbat
     // până vine evenimentul realtime (sau deloc, dacă realtime are vreo problemă).
@@ -370,6 +378,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       setLikeCount(c => c + (newLiked ? -1 : 1));
       showToast("Eroare la like. Încearcă din nou.", "#FF3366");
     }
+    likeBusyRef.current = false;
   };
 
   const handleDoubleTap = (e) => {

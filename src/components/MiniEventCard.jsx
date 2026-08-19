@@ -19,6 +19,7 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
   const [attending, setAttending] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const attendBusyRef = useRef(false);
+  const likeBusyRef = useRef(false);
 
   const isJoinable = event.isPosted && event.type === "homemade" && !event.location_visible;
   const isOwnEvent = !!(user && event.organizer_id && event.organizer_id === user.id);
@@ -47,6 +48,11 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
   const toggleLike = async (e) => {
     e.stopPropagation();
     if (!user) return;
+    // Fără asta, tap rapid repetat trimitea mai multe apeluri înainte ca
+    // "liked" să apuce să se actualizeze — fiecare umfla local contorul cu
+    // +1, deși în bază rămânea un singur rând real (upsert cu ignoreDuplicates).
+    if (likeBusyRef.current) return;
+    likeBusyRef.current = true;
     const next = !liked;
     setLiked(next);
     setLikeCount(c => c + (next ? 1 : -1));
@@ -55,6 +61,7 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
     } else {
       await supabase.from("likes").delete().eq("event_id", String(event.id)).eq("user_id", user.id);
     }
+    likeBusyRef.current = false;
   };
 
   const toggleAttend = async (e) => {
