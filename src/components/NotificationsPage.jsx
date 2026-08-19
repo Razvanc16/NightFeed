@@ -19,7 +19,7 @@ const timeAgo = (iso) => {
 
 // embedded=true — randată ca tab în Profil (fără propriul overlay/header full-screen,
 // doar lista), în loc de propria pagină modală peste tot.
-export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes, onOpenAttending, embedded }) {
+export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes, onOpenAttending, onOpenRequests, embedded }) {
   const [notifications, setNotifications] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
@@ -75,28 +75,34 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
           const color = COLORS[n.type] || "#FF3366";
           const avatarUrl = n.actor_id ? avatars[n.actor_id] : null;
           // Atingerea pozei duce mereu la profilul actorului. Atingerea
-          // restului rândului duce, pentru aprecieri, direct la lista celor
-          // care au apreciat (nu doar la eveniment — asta era ideea
-          // notificării); pentru "cerere acceptată", la tab-ul Particip (de-
-          // acolo poți intra mai departe în petrecerea propriu-zisă — vezi
-          // onClick-ul cardurilor din Particip); pentru comentarii, la
-          // eveniment cu comentariul respectiv deschis; altfel, ca înainte,
-          // la profilul actorului (follower, cerere nouă/refuzată etc., care
-          // n-au un loc mai specific unde să ducă).
-          const rowGoesToLikes = n.type === "like" && !!(n.event_id && onOpenLikes);
+          // restului rândului duce, pentru aprecieri de EVENIMENT, direct la
+          // lista celor care au apreciat (nu doar la eveniment — asta era
+          // ideea notificării) — dar o apreciere de COMENTARIU (are comment_id)
+          // duce la eveniment cu comentariul respectiv deschis, nu la lista
+          // generică, altfel nu ajungi niciodată la comentariul apreciat;
+          // pentru "cerere acceptată", la tab-ul Particip (de-acolo poți intra
+          // mai departe în petrecerea propriu-zisă — vezi onClick-ul
+          // cardurilor din Particip); pentru "cerere nouă" (hostul o
+          // primește), direct la Cereri pentru evenimentul respectiv; pentru
+          // comentarii, la eveniment cu comentariul respectiv deschis; altfel,
+          // ca înainte, la profilul actorului (follower, cerere refuzată
+          // etc., care n-au un loc mai specific unde să ducă).
+          const rowGoesToLikes = n.type === "like" && !n.comment_id && !!(n.event_id && onOpenLikes);
           const rowGoesToAttending = !rowGoesToLikes && n.type === "request" && n.title === "Cerere acceptată!" && !!onOpenAttending;
-          const rowGoesToEvent = !rowGoesToLikes && !rowGoesToAttending && !!(n.event_id && onOpenEvent);
-          const rowGoesToProfile = !rowGoesToLikes && !rowGoesToAttending && !rowGoesToEvent && !!(n.actor_id && onViewProfile);
-          const rowClickable = rowGoesToLikes || rowGoesToAttending || rowGoesToEvent || rowGoesToProfile;
+          const rowGoesToRequests = !rowGoesToLikes && !rowGoesToAttending && n.type === "request" && n.title === "Cerere nouă de participare" && !!(n.event_id && onOpenRequests);
+          const rowGoesToEvent = !rowGoesToLikes && !rowGoesToAttending && !rowGoesToRequests && !!(n.event_id && onOpenEvent);
+          const rowGoesToProfile = !rowGoesToLikes && !rowGoesToAttending && !rowGoesToRequests && !rowGoesToEvent && !!(n.actor_id && onViewProfile);
+          const rowClickable = rowGoesToLikes || rowGoesToAttending || rowGoesToRequests || rowGoesToEvent || rowGoesToProfile;
           const avatarClickable = !!(n.actor_id && onViewProfile);
           const handleRowClick = () => {
-            // Spre eveniment/Particip: schimbă tab-ul, n-are sens să rămână
-            // deschisă pe sub el. Spre listă de aprecieri/profil: sunt
+            // Spre eveniment/Particip/Cereri: schimbă tab-ul, n-are sens să
+            // rămână deschisă pe sub el. Spre listă de aprecieri/profil: sunt
             // overlay-uri peste tot (zIndex mai mare decât 300 de aici) — le
             // lăsăm deschisă dedesubt, ca "Înapoi"/"Închide" să te aducă
             // înapoi la notificări, nu să te scoată de tot din ele.
             if (rowGoesToLikes) { onOpenLikes(n.event_id); }
             else if (rowGoesToAttending) { onOpenAttending(); onClose(); }
+            else if (rowGoesToRequests) { onOpenRequests(n.event_id.replace("posted_", "")); onClose(); }
             else if (rowGoesToEvent) { onOpenEvent(n.event_id, n.comment_id); onClose(); }
             else if (rowGoesToProfile) { onViewProfile(n.actor_id); }
           };

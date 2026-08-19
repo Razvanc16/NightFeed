@@ -523,6 +523,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
           body: `${username} vrea să participe la ${event.title}.`,
           type: "request",
           actorId: user.id,
+          eventId: `posted_${rawId}`,
         });
       }
       setToast("Cerere trimisă! Aștepți răspunsul hostului.");

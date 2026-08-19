@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { supabase } from "../supabase";
-import { TicketIcon, LightningIcon, HouseIcon, CheckCircleIcon, ClockIcon, CrossCircleIcon } from "./Icons";
+import { TicketIcon, LightningIcon, HouseIcon, CheckCircleIcon, ClockIcon, CrossCircleIcon, ChevronRightIcon } from "./Icons";
 
 export const TicketQR = ({ token }) => {
   const [dataUrl, setDataUrl] = useState(null);
@@ -16,7 +16,7 @@ export const TicketQR = ({ token }) => {
   return <img src={dataUrl} alt="Cod QR" style={{ width: 260, height: 260, borderRadius: 12 }} />;
 };
 
-export default function MyTicketsPage({ user, onClose }) {
+export default function MyTicketsPage({ user, onClose, onOpenEvent }) {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openTicket, setOpenTicket] = useState(null);
@@ -101,7 +101,17 @@ export default function MyTicketsPage({ user, onClose }) {
       {openTicket && (
         <div onClick={() => setOpenTicket(null)} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>{openTicket.event?.title || "Eveniment"}</div>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 4 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", textAlign: "left" }}>{openTicket.event?.title || "Eveniment"}</div>
+              {onOpenEvent && (
+                <button
+                  onClick={() => { const eid = openTicket.event_id; setOpenTicket(null); onClose(); onOpenEvent(eid); }}
+                  style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 3, background: "rgba(255,51,102,0.12)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 20, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                >
+                  Postarea <ChevronRightIcon size={12} />
+                </button>
+              )}
+            </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 20 }}>Arată codul la intrare</div>
 
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>

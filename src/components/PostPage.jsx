@@ -90,8 +90,10 @@ export default function PostPage({ user, onClose, editEvent }) {
   const [addressResults, setAddressResults] = useState([]);
   const [addressFocused, setAddressFocused] = useState(false);
   const [searchingAddress, setSearchingAddress] = useState(false);
+  const [addressDropUpward, setAddressDropUpward] = useState(false);
   const fileRef = useRef(null);
   const searchTimer = useRef(null);
+  const addressWrapRef = useRef(null);
 
   // Pin manual pe hartă — alternativă la căutarea de adresă, pentru locuri
   // fără adresă exactă (parc, curte, zonă în aer liber etc.). Ca la Uber: pinul
@@ -103,6 +105,18 @@ export default function PostPage({ user, onClose, editEvent }) {
   const pickerMapRef = useRef(null);
   const pickerMapInstanceRef = useRef(null);
   const reverseGeocodeTimer = useRef(null);
+
+  // Dacă adresa e completată jos de tot în formular (aproape de bara de
+  // navigare fixă), lista de sugestii deschisă în jos ar ieși din vizibil —
+  // o deschidem în sus în loc, ca la meniul ⋮ din Profil.
+  useEffect(() => {
+    if (!addressFocused || addressResults.length === 0 || !addressWrapRef.current) return;
+    const rect = addressWrapRef.current.getBoundingClientRect();
+    const NAVBAR_RESERVED = 90;
+    const estimatedHeight = Math.min(addressResults.length, 5) * 52;
+    const spaceBelow = window.innerHeight - rect.bottom - NAVBAR_RESERVED;
+    setAddressDropUpward(spaceBelow < estimatedHeight);
+  }, [addressFocused, addressResults]);
 
   useEffect(() => {
     if (!showMapPicker) return;
@@ -490,7 +504,7 @@ export default function PostPage({ user, onClose, editEvent }) {
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Locație * {form.lat ? <span style={{ display: "inline-flex", alignItems: "center", gap: 3, color: "#00C864" }}><PinIcon size={12} /> Localizat</span> : ""}
           </div>
-          <div style={{ position: "relative" }}>
+          <div ref={addressWrapRef} style={{ position: "relative" }}>
             <input
               type="text"
               placeholder="Caută adresa..."
@@ -540,7 +554,7 @@ export default function PostPage({ user, onClose, editEvent }) {
 
           {/* Suggestions dropdown */}
           {addressResults.length > 0 && addressFocused && (
-            <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "rgba(15,15,18,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, zIndex: 100, overflow: "hidden", marginTop: 4, boxShadow: "0 8px 30px rgba(0,0,0,0.5)", animation: "fadeIn 0.15s ease-out" }}>
+            <div style={{ position: "absolute", ...(addressDropUpward ? { bottom: "100%", marginBottom: 4 } : { top: "100%", marginTop: 4 }), left: 0, right: 0, background: "rgba(15,15,18,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, zIndex: 100, overflow: "hidden", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", animation: "fadeIn 0.15s ease-out" }}>
               {addressResults.map((r, i) => (
                 <div key={i} onClick={() => handleSelectAddress(r)} style={{ padding: "12px 16px", cursor: "pointer", borderBottom: i < addressResults.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none", transition: "background 0.15s" }}
                   onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}

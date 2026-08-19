@@ -180,6 +180,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [showRequests, setShowRequests] = useState(false); // false | true (toate) | event_id (scopat la o singură petrecere)
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const [showLegal, setShowLegal] = useState(false);
+  // Necesare doar la prima creare de profil — cine s-a înregistrat cu Google
+  // nu trece prin bifele astea din AuthPage (OAuth-ul sare direct la
+  // SIGNED_IN), deci le confirmăm aici, singurul loc prin care TREBUIE să
+  // treacă orice cont nou înainte să aibă un rând în "profiles".
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [confirmedAge, setConfirmedAge] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showTickets, setShowTickets] = useState(false);
   const [scannerEvent, setScannerEvent] = useState(null);
@@ -416,6 +422,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
   const handleSave = async () => {
     if (!form.nume || !form.prenume) { alert("Completează cel puțin numele și prenumele!"); return; }
+    if (!profile && (!acceptedTerms || !confirmedAge)) { alert("Trebuie să confirmi vârsta (16+) și să accepți Termenii și Politica de Confidențialitate!"); return; }
     setSaving(true);
     try {
       // Check if profile already exists for this user
@@ -524,19 +531,26 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         supabase.from("follows").delete().eq("follower_id", user.id),
         supabase.from("follows").delete().eq("following_id", user.id),
         supabase.from("comments").delete().eq("user_id", user.id),
+        supabase.from("comment_likes").delete().eq("user_id", user.id),
         supabase.from("attendance_requests").delete().eq("requester_id", user.id),
         supabase.from("attendance_requests").delete().eq("host_id", user.id),
         supabase.from("push_subscriptions").delete().eq("user_id", user.id),
+        supabase.from("notifications").delete().eq("user_id", user.id),
+        supabase.from("event_checkins").delete().eq("user_id", user.id),
+        supabase.from("usernames").delete().eq("user_id", user.id),
         supabase.from("profiles").delete().eq("user_id", user.id),
       ]);
       const firstError = results.find(r => r.error)?.error;
       if (firstError) throw firstError;
 
-      try {
-        await supabase.functions.invoke("delete-account");
-      } catch {
-        // Edge Function nu e încă deployuită sau a eșuat — datele tot au fost
-        // șterse mai sus; doar contul de autentificare rămâne pentru moment.
+      // Ăsta e pasul care chiar șterge contul de autentificare (auth.users) —
+      // dacă eșuează, userul rămâne cu login funcțional deși crede că "nu mai
+      // poate fi anulat", deci NU mai ignorăm eroarea silențios ca înainte.
+      const { error: fnError } = await supabase.functions.invoke("delete-account");
+      if (fnError) {
+        alert("Datele tale au fost șterse, dar contul de autentificare încă nu — te rugăm scrie-ne la contact@nightfeed.ro ca să finalizăm ștergerea.");
+        setDeletingAccount(false);
+        return;
       }
 
       await supabase.auth.signOut();
@@ -661,6 +675,21 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             </div>
           </div>
 
+          {!profile && (
+            <div style={{ marginBottom: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>
+                  Am citit și accept <span onClick={() => setShowLegal(true)} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>Termenii și Politica de Confidențialitate</span>
+                </span>
+              </label>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                <input type="checkbox" checked={confirmedAge} onChange={e => setConfirmedAge(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>Confirm că am cel puțin 16 ani</span>
+              </label>
+            </div>
+          )}
+
           <button onClick={handleSave} disabled={saving} style={{ width: "100%", padding: "14px", background: saving ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: saving ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
             {saving ? "Se salvează..." : editing ? "Salvează modificările" : <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Creează profilul <RocketIcon size={16} /></span>}
           </button>
@@ -759,6 +788,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 onOpenEvent={onOpenEvent}
                 onOpenLikes={onOpenLikes}
                 onOpenAttending={() => setActiveTab("attending")}
+                onOpenRequests={(eventId) => { setActiveTab("posted"); setShowRequests(eventId); }}
               />
             )}
             {activeTab === "posted" && (
@@ -909,7 +939,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 
-      {showTickets && createPortal(<MyTicketsPage user={user} onClose={() => setShowTickets(false)} />, document.body)}
+      {showTickets && createPortal(<MyTicketsPage user={user} onClose={() => setShowTickets(false)} onOpenEvent={onOpenEvent} />, document.body)}
 
       {showHistory && createPortal(<MyHistoryPage user={user} onClose={() => setShowHistory(false)} onOpenEvent={onOpenEvent} />, document.body)}
 
@@ -923,6 +953,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           rawId={infoEvent.id}
           onClose={() => setInfoEvent(null)}
           onViewProfile={onViewProfile}
+          onOpenEvent={onOpenEvent}
         />,
         document.body
       )}

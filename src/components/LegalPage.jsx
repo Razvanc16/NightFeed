@@ -30,7 +30,7 @@ export default function LegalPage({ onClose }) {
         </Section>
 
         <Section title="2. Ce date colectăm">
-          Email și parolă (parola nu e stocată în clar, ci criptată de furnizorul nostru de autentificare); prenume, nume, vârstă, gen, bio, poză de profil — dacă le completezi; evenimentele pe care le postezi (titlu, descriere, locație și coordonate, dată/oră, poză de copertă); like-uri, participări, urmăritori/urmăriri; și date tehnice minime necesare funcționării (sesiune de autentificare).
+          Email și parolă (parola nu e stocată în clar, ci criptată de furnizorul nostru de autentificare); prenume, nume, vârstă, gen, bio, poză de profil — dacă le completezi; evenimentele pe care le postezi (titlu, descriere, locație și coordonate, dată/oră, poză de copertă); like-uri, participări, urmăritori/urmăriri; și date tehnice minime necesare funcționării (sesiune de autentificare, iar dacă activezi notificările push, un identificator tehnic al dispozitivului folosit strict pentru a-ți trimite acele notificări).
         </Section>
 
         <Section title="3. De ce le colectăm și temeiul legal">

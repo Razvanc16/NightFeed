@@ -8,7 +8,7 @@ import { CrossCircleIcon } from "./Icons";
 // cât și din Hartă (popup-ul hostului pe propriul eveniment).
 // `rawId`: uuid-ul brut din posted_events — separat de `event.id`, care are
 // convenții diferite de prefixare în Profil vs Hartă.
-export default function EventInsightsModal({ event, rawId, onClose, onViewProfile }) {
+export default function EventInsightsModal({ event, rawId, onClose, onViewProfile, onOpenEvent }) {
   const [stats, setStats] = useState(null);
   const [peopleSheetFor, setPeopleSheetFor] = useState(null);
 
@@ -66,6 +66,7 @@ export default function EventInsightsModal({ event, rawId, onClose, onViewProfil
           eventId={peopleSheetFor.eventId}
           onClose={() => setPeopleSheetFor(null)}
           onViewProfile={(uid) => { setPeopleSheetFor(null); onClose(); onViewProfile && onViewProfile(uid); }}
+          onOpenEvent={onOpenEvent ? () => { setPeopleSheetFor(null); onClose(); onOpenEvent(prefixedId); } : undefined}
         />
       )}
     </>
