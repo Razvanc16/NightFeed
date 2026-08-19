@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { HeartOutlineIcon, SpeechBubbleIcon, EnvelopeIcon, PersonIcon, BellOffIcon } from "./Icons";
 
@@ -19,7 +19,7 @@ const timeAgo = (iso) => {
 
 // embedded=true — randată ca tab în Profil (fără propriul overlay/header full-screen,
 // doar lista), în loc de propria pagină modală peste tot.
-export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes, onOpenAttending, onOpenRequests, embedded }) {
+export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes, onOpenAttending, onOpenRequests, embedded, refreshKey }) {
   const [notifications, setNotifications] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
@@ -36,6 +36,18 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
+
+  // Pull-to-refresh din Profil (embedded) nu retrage automat lista — doar
+  // schimbă acest prop, ca să folosim aceeași sursă de adevăr (load()) fără
+  // să duplicăm logica de fetch în ProfilePage. Skip la primul render — deja
+  // se încarcă mai sus, în efectul legat de `user`.
+  const skipFirstRefresh = useRef(true);
+  useEffect(() => {
+    if (skipFirstRefresh.current) { skipFirstRefresh.current = false; return; }
+    if (!user) return;
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   const load = async () => {
     setLoading(true);

@@ -143,6 +143,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   // Pull-to-refresh — aceeași mecanică (fizică + indicator) ca pe Feed.
   const scrollRef = useRef(null);
   const [pullDistance, setPullDistance] = useState(0);
+  const [notifRefreshKey, setNotifRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const pullStartY = useRef(null);
   const pullDistanceRef = useRef(0);
@@ -262,6 +263,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const doRefresh = async () => {
     setRefreshing(true);
     const start = Date.now();
+    setNotifRefreshKey(k => k + 1);
     await Promise.all([
       loadProfileByUserId(),
       loadAttendingAndLiked(),
@@ -789,6 +791,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 onOpenLikes={onOpenLikes}
                 onOpenAttending={() => setActiveTab("attending")}
                 onOpenRequests={(eventId) => { setActiveTab("posted"); setShowRequests(eventId); }}
+                refreshKey={notifRefreshKey}
               />
             )}
             {activeTab === "posted" && (
