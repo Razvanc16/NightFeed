@@ -58,11 +58,22 @@ const ActionMenu = ({ items }) => {
   // (scale+fade) chiar să apuce să se joace — altfel React demontează
   // instant și dropdown-ul dispare fără nicio animație.
   const [rendered, setRendered] = useState(false);
+  // Dacă nu încape jos (sub buton, până la bara de navigare de jos), se
+  // deschide în sus în schimb — altfel, pe carduri din partea de jos a
+  // ecranului, meniul ieșea pur și simplu sub bara de navigare, invizibil.
+  const [openUpward, setOpenUpward] = useState(false);
   const closeTimer = useRef(null);
   const ref = useRef(null);
 
   const openMenu = () => {
     clearTimeout(closeTimer.current);
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const estimatedMenuHeight = items.length * 40 + 16;
+      const NAVBAR_RESERVED = 90; // bara de jos + safe-area + puțină respirație
+      const spaceBelow = window.innerHeight - rect.bottom - NAVBAR_RESERVED;
+      setOpenUpward(spaceBelow < estimatedMenuHeight);
+    }
     setRendered(true);
     requestAnimationFrame(() => requestAnimationFrame(() => setOpen(true)));
   };
@@ -86,8 +97,9 @@ const ActionMenu = ({ items }) => {
       </button>
       {rendered && (
         <div style={{
-          position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#15151a", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, overflow: "hidden", zIndex: 200, minWidth: 170, boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-          transformOrigin: "top right",
+          position: "absolute", right: 0, background: "#15151a", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, overflow: "hidden", zIndex: 200, minWidth: 170, boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+          ...(openUpward ? { bottom: "100%", marginBottom: 4 } : { top: "100%", marginTop: 4 }),
+          transformOrigin: openUpward ? "bottom right" : "top right",
           transform: open ? "scale(1)" : "scale(0.9)",
           opacity: open ? 1 : 0,
           transition: "transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.14s ease",
@@ -746,6 +758,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 onViewProfile={onViewProfile}
                 onOpenEvent={onOpenEvent}
                 onOpenLikes={onOpenLikes}
+                onOpenAttending={() => setActiveTab("attending")}
               />
             )}
             {activeTab === "posted" && (

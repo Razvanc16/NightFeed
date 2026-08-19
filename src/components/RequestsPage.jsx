@@ -103,6 +103,11 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
         body: status === "accepted" ? `Ai fost acceptat la ${eventTitle}.` : `Cererea ta pentru ${eventTitle} a fost refuzată.`,
         type: "request",
         actorId: user.id,
+        // Fără eventId, notificarea nu avea nicio legătură cu evenimentul —
+        // apăsarea ei ducea la profilul hostului, nu la petrecerea la care
+        // tocmai ai fost acceptat/refuzat. Prefixul "posted_" e convenția
+        // folosită peste tot pentru id-urile de eveniment din feed.
+        eventId: `posted_${req.event_id}`,
       });
     }
     loadRequests();
