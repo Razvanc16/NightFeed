@@ -48,7 +48,7 @@ export default function FollowListSheet({ userId, mode, onClose, onViewProfile }
     <div style={{ position: "fixed", inset: 0, zIndex: 400, background: "#080808", animation: "tabEnter 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
       {/* touchAction:none — header-ul e fix, fără scroll propriu; un swipe aici
           nu trebuie să scurgă panning-ul spre ancestorul scrollabil din spate. */}
-      <div style={{ padding: "50px 20px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)", touchAction: "none" }}>
+      <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)", touchAction: "none" }}>
         <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>← Înapoi</button>
         <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{title}</div>
       </div>

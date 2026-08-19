@@ -710,8 +710,17 @@ export default function App() {
         #root { width: 100%; max-width: 480px; height: 100dvh; position: relative; overflow: hidden; margin: 0 auto; transform: translateZ(0); box-shadow: 0 0 80px rgba(0,0,0,0.6); }
 
         /* Feedback tactil subtil pe toate butoanele — se "apasă" ușor la click */
-        button { transition: transform 0.12s ease; }
+        button { transition: transform 0.12s ease, filter 0.15s ease; }
         button:active { transform: scale(0.95); }
+        /* Nimic din aplicație nu reacționează la hover — pe desktop, butoanele
+           nu dau niciun semnal că sunt interactive până nu le apeși efectiv.
+           "hover: hover" exclude explicit device-urile touch (altfel un tap
+           pe telefon "blochează" hover-ul aprins până la următorul tap în alt
+           loc — bug-ul clasic de sticky-hover). O singură regulă globală,
+           nu umblăm componentă cu componentă. */
+        @media (hover: hover) and (pointer: fine) {
+          button:not(:disabled):hover { filter: brightness(1.15); }
+        }
 
         @keyframes floatHeart { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-80px) scale(0.5);opacity:0} }
         @keyframes pulse { 0%,100%{opacity:0.5;transform:translateX(-50%) scale(1)} 50%{opacity:0.8;transform:translateX(-50%) scale(1.1)} }

@@ -652,7 +652,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       )}
 
       {isSetup && (
-        <div style={{ padding: "50px 20px 20px", animation: "slideUp 0.3s ease-out" }}>
+        <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", animation: "slideUp 0.3s ease-out" }}>
           <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>
             {editing ? "Editează profilul" : "Creează-ți profilul"}
           </div>
@@ -749,7 +749,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               <GearIcon size={15} />
             </button>
           </div>
-          <div style={{ padding: "50px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 16 }}>
             <div
               onClick={() => profile.avatar_url && setShowOwnPhoto(true)}
               style={{ width: 70, height: 70, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #FF6B35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, overflow: "hidden", flexShrink: 0, border: "2px solid rgba(255,51,102,0.4)", cursor: profile.avatar_url ? "pointer" : "default" }}

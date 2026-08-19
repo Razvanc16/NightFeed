@@ -108,7 +108,7 @@ export default function CheckinScannerSheet({ event, onClose }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "#000", zIndex: 10400, display: "flex", flexDirection: "column", animation: "backdropIn 0.2s ease-out" }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, padding: "50px 20px 16px", background: "linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", background: "linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>Scanează bilete</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.title}</div>

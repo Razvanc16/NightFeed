@@ -102,7 +102,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
 
   return (
     <div style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80 }}>
-      <div style={{ padding: "50px 20px 20px" }}>
+      <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px" }}>
         <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>Caută</div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 24 }}>Găsește petreceri sau intră cu un cod</div>
 

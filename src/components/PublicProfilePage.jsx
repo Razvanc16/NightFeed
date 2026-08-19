@@ -122,7 +122,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80, ...swipeBack.style }}>
       {/* Header cu back */}
-      <div style={{ padding: "50px 20px 0", display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 0", display: "flex", alignItems: "center", gap: 12 }}>
         <button onClick={onBack} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer" }}>← Înapoi</button>
       </div>
 
