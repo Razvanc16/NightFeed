@@ -1005,7 +1005,11 @@ export default function App() {
               title="Aprecieri"
               source="likes"
               eventId={likesSheetEventId}
-              onClose={() => setLikesSheetEventId(null)}
+              // Sheet-ul ăsta apare DOAR venind dintr-o notificare de like (vezi
+              // onOpenLikes mai jos) — nu are alt loc "de dedesubt" cu sens la
+              // care să te întorci, deci și Închide/X duce direct la postare,
+              // la fel ca butonul explicit "Postarea →".
+              onClose={() => { const id = likesSheetEventId; setLikesSheetEventId(null); openEventFromNotification(id); }}
               onViewProfile={(uid) => { setLikesSheetEventId(null); setViewingProfile(uid); }}
               onOpenEvent={() => { const id = likesSheetEventId; setLikesSheetEventId(null); openEventFromNotification(id); }}
             />

@@ -490,7 +490,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
       setToast(newVal ? `Înscris la ${event.title}!` : "Ai renunțat");
     } catch (err) {
       setAttending(prev => ({ ...prev, [event.id]: !newVal }));
-      setToast("Eroare. Încearcă din nou.");
+      setToast(err.message?.includes("participanți") ? err.message : "Eroare. Încearcă din nou.");
     }
     setTimeout(() => setToast(null), 2500);
   };

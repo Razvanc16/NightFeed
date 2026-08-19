@@ -446,7 +446,9 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
     } catch (err) {
       setAttending(!newAttending);
       setAttendCount(c => c + (newAttending ? -1 : 1));
-      showToast("Eroare. Încearcă din nou.", "#FF3366");
+      // Eroarea din trigger-ul de capacitate (vezi max_participants) e deja
+      // un mesaj clar în română — o arătăm direct în loc de una generică.
+      showToast(err.message?.includes("participanți") ? err.message : "Eroare. Încearcă din nou.", "#FF3366");
     }
     attendBusyRef.current = false;
   };
@@ -489,13 +491,13 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           onClick: isOwnEvent ? undefined : (e) => { e.stopPropagation(); animateBtn("attend"); setShowJoinRequest(true); },
           active: requestStatus === "accepted", disabled: isOwnEvent,
           title: isOwnEvent ? "Nu poți participa la propriul eveniment" : undefined,
-          label: formatNum(acceptedCount),
+          label: event.max_participants ? `${formatNum(acceptedCount)}/${event.max_participants}` : formatNum(acceptedCount),
           icon: requestStatus === "accepted" ? <CheckIcon color={event.color} /> : <PlusIcon />,
         }
       : {
           key: "attend", onClick: isOwnEvent ? undefined : handleAttend, active: attending, disabled: isOwnEvent,
           title: isOwnEvent ? "Nu poți participa la propriul eveniment" : undefined,
-          label: formatNum(attendCount), icon: attending ? <CheckIcon color={event.color} /> : <PlusIcon />,
+          label: event.max_participants ? `${formatNum(attendCount)}/${event.max_participants}` : formatNum(attendCount), icon: attending ? <CheckIcon color={event.color} /> : <PlusIcon />,
         },
     { key: "comment", onClick: handleComment, active: false, icon: <CommentIcon /> },
     { key: "share", onClick: handleShare, active: false, icon: <ShareIcon /> },

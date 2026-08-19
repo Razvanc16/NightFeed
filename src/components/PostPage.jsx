@@ -82,6 +82,7 @@ export default function PostPage({ user, onClose, editEvent }) {
     ticket_link: editEvent?.ticket_link || "",
     lat: editEvent?.lat || null,
     lng: editEvent?.lng || null,
+    max_participants: editEvent?.max_participants ?? "",
   });
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState(editEvent?.cover_url || null);
@@ -318,7 +319,8 @@ export default function PostPage({ user, onClose, editEvent }) {
       // event_locations, protejat prin RLS — vezi supabase/2026-08-11b_event_locations_table.sql).
       const { eventDate, eventTime, venue, lat, lng, ...rest } = form;
       const event_date = new Date(`${eventDate}T${eventTime}`).toISOString();
-      const payload = { ...rest, date: formatEventDateTime(event_date), event_date, cover_url, user_id: user.id };
+      const max_participants = rest.type === "official" || rest.max_participants === "" ? null : Number(rest.max_participants) || null;
+      const payload = { ...rest, max_participants, date: formatEventDateTime(event_date), event_date, cover_url, user_id: user.id };
 
       let eventId = editEvent?.id;
       if (isEdit) {
@@ -591,6 +593,21 @@ export default function PostPage({ user, onClose, editEvent }) {
                 <div style={{ position: "absolute", top: 2, left: form.location_visible ? 20 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
               </div>
             </button>
+          )}
+
+          {/* Evenimentele oficiale au deja control de acces prin verificarea
+              manuală (contact@nightfeed.ro) — cele neoficiale n-au niciun
+              filtru, de-asta au nevoie de un plafon separat. */}
+          {form.type === "homemade" && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Număr maxim de participanți (opțional)</div>
+              <input
+                type="number" min="1" placeholder="fără limită"
+                value={form.max_participants}
+                onChange={e => setForm(f => ({ ...f, max_participants: e.target.value }))}
+                style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+              />
+            </div>
           )}
         </div>
 

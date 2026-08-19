@@ -318,8 +318,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
+    // "view" e esențial aici, nu doar "postedView" — cât timp view==="loading",
+    // return-ul de mai jos randează alt JSX (fără scrollRef), deci la montare
+    // scrollRef.current e null și efectul iese fără să atașeze nimic. Fără
+    // "view" în deps, odată ce profilul se încarcă și apare containerul real,
+    // ascultătorii nu se mai atașau NICIODATĂ — pull-to-refresh nu pornea deloc.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postedView]);
+  }, [postedView, view]);
 
   // Scoate live evenimentele care expiră cât timp userul stă pe profil (Particip /
   // Apreciate / Evenimentele mele).
