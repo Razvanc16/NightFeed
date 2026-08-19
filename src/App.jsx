@@ -1007,6 +1007,7 @@ export default function App() {
               eventId={likesSheetEventId}
               onClose={() => setLikesSheetEventId(null)}
               onViewProfile={(uid) => { setLikesSheetEventId(null); setViewingProfile(uid); }}
+              onOpenEvent={() => { const id = likesSheetEventId; setLikesSheetEventId(null); openEventFromNotification(id); }}
             />
           )}
           <Navbar active={activeTab} onChange={handleTabChange} />

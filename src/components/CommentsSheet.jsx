@@ -438,6 +438,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
           eventId={displayEvent.id}
           onClose={() => setPeopleSheet(null)}
           onViewProfile={onViewProfile}
+          onOpenEvent={() => { setPeopleSheet(null); onClose(); }}
         />,
         document.body
       )}

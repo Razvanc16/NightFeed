@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
-import { MoonIcon, HeartOutlineIcon, ConfettiIcon } from "./Icons";
+import { MoonIcon, HeartOutlineIcon, ConfettiIcon, ChevronRightIcon } from "./Icons";
 
 // Listă de oameni (cine a apreciat / cine participă) pentru un eveniment —
 // același tipar ca FollowListSheet, doar sursa de user_id-uri diferă.
 // `source`: "likes" | "attendances" — tabelul direct — sau "requests", pentru
 // evenimentele neoficiale cu cerere de aprobare (attendance_requests, doar
 // cele acceptate; event_id acolo e uuid-ul brut, fără prefixul "posted_").
-export default function EventPeopleSheet({ title, source, eventId, onClose, onViewProfile }) {
+// `onOpenEvent` — opțional; dacă e dat, afișează sus-dreapta un buton spre
+// postarea propriu-zisă (lista de oameni, spre deosebire de CommentsSheet,
+// e un ecran plin — postarea nu se mai vede deloc pe sub ea).
+export default function EventPeopleSheet({ title, source, eventId, onClose, onViewProfile, onOpenEvent }) {
   const [loading, setLoading] = useState(true);
   const [people, setPeople] = useState([]);
 
@@ -51,9 +54,16 @@ export default function EventPeopleSheet({ title, source, eventId, onClose, onVi
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 10350, background: "#080808", animation: "tabEnter 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
-      <div style={{ padding: "50px 20px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>← Înapoi</button>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{title}</div>
+      <div style={{ padding: "50px 20px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono', monospace", flexShrink: 0 }}>← Înapoi</button>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
+        </div>
+        {onOpenEvent && (
+          <button onClick={onOpenEvent} style={{ flexShrink: 0, background: "rgba(255,51,102,0.12)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 30, padding: "8px 12px", color: "#FF3366", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", gap: 2 }}>
+            Postarea <ChevronRightIcon size={13} />
+          </button>
+        )}
       </div>
 
       <div style={{ height: "calc(100% - 76px)", overflowY: "auto", padding: "12px 16px 40px" }}>
