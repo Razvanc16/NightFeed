@@ -19,7 +19,7 @@ import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pu
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon, BellIcon, PencilIcon, ScanIcon, InfoIcon, QrCodeIcon, CrossCircleIcon, MoreIcon,
+  WarningIcon, GearIcon, BellIcon, PencilIcon, ScanIcon, InfoIcon, QrCodeIcon, CrossCircleIcon, MoreIcon, RefreshIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -139,6 +139,17 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
+  // Pe mouse (desktop), pull-to-refresh n-are echivalent — vezi explicația
+  // identică din App.jsx (Feed).
+  const [isMouseDevice, setIsMouseDevice] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: fine)");
+    setIsMouseDevice(mq.matches);
+    const onChange = (e) => setIsMouseDevice(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   // Pull-to-refresh — aceeași mecanică (fizică + indicator) ca pe Feed.
   const scrollRef = useRef(null);
@@ -584,6 +595,22 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : "none",
       transition: pullStartY.current ? "none" : "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
     }}>
+      {isMouseDevice && !isSetup && (
+        <button
+          onClick={doRefresh}
+          disabled={refreshing}
+          title="Reîmprospătează"
+          style={{
+            position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", right: 16,
+            zIndex: 50, width: 38, height: 38, borderRadius: "50%", cursor: refreshing ? "default" : "pointer",
+            background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
+            backdropFilter: "blur(14px)", boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+            color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <RefreshIcon size={16} style={{ animation: refreshing ? "ptrSpin 0.9s linear infinite" : "none" }} />
+        </button>
+      )}
       {(pullDistance > 0 || refreshing) && (
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, height: 90, zIndex: 5, pointerEvents: "none",

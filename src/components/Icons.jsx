@@ -8,6 +8,13 @@ export const LightningIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" /></svg>
 );
 
+export const RefreshIcon = ({ size = 16, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}>
+    <path d="M3 12a9 9 0 0 1 15.3-6.36L21 8" /><path d="M21 3v5h-5" />
+    <path d="M21 12a9 9 0 0 1-15.3 6.36L3 16" /><path d="M8 21H3v-5" />
+  </svg>
+);
+
 export const HouseIcon = ({ size = 16, style }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} {...base}><path d="M3 11 12 4l9 7" /><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9" /><path d="M9 20v-6h6v6" /></svg>
 );
