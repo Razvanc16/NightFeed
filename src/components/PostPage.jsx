@@ -436,8 +436,10 @@ export default function PostPage({ user, onClose, editEvent }) {
             <CameraIcon size={13} /> Evenimentele cu poză sau video ies mult mai bine în evidență în feed
           </div>
         )}
-        {(coverPreview || coverUnverified) && <div style={{ marginBottom: 20 }} />}
         <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleCover} style={{ display: "none" }} />
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", marginTop: 8, marginBottom: 20, lineHeight: 1.5 }}>
+          <LockIcon size={12} style={{ flexShrink: 0, marginTop: 1 }} /> Prin încărcare confirmi, pe propria răspundere, că ai acordul persoanelor care apar în imagine/video.
+        </div>
 
         {/* Tip */}
         <div style={{ marginBottom: 16 }}>

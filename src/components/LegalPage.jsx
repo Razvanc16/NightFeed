@@ -30,11 +30,11 @@ export default function LegalPage({ onClose }) {
         </Section>
 
         <Section title="2. Ce date colectăm">
-          Email și parolă (parola nu e stocată în clar, ci criptată de furnizorul nostru de autentificare); prenume, nume, vârstă, gen, bio, poză de profil — dacă le completezi; evenimentele pe care le postezi (titlu, descriere, locație și coordonate, dată/oră, poză de copertă); like-uri, participări, urmăritori/urmăriri; și date tehnice minime necesare funcționării (sesiune de autentificare, iar dacă activezi notificările push, un identificator tehnic al dispozitivului folosit strict pentru a-ți trimite acele notificări).
+          Email și parolă (parola nu e stocată în clar, ci criptată de furnizorul nostru de autentificare); prenume, nume, vârstă, gen, bio, poză de profil — dacă le completezi; evenimentele pe care le postezi (titlu, descriere, locație și coordonate, dată/oră, poză de copertă); like-uri, participări, urmăritori/urmăriri; date tehnice minime necesare funcționării (sesiune de autentificare, iar dacă activezi notificările push, un identificator tehnic al dispozitivului folosit strict pentru a-ți trimite acele notificări); și, dacă raportezi conținut din aplicație, motivul și detaliile pe care le trimiți în raportare.
         </Section>
 
         <Section title="3. De ce le colectăm și temeiul legal">
-          Folosim aceste date ca să putem oferi serviciul pe care ți l-ai creat cont să-l folosești: afișarea profilului tău, a evenimentelor postate de tine sau de alți useri, funcția de hartă, follow/followers. Temeiul legal e, în principal, executarea contractului dintre tine și noi (ai creat un cont ca să folosești aplicația) și interesul legitim de a face aplicația funcțională ca rețea socială.
+          Folosim aceste date ca să putem oferi serviciul pe care ți l-ai creat cont să-l folosești: afișarea profilului tău, a evenimentelor postate de tine sau de alți useri, funcția de hartă, follow/followers. Temeiul legal e, în principal, executarea contractului dintre tine și noi (ai creat un cont ca să folosești aplicația) și interesul legitim de a face aplicația funcțională ca rețea socială. Nu folosim algoritmi de profilare comportamentală și nu integrăm niciun instrument de analiză sau publicitate de la terți (ex. Meta Pixel, Google Analytics, TikTok SDK) — feed-ul "Pentru tine" e un simplu filtru local, nu un model bazat pe urmărirea interacțiunilor tale.
         </Section>
 
         <Section title="4. Cui le împărtășim">
@@ -47,6 +47,10 @@ export default function LegalPage({ onClose }) {
 
         <Section title="6. Drepturile tale">
           Ai dreptul de acces, rectificare, ștergere, portabilitate și opoziție cu privire la datele tale. Poți să-ți ștergi contul direct din aplicație (Profil → Șterge contul) sau să ne ceri asta prin email. Îți poți retrage oricând consimțământul acolo unde procesarea se bazează pe consimțământ.
+        </Section>
+
+        <Section title="6b. Locația exactă a unei petreceri">
+          Pentru evenimentele neoficiale unde hostul alege să țină adresa ascunsă, harta și feed-ul arată tuturor doar o zonă aproximativă (deplasată aleatoriu cu câteva sute de metri față de locația reală) — adresa exactă e vizibilă doar hostului și persoanelor cu cererea de participare acceptată. Locația ta proprie (dacă permiți browserului acces la ea) e folosită doar ca să centrăm harta pe tine și nu e niciodată salvată în baza de date.
         </Section>
 
         <Section title="7. Securitate">
@@ -62,7 +66,11 @@ export default function LegalPage({ onClose }) {
         </Section>
 
         <Section title="10. Termeni de utilizare — reguli de conduită">
-          Prin folosirea aplicației, te angajezi să nu postezi conținut ilegal, înșelător sau care încalcă drepturile altor persoane, să nu folosești aplicația pentru hărțuire sau spam, și să respecți regulile evenimentelor la care participi. Ne rezervăm dreptul de a suspenda conturi care încalcă aceste reguli.
+          Prin folosirea aplicației, te angajezi să nu postezi conținut ilegal, înșelător sau care încalcă drepturile altor persoane, să nu folosești aplicația pentru hărțuire sau spam, și să respecți regulile evenimentelor la care participi. Ne rezervăm dreptul de a suspenda conturi care încalcă aceste reguli. Dacă încarci o poză sau un video în care apar și alte persoane, confirmi pe propria răspundere că ai acordul lor pentru a fi publicate în aplicație.
+        </Section>
+
+        <Section title="10b. Raportare conținut">
+          Poți raporta orice eveniment direct din feed (butonul cu steag), inclusiv dacă apari într-o poză/video fără acordul tău sau dacă întâlnești conținut ilegal, înșelător sau abuziv. Raportarea ajunge direct la noi și o analizăm cât mai curând posibil, inclusiv eliminarea conținutului dacă e cazul.
         </Section>
 
         <Section title="11. Modificări">

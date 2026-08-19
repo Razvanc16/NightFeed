@@ -1,5 +1,5 @@
 -- La fiecare cont nou creat (auth.users), trimite un email de notificare la
--- rchiceanu@gmail.com prin Resend (https://resend.com), cu totalul curent de
+-- contact@nightfeed.ro prin Resend (https://resend.com), cu totalul curent de
 -- utilizatori. pg_net face request-ul async, fără să blocheze signup-ul dacă
 -- API-ul de email pică sau întârzie.
 --
@@ -46,7 +46,7 @@ begin
     ),
     body := jsonb_build_object(
       'from', 'NightFeed <onboarding@resend.dev>',
-      'to', jsonb_build_array('rchiceanu@gmail.com'),
+      'to', jsonb_build_array('contact@nightfeed.ro'),
       'subject', 'Cont nou pe NightFeed',
       'html', '<p>Utilizator nou: <strong>' || coalesce(new.email, 'necunoscut') || '</strong></p><p>Total utilizatori acum: <strong>' || user_count || '</strong></p>'
     )

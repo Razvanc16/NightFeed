@@ -1,4 +1,5 @@
 import JoinRequestSheet from "./JoinRequestSheet";
+import ReportSheet from "./ReportSheet";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon, CheckCircleIcon } from "./Icons";
@@ -34,6 +35,13 @@ const PlusIcon = () => (
 const CommentIcon = () => (
   <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={iconShadow}>
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+
+const FlagIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ ...iconShadow, opacity: 0.75 }}>
+    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+    <line x1="4" y1="22" x2="4" y2="3"/>
   </svg>
 );
 
@@ -115,6 +123,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   const [toast, setToast] = useState({ show: false, message: "", color: "#fff" });
   const [btnAnim, setBtnAnim] = useState({ like: false, attend: false, share: false, comment: false });
   const [showJoinRequest, setShowJoinRequest] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [videoMuted, setVideoMuted] = useState(true);
   const [videoPaused, setVideoPaused] = useState(false);
   const videoRef = useRef(null);
@@ -490,6 +499,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         },
     { key: "comment", onClick: handleComment, active: false, icon: <CommentIcon /> },
     { key: "share", onClick: handleShare, active: false, icon: <ShareIcon /> },
+    { key: "report", onClick: (e) => { e.stopPropagation(); setShowReport(true); }, active: false, icon: <FlagIcon /> },
   ];
 
   return (
@@ -642,6 +652,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         onClose={() => setShowJoinRequest(false)}
         alreadyRequested={requestStatus === "pending" || requestStatus === "accepted"}
       />
+      <ReportSheet event={event} user={user} open={showReport} onClose={() => setShowReport(false)} />
     </div>
   );
 }
