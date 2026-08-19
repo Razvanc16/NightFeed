@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
-import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
+import { filterActiveEvents, formatEventDateTime, formatPrice } from "../utils/eventTime";
 import {
   SparkleIcon, LightningIcon, HouseIcon, FireIcon, TagIcon, PinIcon, LockIcon,
   ClockIcon, CheckCircleIcon, CrossCircleIcon, PlusIcon, MapIcon, InfoIcon,
@@ -616,7 +616,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
               <PinIcon size={13} />
               {canSeeExactAddress(selectedEvent) ? selectedEvent.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
             </span>
-            <span style={{ fontSize: 12, color: selectedEvent.color, fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>{selectedEvent.price}</span>
+            <span style={{ fontSize: 12, color: selectedEvent.color, fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>{formatPrice(selectedEvent.price)}</span>
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>

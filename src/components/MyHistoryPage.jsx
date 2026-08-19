@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
-import { formatEventDateTime, isEventExpired } from "../utils/eventTime";
+import { formatEventDateTime, isEventExpired, formatPrice } from "../utils/eventTime";
 import { HeartOutlineIcon, ConfettiIcon, LightningIcon, HouseIcon, MoonIcon } from "./Icons";
 
 // Istoric complet — spre deosebire de tab-urile "Particip"/"Apreciate" din
@@ -92,7 +92,7 @@ export default function MyHistoryPage({ user, onClose, onOpenEvent }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
-                  {(event.event_date && formatEventDateTime(event.event_date)) || "Data necunoscută"} · {event.price || "Gratuit"}
+                  {(event.event_date && formatEventDateTime(event.event_date)) || "Data necunoscută"} · {formatPrice(event.price) || "Gratuit"}
                 </div>
               </div>
               {inactive && (

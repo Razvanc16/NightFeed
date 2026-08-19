@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { LightningIcon, HouseIcon, PlusIcon, CheckCircleIcon } from "./Icons";
 import JoinRequestSheet from "./JoinRequestSheet";
+import { formatPrice } from "../utils/eventTime";
 
 const HeartMini = ({ filled, color }) => (
   <svg width={14} height={14} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={filled ? color : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.6))" }}>
@@ -116,7 +117,7 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
         <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", lineHeight: 1.25, marginBottom: 3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
           {event.title}
         </div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>{event.price}</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>{formatPrice(event.price)}</div>
       </div>
 
       {isJoinable && (

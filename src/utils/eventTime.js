@@ -33,6 +33,17 @@ export const formatEventDateTime = (iso) => {
   return `${capitalized}, ${dateNum}, ${time}`;
 };
 
+// Prețul e text liber, salvat direct din formular — o valoare deja stocată
+// malformat (introdusă înainte de clamp-ul de la tastare din PostPage, sau
+// direct prin API) rupe layout-ul cardului dacă e afișată brută (ex: un șir
+// de sute de cifre). Trunchiat defensiv la afișare, indiferent de sursă.
+const MAX_PRICE_DISPLAY_LEN = 14;
+export const formatPrice = (price) => {
+  if (!price) return price;
+  const s = String(price);
+  return s.length > MAX_PRICE_DISPLAY_LEN ? s.slice(0, MAX_PRICE_DISPLAY_LEN) + "…" : s;
+};
+
 // "2026-08-09" pentru <input type="date">
 export const toDateInputValue = (iso) => {
   if (!iso) return "";

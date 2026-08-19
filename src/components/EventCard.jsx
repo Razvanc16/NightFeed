@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon, CheckCircleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
+import { formatPrice } from "../utils/eventTime";
 
 const HeartIcon = ({ filled, color, size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={filled ? color : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))" }}>
@@ -621,7 +622,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             {event.type === "official" ? <LightningIcon size={11} /> : <HouseIcon size={11} />}
             {event.type === "official" ? "Oficial" : "Neoficial"}
           </span>
-          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{event.price}</span>
+          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{formatPrice(event.price)}</span>
           {event.code && (
             <span
               onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(event.code); showToast("Cod copiat!", "#00C864"); }}

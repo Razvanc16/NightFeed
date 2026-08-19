@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import EventPeopleSheet from "./EventPeopleSheet";
 import { CrossCircleIcon } from "./Icons";
+import { formatPrice } from "../utils/eventTime";
 
 // Statistici rapide pentru un eveniment (câte aprecieri, câți participanți),
 // cu acces la listele complete — folosit atât din Profil (Postate/Arhivă),
@@ -36,7 +37,7 @@ export default function EventInsightsModal({ event, rawId, onClose, onViewProfil
       <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 10350, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
         <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "22px 20px", width: "100%", maxWidth: 340, border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
           <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>{event.title}</div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 18 }}>{event.date} · {event.price || "Gratuit"}</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 18 }}>{event.date} · {formatPrice(event.price) || "Gratuit"}</div>
 
           {!stats ? (
             <div style={{ textAlign: "center", padding: "20px 0", color: "rgba(255,255,255,0.3)" }}>Se încarcă...</div>
