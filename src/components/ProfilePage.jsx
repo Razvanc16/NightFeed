@@ -703,36 +703,35 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
           {/* 3 secțiuni ale Profilului — Notificări (implicit la deschidere),
               Postate (unde acum trăiește și accesul la Cereri, per eveniment —
-              vezi meniul ⋮ din fiecare card) și Particip. Nu mai sunt simple
-              statistici, sunt chiar tab-urile paginii. */}
-          <div style={{ display: "flex", padding: "16px 20px", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              vezi meniul ⋮ din fiecare card) și Particip. Chip-uri, în același
+              stil cu filtrele de pe Hartă (Toate/Oficial/Neoficial/...). */}
+          <div style={{ display: "flex", justifyContent: "center", padding: "16px 20px", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>
             {[
-              { id: "notifications", label: "Notificări", value: unreadNotifCount, icon: <BellIcon size={18} /> },
-              { id: "posted", label: "Postate", value: myPostedEvents.length, badge: pendingRequestsCount, icon: <OutboxIcon size={18} /> },
-              { id: "attending", label: "Particip", value: attendingEvents.length, icon: <CheckCircleIcon size={18} /> },
-            ].map(stat => {
-              const isActive = activeTab === stat.id;
+              { id: "notifications", label: "Notificări", Icon: BellIcon, badge: unreadNotifCount },
+              { id: "posted", label: "Postate", Icon: OutboxIcon, badge: pendingRequestsCount },
+              { id: "attending", label: "Particip", Icon: CheckCircleIcon },
+            ].map(tab => {
+              const isActive = activeTab === tab.id;
               return (
-                <button key={stat.id} onClick={() => setActiveTab(stat.id)} style={{
-                  position: "relative", flex: 1, borderRadius: 12, padding: "10px", textAlign: "center", cursor: "pointer",
-                  border: "1px solid transparent",
-                  // Stratul opac "#141418" e obligatoriu aici — fără el, tonul
-                  // alb foarte transparent de mai jos se aplică peste
-                  // fundalul implicit (deschis) al unui <button> din browser,
-                  // nu peste negrul paginii, și cutia iese albicioasă.
-                  backgroundImage: isActive
-                    ? "linear-gradient(120deg, rgba(255,51,102,0.16), rgba(180,79,255,0.16)), linear-gradient(#141418, #141418), linear-gradient(135deg, #FF3366, #B44FFF)"
-                    : "linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04)), linear-gradient(#141418, #141418), linear-gradient(rgba(255,255,255,0.07), rgba(255,255,255,0.07))",
-                  backgroundOrigin: "border-box", backgroundClip: "padding-box, padding-box, border-box",
-                }}>
-                  {!!stat.badge && (
-                    <div style={{ position: "absolute", top: -5, right: -5, minWidth: 16, height: 16, padding: "0 3px", borderRadius: 8, background: "#FF3366", border: "2px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "'DM Mono', monospace" }}>
-                      {stat.badge > 9 ? "9+" : stat.badge}
-                    </div>
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    flexShrink: 0, padding: "6px 12px", borderRadius: 20, cursor: "pointer",
+                    background: isActive ? "rgba(255,51,102,0.9)" : "rgba(8,8,10,0.92)",
+                    border: `1px solid ${isActive ? "#FF3366" : "rgba(255,255,255,0.25)"}`,
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.85)",
+                    fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+                    backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5,
+                    transition: "all 0.2s", boxShadow: isActive ? "0 0 16px rgba(255,51,102,0.5)" : "none",
+                  }}
+                >
+                  <tab.Icon size={13} /> {tab.label}
+                  {!!tab.badge && (
+                    <span style={{ minWidth: 16, height: 16, padding: "0 4px", borderRadius: 8, background: isActive ? "rgba(255,255,255,0.3)" : "#FF3366", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff" }}>
+                      {tab.badge > 9 ? "9+" : tab.badge}
+                    </span>
                   )}
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 3, color: isActive ? "#FF3366" : "rgba(255,255,255,0.5)" }}>{stat.icon}</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stat.value}</div>
-                  <div style={{ fontSize: 10, color: isActive ? "#FF3366" : "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{stat.label}</div>
                 </button>
               );
             })}
