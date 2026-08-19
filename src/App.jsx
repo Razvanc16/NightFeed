@@ -682,7 +682,17 @@ export default function App() {
            leaflet.css are un selector mai specific, deci câștigă local. */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: pan-x pan-y; }
         body { background: #000; overflow: hidden; font-family: 'DM Sans', 'Inter', sans-serif; }
-        #root { width: 100vw; height: 100dvh; position: relative; overflow: hidden; }
+        /* Pe telefon (sub 480px), #root ocupă tot ecranul ca înainte — nimic
+           nu se schimbă vizual acolo. Pe desktop/monitor lat, aplicația altfel
+           s-ar întinde edge-to-edge (video-uri portret tăiate la o dungă
+           subțire, formulare late de 1800px) — max-width + margin:auto o
+           centrează ca un "telefon simulat". transform:translateZ(0) e cheia:
+           orice ancestor cu transform devine "containing block" pentru toate
+           elementele position:fixed din interior (sunt zeci, în toate
+           sheet-urile/modalele), deci se aliniază automat la coloana de
+           480px, nu la viewport-ul întreg — fără să umblăm la fiecare
+           componentă în parte. */
+        #root { width: 100%; max-width: 480px; height: 100dvh; position: relative; overflow: hidden; margin: 0 auto; transform: translateZ(0); box-shadow: 0 0 80px rgba(0,0,0,0.6); }
 
         /* Feedback tactil subtil pe toate butoanele — se "apasă" ușor la click */
         button { transition: transform 0.12s ease; }
