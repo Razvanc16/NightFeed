@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { CheckCircleIcon, WarningIcon } from "./Icons";
 
@@ -15,6 +15,19 @@ export default function ReportSheet({ event, user, open, onClose }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
+  // Reset la fiecare deschidere, nu la închidere — înainte, reset-ul se
+  // întâmpla fie niciodată (la "Anulează"/backdrop, lăsa reason/details
+  // "murdare" pentru următoarea raportare, chiar și pe alt eveniment), fie
+  // exact în același moment cu onClose() după trimitere (bifa verde sărea
+  // vizibil înapoi la formular cât timp sheet-ul încă aluneca spre ieșire).
+  useEffect(() => {
+    if (open) {
+      setReason(null);
+      setDetails("");
+      setSent(false);
+    }
+  }, [open]);
+
   const handleSend = async () => {
     if (!user) { alert("Trebuie să fii autentificat!"); return; }
     if (!reason) return;
@@ -27,7 +40,7 @@ export default function ReportSheet({ event, user, open, onClose }) {
     }]);
     if (!error) {
       setSent(true);
-      setTimeout(() => { onClose(); setReason(null); setDetails(""); setSent(false); }, 1500);
+      setTimeout(onClose, 1500);
     } else {
       alert("Eroare: " + error.message);
     }

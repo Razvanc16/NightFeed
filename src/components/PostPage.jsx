@@ -57,6 +57,7 @@ const extractPriceAmount = (price) => {
 // cu preț de ~600 cifre). Clamp la o valoare rezonabilă, atât la tastare
 // cât și la editarea unui eveniment care are deja un preț invalid salvat.
 const MAX_PRICE = 100000;
+const MAX_PARTICIPANTS = 5000;
 const clampPrice = (val) => {
   if (!val) return val;
   const n = Number(val);
@@ -515,6 +516,7 @@ export default function PostPage({ user, onClose, editEvent }) {
               value={form.venue}
               onChange={e => handleAddressChange(e.target.value)}
               onFocus={() => setAddressFocused(true)}
+              onBlur={() => setTimeout(() => setAddressFocused(false), 150)}
               style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${form.lat ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
             />
             {searchingAddress && (
@@ -602,9 +604,13 @@ export default function PostPage({ user, onClose, editEvent }) {
             <div style={{ marginTop: 12 }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Număr maxim de participanți (opțional)</div>
               <input
-                type="number" min="1" placeholder="fără limită"
+                type="number" min="1" max={MAX_PARTICIPANTS} placeholder="fără limită"
                 value={form.max_participants}
-                onChange={e => setForm(f => ({ ...f, max_participants: e.target.value }))}
+                onChange={e => {
+                  const raw = e.target.value;
+                  const val = raw === "" ? "" : String(Math.min(Number(raw) || 0, MAX_PARTICIPANTS));
+                  setForm(f => ({ ...f, max_participants: val }));
+                }}
                 style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
               />
             </div>
