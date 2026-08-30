@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
 import { filterActiveEvents, formatEventDateTime, formatPrice } from "../utils/eventTime";
+import { loadGoogleMaps, DARK_MAP_STYLE, buildPinIconUrl, buildHouseOverlayUrl, userLocationIconUrl } from "../utils/googleMapsLoader";
 import {
   SparkleIcon, LightningIcon, HouseIcon, FireIcon, TagIcon, PinIcon, LockIcon,
   ClockIcon, CheckCircleIcon, CrossCircleIcon, PlusIcon, MapIcon, InfoIcon,
@@ -67,6 +68,14 @@ const applyOffset = (lat, lng, id) => {
   const dLat = (distanceMeters * Math.cos(angle)) / 111320;
   const dLng = (distanceMeters * Math.sin(angle)) / (111320 * Math.cos(lat * Math.PI / 180));
   return [lat + dLat, lng + dLng];
+};
+
+// Bounds geografice pentru un overlay ancorat la sol (iconița de casă), în
+// jurul unui centru, la o rază dată în metri — echivalentul L.svgOverlay(bounds).
+const boundsAround = (lat, lng, radiusMeters) => {
+  const dLat = radiusMeters / 111320;
+  const dLng = radiusMeters / (111320 * Math.cos(lat * Math.PI / 180));
+  return { south: lat - dLat, north: lat + dLat, west: lng - dLng, east: lng + dLng };
 };
 
 export default function MapPage({ user, isActive, focusTarget, onViewProfile }) {
@@ -149,7 +158,8 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
 
   const [attending, setAttending] = useState({});
   const [toast, setToast] = useState(null);
-  const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
+  const [mapsError, setMapsError] = useState(null);
   const [zoom, setZoom] = useState(12);
   const [postedEvents, setPostedEvents] = useState([]);
   const [myRequests, setMyRequests] = useState({}); // { [rawId]: "pending" | "accepted" | "rejected" }
@@ -163,14 +173,14 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
   }, [isActive]);
 
   // Harta rămâne montată (ascunsă cu display:none) și cât timp nu ești pe tab-ul
-  // ei — dar Leaflet calculează dimensiunea containerului la inițializare, iar
-  // un container ascuns are dimensiune 0. Rezultatul: doar câteva tile-uri se
-  // încarcă (pentru o zonă practic goală), iar restul hărții rămâne albă/goală
-  // chiar și după ce tab-ul devine vizibil. invalidateSize() îi spune lui
-  // Leaflet să recalculeze exact în momentul în care harta chiar devine vizibilă.
+  // ei — Google Maps calculează dimensiunea containerului la inițializare, iar
+  // un container ascuns are dimensiune 0. Rezultatul, la fel ca înainte cu
+  // Leaflet: harta rămâne "înghețată" la acea dimensiune până îi spunem
+  // explicit să-și recalculeze layout-ul, exact în momentul în care devine
+  // vizibilă (evenimentul "resize" al Google Maps, echivalentul invalidateSize()).
   useEffect(() => {
     if (isActive && mapInstanceRef.current) {
-      mapInstanceRef.current.invalidateSize();
+      window.google?.maps?.event.trigger(mapInstanceRef.current, "resize");
     }
   }, [isActive]);
 
@@ -225,50 +235,31 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
     setPostedEvents(filterActiveEvents(data));
   };
 
+  // Încarcă SDK-ul Google Maps o singură dată (loadGoogleMaps deduplică
+  // intern chiar dacă mai multe componente îl cer simultan).
   useEffect(() => {
-    // Dacă Leaflet e deja încărcat (dintr-un montaj anterior), gata
-    if (window.L) { setLeafletLoaded(true); return; }
-
-    // Dacă tag-urile există deja în pagină dar scriptul încă nu s-a terminat de
-    // încărcat, așteptăm (polling) în loc să presupunem că e gata — asta era bug-ul
-    // care ducea la ecran alb când intrai/ieșeai rapid din tab-ul Hartă.
-    if (document.getElementById("leaflet-css")) {
-      const check = setInterval(() => {
-        if (window.L) {
-          setLeafletLoaded(true);
-          clearInterval(check);
-        }
-      }, 50);
-      return () => clearInterval(check);
-    }
-
-    const link = document.createElement("link");
-    link.id = "leaflet-css";
-    link.rel = "stylesheet";
-    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    document.head.appendChild(link);
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.onload = () => setLeafletLoaded(true);
-    document.head.appendChild(script);
+    let cancelled = false;
+    loadGoogleMaps()
+      .then(() => { if (!cancelled) setMapsLoaded(true); })
+      .catch((err) => { if (!cancelled) setMapsError(err.message); });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
-    if (!leafletLoaded || !mapRef.current || mapInstanceRef.current || !window.L) return;
-    const L = window.L;
-    const map = L.map(mapRef.current, { center: [44.4268, 26.1025], zoom: 12, zoomControl: false });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 19,
-      // Ține încărcate mai multe tile-uri din jurul zonei vizibile, ca la
-      // deplasare să fie deja acolo (nu pătrate goale care apar cu întârziere).
-      keepBuffer: 4,
-      // Pe touch (telefon), Leaflet încarcă implicit tile-uri noi abia după ce
-      // te oprești din deplasat — cu asta, începe să le ceară cât încă tragi.
-      updateWhenIdle: false,
-    }).addTo(map);
-    L.control.zoom({ position: "bottomright" }).addTo(map);
+    if (!mapsLoaded || !mapRef.current || mapInstanceRef.current) return;
+    const google = window.google;
+    const map = new google.maps.Map(mapRef.current, {
+      center: { lat: 44.4268, lng: 26.1025 },
+      zoom: 12,
+      styles: DARK_MAP_STYLE,
+      disableDefaultUI: true,
+      zoomControl: true,
+      zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+      clickableIcons: false,
+      backgroundColor: "#050506",
+    });
     mapInstanceRef.current = map;
-    map.on("zoomend", () => setZoom(map.getZoom()));
+    map.addListener("zoom_changed", () => setZoom(map.getZoom()));
 
     // Cerem locația automat la deschiderea hărții. Dacă userul acceptă, harta se
     // centrează pe el; dacă refuză sau browserul nu suportă geolocation, rămâne
@@ -276,24 +267,25 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
         const { latitude, longitude } = pos.coords;
-        map.setView([latitude, longitude], 13);
-        const userIcon = L.divIcon({
-          className: "",
-          html: `<div style="width:16px;height:16px;border-radius:50%;background:#4FC3F7;border:3px solid #fff;box-shadow:0 0 0 4px rgba(79,195,247,0.3);"></div>`,
-          iconSize: [16, 16], iconAnchor: [8, 8],
+        map.setCenter({ lat: latitude, lng: longitude });
+        map.setZoom(13);
+        new google.maps.Marker({
+          position: { lat: latitude, lng: longitude },
+          map,
+          icon: { url: userLocationIconUrl, scaledSize: new google.maps.Size(16, 16), anchor: new google.maps.Point(8, 8) },
+          zIndex: 1,
         });
-        L.marker([latitude, longitude], { icon: userIcon }).addTo(map);
       });
     }
 
     // Plasă de siguranță: dacă totuși componenta se demontează vreodată (ex.
-    // logout), distrugem instanța Leaflet — altfel rămâne "vie" în memorie
-    // (listenere, tile-uri) chiar și după ce nu mai există în pagină.
+    // logout), curățăm instanța — Google Maps n-are un echivalent direct de
+    // map.remove() din Leaflet, dar golirea referinței lasă instanța veche să
+    // fie colectată de garbage collector odată ce nu mai are niciun ascultător activ.
     return () => {
-      map.remove();
       mapInstanceRef.current = null;
     };
-  }, [leafletLoaded]);
+  }, [mapsLoaded]);
 
   // Toate evenimentele cu coordonate, nefiltrate — separat de efectul care
   // desenează marker-ele (acela mai aplică și activeFilters), ca să putem
@@ -322,12 +314,12 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
   ].filter(e => e.coords), [postedEvents]);
 
   useEffect(() => {
-    if (!leafletLoaded || !mapInstanceRef.current) return;
-    const L = window.L;
+    if (!mapsLoaded || !mapInstanceRef.current) return;
+    const google = window.google;
     const map = mapInstanceRef.current;
 
-    markersRef.current.forEach(m => map.removeLayer(m));
-    circlesRef.current.forEach(c => map.removeLayer(c));
+    markersRef.current.forEach(m => m.setMap(null));
+    circlesRef.current.forEach(c => c.setMap(null));
     markersRef.current = [];
     circlesRef.current = [];
     homemadeLayersRef.current = [];
@@ -340,128 +332,98 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
       const isMarkedActive = isHomemade
         ? myRequests[String(event.rawId ?? event.id)] === "accepted"
         : !!attending[event.id];
+      const position = { lat: event.coords[0], lng: event.coords[1] };
+      const innerIconSvg = (event.vibe && vibeSvgById[event.vibe]) ? vibeSvgById[event.vibe]("#fff") : (isHomemade ? houseIconSvg("#fff") : lightningIconSvg("#fff"));
 
       // Cercul de "zonă aproximativă" apare doar cât timp locația chiar e
       // ascunsă — dacă hostul a activat location_visible, evenimentul (chiar
       // neoficial) primește marker clasic tip pin, cu poziția exactă.
       if (isHomemade && !event.location_visible) {
         // Cercul de zonă are un offset FIX (identic pentru toți) față de adresa reală
-        const offsetCenter = applyOffset(event.coords[0], event.coords[1], event.rawId ?? event.id);
+        const [offLat, offLng] = applyOffset(event.coords[0], event.coords[1], event.rawId ?? event.id);
+        const offsetPos = { lat: offLat, lng: offLng };
 
         // Sub acest nivel de zoom, arătăm un pin clasic (ca la oficiale) — de-abia
-        // când dai zoom suficient de aproape, pinul dispare (cu fade) și rămân doar
-        // cercul + casa transparentă, ancorate geografic. Citim zoom-ul live din hartă
+        // când dai zoom suficient de aproape, pinul dispare și rămân doar cercul +
+        // casa transparentă, ancorate geografic. Citim zoom-ul live din hartă
         // (nu din closure) ca desenul inițial să fie corect indiferent când rulează efectul.
         const ZOOM_THRESHOLD = 15;
         const zoomedIn = map.getZoom() >= ZOOM_THRESHOLD;
 
-        const circle = L.circle(offsetCenter, {
-          radius: 150,
-          color: color,
-          fillColor: color,
-          fillOpacity: zoomedIn ? 0.12 : 0,
-          weight: 1.5,
-          opacity: zoomedIn ? 0.55 : 0,
-          dashArray: "6, 4",
-        }).addTo(map);
-        circle.on("click", () => setSelectedEvent(event));
+        const circle = new google.maps.Circle({
+          map, center: offsetPos, radius: 150,
+          strokeColor: color, strokeOpacity: zoomedIn ? 0.55 : 0, strokeWeight: 1.5,
+          fillColor: color, fillOpacity: zoomedIn ? 0.12 : 0,
+          clickable: true,
+        });
+        circle.addListener("click", () => setSelectedEvent(event));
         circlesRef.current.push(circle);
-        if (circle.getElement()) {
-          circle.getElement().style.transition = "opacity 0.4s ease, fill-opacity 0.4s ease, stroke-opacity 0.4s ease";
-        }
 
         // Iconița de casă e ancorată geografic (nu în pixeli, ca un marker normal),
         // ca dimensiunea ei să se scaleze împreună cu cercul la orice nivel de zoom.
-        const houseRadiusMeters = 55;
-        const dLat = houseRadiusMeters / 111320;
-        const dLng = houseRadiusMeters / (111320 * Math.cos(offsetCenter[0] * Math.PI / 180));
-        const bounds = [
-          [offsetCenter[0] - dLat, offsetCenter[1] - dLng],
-          [offsetCenter[0] + dLat, offsetCenter[1] + dLng],
-        ];
-
-        const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svgEl.setAttribute("viewBox", "0 0 24 24");
-        svgEl.setAttribute("style", `filter: drop-shadow(0 0 3px ${color}); transition: opacity 0.4s ease;`);
-        const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        pathEl.setAttribute("d", "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z");
-        pathEl.setAttribute("fill", color);
-        svgEl.appendChild(pathEl);
-
-        const houseOverlay = L.svgOverlay(svgEl, bounds, { interactive: true }).addTo(map);
-        houseOverlay.setOpacity(zoomedIn ? (isMarkedActive ? 0.85 : 0.5) : 0);
-        houseOverlay.on("click", () => setSelectedEvent(event));
+        const houseOverlay = new google.maps.GroundOverlay(
+          buildHouseOverlayUrl(color),
+          boundsAround(offLat, offLng, 55),
+          { map, opacity: zoomedIn ? (isMarkedActive ? 0.85 : 0.5) : 0, clickable: true }
+        );
+        houseOverlay.addListener("click", () => setSelectedEvent(event));
         markersRef.current.push(houseOverlay);
 
-        // Pinul clasic (vizibil de departe, dispare cu fade la zoom apropiat) — folosim
-        // o clasă CSS globală pentru tranziție, fiindcă marker.setOpacity() animă
-        // containerul exterior creat de Leaflet, nu div-ul nostru din interior.
-        const pinIcon = L.divIcon({
-          className: "homemade-pin-marker",
-          html: `
-            <div style="display:flex;flex-direction:column;align-items:center;">
-              <div style="width:36px;height:36px;border-radius:50%;background:${color};border:3px solid ${isMarkedActive ? '#fff' : color + 'b0'};display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 18px ${color}90, 0 4px 16px rgba(0,0,0,0.5);cursor:pointer;">
-                ${(event.vibe && vibeSvgById[event.vibe]) ? vibeSvgById[event.vibe]("#fff") : houseIconSvg("#fff")}
-              </div>
-              <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${color};margin-top:-2px;"></div>
-            </div>
-          `,
-          iconSize: [36, 44], iconAnchor: [18, 44], popupAnchor: [0, -44],
+        // Pinul clasic (vizibil de departe, dispare la zoom apropiat).
+        const pinMarker = new google.maps.Marker({
+          position: offsetPos, map,
+          icon: { url: buildPinIconUrl(color, isMarkedActive, innerIconSvg), scaledSize: new google.maps.Size(36, 44), anchor: new google.maps.Point(18, 44) },
+          opacity: zoomedIn ? 0 : 1,
+          clickable: !zoomedIn,
         });
-        const pinMarker = L.marker(offsetCenter, { icon: pinIcon }).addTo(map).on("click", () => setSelectedEvent(event));
-        pinMarker.setOpacity(zoomedIn ? 0 : 1);
+        pinMarker.addListener("click", () => setSelectedEvent(event));
         markersRef.current.push(pinMarker);
 
         // Păstrăm referințele ca să putem doar actualiza opacitatea la schimbarea
-        // zoom-ului (nu recreăm elementele — altfel tranziția CSS nu are ce anima).
+        // zoom-ului (nu recreăm elementele).
         homemadeLayersRef.current.push({ circle, houseOverlay, pinMarker, color, isMarkedActive });
         return;
       }
 
-      // Evenimente oficiale — marker clasic tip pin, neschimbat
-      const icon = L.divIcon({
-        className: "",
-        html: `
-          <div style="display:flex;flex-direction:column;align-items:center;">
-            <div style="width:36px;height:36px;border-radius:50%;background:${color};border:3px solid ${isMarkedActive ? '#fff' : color + 'b0'};display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 18px ${color}90, 0 4px 16px rgba(0,0,0,0.5);cursor:pointer;">
-              ${(event.vibe && vibeSvgById[event.vibe]) ? vibeSvgById[event.vibe]("#fff") : lightningIconSvg("#fff")}
-            </div>
-            <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${color};margin-top:-2px;"></div>
-          </div>
-        `,
-        iconSize: [36, 44], iconAnchor: [18, 44], popupAnchor: [0, -44],
+      // Evenimente oficiale (sau homemade cu adresă vizibilă) — marker clasic tip pin.
+      const marker = new google.maps.Marker({
+        position, map,
+        icon: { url: buildPinIconUrl(color, isMarkedActive, innerIconSvg), scaledSize: new google.maps.Size(36, 44), anchor: new google.maps.Point(18, 44) },
       });
-
-      const marker = L.marker(event.coords, { icon }).addTo(map).on("click", () => setSelectedEvent(event));
+      marker.addListener("click", () => setSelectedEvent(event));
       markersRef.current.push(marker);
     });
-  }, [leafletLoaded, activeFilters, attending, allMapEvents, myRequests]);
+  }, [mapsLoaded, activeFilters, attending, allMapEvents, myRequests]);
 
   // Focus venit din feed (tap pe locația unui eveniment) — sare peste filtrele
   // active (userul a cerut explicit locația asta) și deschide fișa de jos.
   useEffect(() => {
-    if (!focusTarget?.id || !leafletLoaded || !mapInstanceRef.current) return;
+    if (!focusTarget?.id || !mapsLoaded || !mapInstanceRef.current) return;
     const target = allMapEvents.find(e => String(e.id) === focusTarget.id);
     if (!target) return;
     setActiveFilters(new Set());
-    mapInstanceRef.current.flyTo(target.coords, 16, { duration: 0.6 });
+    mapInstanceRef.current.panTo({ lat: target.coords[0], lng: target.coords[1] });
+    mapInstanceRef.current.setZoom(16);
     setSelectedEvent(target);
-  }, [focusTarget, leafletLoaded, allMapEvents]);
+  }, [focusTarget, mapsLoaded, allMapEvents]);
 
   // Doar actualizăm opacitatea elementelor deja desenate la schimbarea zoom-ului
-  // (nu le recreăm) — așa tranziția CSS chiar animă lin, nu sare brusc.
+  // (nu le recreăm). Spre deosebire de versiunea cu Leaflet, aici nu mai animăm
+  // tranziția cu CSS (Circle/GroundOverlay din Google Maps nu expun un nod DOM
+  // stabil de care să agățăm o tranziție) — opacitatea sare direct la noua
+  // valoare, simplificare acceptată ca să nu depindem de comportament intern
+  // nedocumentat al randererului Google Maps.
   useEffect(() => {
     const ZOOM_THRESHOLD = 15;
     const zoomedIn = zoom >= ZOOM_THRESHOLD;
     homemadeLayersRef.current.forEach(({ circle, houseOverlay, pinMarker, color, isMarkedActive }) => {
-      circle.setStyle({
-        opacity: zoomedIn ? 0.55 : 0,
+      circle.setOptions({
+        strokeOpacity: zoomedIn ? 0.55 : 0,
         fillOpacity: zoomedIn ? 0.12 : 0,
       });
       houseOverlay.setOpacity(zoomedIn ? (isMarkedActive ? 0.85 : 0.5) : 0);
       pinMarker.setOpacity(zoomedIn ? 0 : 1);
-      const pinEl = pinMarker.getElement();
-      if (pinEl) pinEl.style.pointerEvents = zoomedIn ? "none" : "auto";
+      pinMarker.setClickable(!zoomedIn);
     });
   }, [zoom]);
 
@@ -553,6 +515,14 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
     <div style={{ width: "100%", height: "100%", position: "relative", background: "#050506" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
 
+      {mapsError && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 50, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: 24, textAlign: "center", background: "#050506" }}>
+          <MapIcon size={32} style={{ color: "rgba(255,255,255,0.3)" }} />
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Sans', sans-serif" }}>Harta nu s-a putut încărca</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", maxWidth: 280 }}>{mapsError}</div>
+        </div>
+      )}
+
       {/* Ambient "lumini de club" — foarte discret, doar ca să dea o notă de petrecere fără să lumineze harta */}
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
@@ -606,7 +576,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
                   <span style={{ fontSize: 10, fontWeight: 800, color: "#FF3366", background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.5)", borderRadius: 10, padding: "1px 6px", fontFamily: "'DM Mono', monospace" }}>18+</span>
                 )}
               </div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{selectedEvent.title}</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{selectedEvent.title}</div>
             </div>
           </div>
 
@@ -685,18 +655,6 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
           onViewProfile={onViewProfile}
         />
       )}
-
-      <style>{`
-        /* Leaflet pune implicit un fundal deschis la culoare pe container —
-           orice gol subpixel între tile-uri (mai ales la zoom) arăta ca o
-           margine/linie albă peste harta noastră întunecată. */
-        .leaflet-container { background: #050506 !important; }
-        .leaflet-tile-pane { filter: brightness(1.75) contrast(1.1) saturate(1.25); }
-        .leaflet-control-attribution { display: none !important; }
-        .leaflet-control-zoom { border: 1px solid rgba(255,255,255,0.2) !important; background: rgba(10,10,12,0.92) !important; }
-        .leaflet-control-zoom a { color: rgba(255,255,255,0.85) !important; background: transparent !important; border-color: rgba(255,255,255,0.15) !important; }
-        .homemade-pin-marker { transition: opacity 0.4s ease; }
-      `}</style>
     </div>
   );
 }

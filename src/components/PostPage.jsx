@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { formatEventDateTime, toDateInputValue, toTimeInputValue, filterActiveEvents } from "../utils/eventTime";
 import { notifyUser } from "../utils/pushNotifications";
+import { loadGoogleMaps, DARK_MAP_STYLE } from "../utils/googleMapsLoader";
 import LegalPage from "./LegalPage";
 import { CheckCircleIcon, ConfettiIcon, CameraIcon, LightningIcon, HouseIcon, NoEntryIcon, PinIcon, LockIcon, RocketIcon, VIBE_OPTIONS } from "./Icons";
 
@@ -102,11 +103,15 @@ export default function PostPage({ user, onClose, editEvent }) {
   // stă fix în centrul ecranului, tu miști harta pe sub el (nu pinul pe hartă) —
   // mai natural pe telefon decât să nimerești exact un punct cu degetul.
   const [showMapPicker, setShowMapPicker] = useState(false);
-  const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
   const [pickerMoving, setPickerMoving] = useState(false);
   const pickerMapRef = useRef(null);
   const pickerMapInstanceRef = useRef(null);
   const reverseGeocodeTimer = useRef(null);
+  // true doar la primul "idle" (randarea inițială) când porneam deja cu o
+  // locație (din căutarea de adresă) — nu vrem ca acel prim idle să
+  // rescrie form.venue prin reverse-geocode peste adresa deja aleasă.
+  const skipNextIdleRef = useRef(false);
 
   // Dacă adresa e completată jos de tot în formular (aproape de bara de
   // navigare fixă), lista de sugestii deschisă în jos ar ieși din vizibil —
@@ -122,35 +127,31 @@ export default function PostPage({ user, onClose, editEvent }) {
 
   useEffect(() => {
     if (!showMapPicker) return;
-    if (window.L) { setLeafletLoaded(true); return; }
-    if (document.getElementById("leaflet-css")) {
-      const check = setInterval(() => {
-        if (window.L) { setLeafletLoaded(true); clearInterval(check); }
-      }, 50);
-      return () => clearInterval(check);
-    }
-    const link = document.createElement("link");
-    link.id = "leaflet-css";
-    link.rel = "stylesheet";
-    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    document.head.appendChild(link);
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.onload = () => setLeafletLoaded(true);
-    document.head.appendChild(script);
+    let cancelled = false;
+    loadGoogleMaps().then(() => { if (!cancelled) setMapsLoaded(true); }).catch(() => {});
+    return () => { cancelled = true; };
   }, [showMapPicker]);
 
   useEffect(() => {
-    if (!showMapPicker || !leafletLoaded || !pickerMapRef.current || pickerMapInstanceRef.current || !window.L) return;
-    const L = window.L;
-    const center = form.lat && form.lng ? [form.lat, form.lng] : [44.4268, 26.1025];
-    const map = L.map(pickerMapRef.current, { center, zoom: form.lat ? 16 : 12, zoomControl: false });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(map);
-    L.control.zoom({ position: "bottomright" }).addTo(map);
+    if (!showMapPicker || !mapsLoaded || !pickerMapRef.current || pickerMapInstanceRef.current) return;
+    const google = window.google;
+    const hasInitialLocation = !!(form.lat && form.lng);
+    const center = hasInitialLocation ? { lat: form.lat, lng: form.lng } : { lat: 44.4268, lng: 26.1025 };
+    const map = new google.maps.Map(pickerMapRef.current, {
+      center, zoom: hasInitialLocation ? 16 : 12, styles: DARK_MAP_STYLE,
+      disableDefaultUI: true, zoomControl: true,
+      zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+      clickableIcons: false,
+    });
     pickerMapInstanceRef.current = map;
+    // Locația era deja setată (ex: din căutarea de adresă) — sărim peste
+    // primul "idle" (declanșat automat de randarea inițială), ca să nu
+    // rescriem adresa deja aleasă printr-un reverse-geocode inutil.
+    skipNextIdleRef.current = hasInitialLocation;
 
     const commitCenter = () => {
-      const { lat, lng } = map.getCenter();
+      const c = map.getCenter();
+      const lat = c.lat(), lng = c.lng();
       setForm(f => ({ ...f, lat, lng }));
       setPickerMoving(false);
       clearTimeout(reverseGeocodeTimer.current);
@@ -160,21 +161,19 @@ export default function PostPage({ user, onClose, editEvent }) {
       }, 400);
     };
 
-    map.on("movestart", () => setPickerMoving(true));
-    map.on("moveend", commitCenter);
-    if (form.lat && form.lng) {
-      // Locația era deja setată (ex: din căutarea de adresă) — nu o rescriem
-      // fără motiv, doar centrăm harta pe ea.
-    } else {
+    map.addListener("dragstart", () => setPickerMoving(true));
+    // "idle" e echivalentul Google Maps pentru "moveend" (se declanșează și
+    // după zoom, și după randarea inițială — de-aici nevoia de skipNextIdleRef).
+    map.addListener("idle", () => {
+      if (skipNextIdleRef.current) { skipNextIdleRef.current = false; return; }
       commitCenter();
-    }
+    });
 
     return () => {
-      map.remove();
       pickerMapInstanceRef.current = null;
       clearTimeout(reverseGeocodeTimer.current);
     };
-  }, [showMapPicker, leafletLoaded]);
+  }, [showMapPicker, mapsLoaded]);
 
   const handleAddressChange = (val) => {
     setForm(f => ({ ...f, venue: val, lat: null, lng: null }));

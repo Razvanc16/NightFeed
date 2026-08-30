@@ -38,7 +38,7 @@ export default function LegalPage({ onClose }) {
         </Section>
 
         <Section title="4. Cui le împărtășim">
-          Datele sunt găzduite și procesate de furnizori terți pe care îi folosim ca infrastructură: Supabase (bază de date, autentificare, stocare fișiere) și Vercel (găzduire aplicație). Nu vindem și nu împărtășim datele tale cu terți în scop de marketing.
+          Datele sunt găzduite și procesate de furnizori terți pe care îi folosim ca infrastructură: Supabase (bază de date, autentificare, stocare fișiere), Vercel (găzduire aplicație) și Google Maps (afișarea hărții — încărcarea ei trimite către Google adresa IP și informații tehnice de bază despre browser, conform politicii lor de confidențialitate). Nu vindem și nu împărtășim datele tale cu terți în scop de marketing.
         </Section>
 
         <Section title="5. Cât timp le păstrăm">
