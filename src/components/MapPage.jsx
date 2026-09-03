@@ -497,7 +497,15 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
 
   const handleNavigate = (event) => {
     if (!event.coords) return;
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.coords[0]},${event.coords[1]}`, "_blank");
+    // window.open(..., "_blank") într-un PWA instalat (standalone) deschide
+    // un tab de browser gol, în afara aplicației — nu există un "tab" vizibil
+    // în care să navigheze, deci rămâi cu un ecran "Search or enter website
+    // name" când încerci să revii în PWA. Navigarea directă a ferestrei
+    // curente lasă telefonul să interpreteze link-ul ca intent nativ spre
+    // aplicația Maps (deschide Maps, PWA-ul rămâne intact dedesubt); dacă
+    // dispozitivul n-are Maps instalat, navighează normal, recuperabil cu
+    // butonul de back al browserului, nu cu un tab gol orfan.
+    window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${event.coords[0]},${event.coords[1]}`;
   };
 
   // Adresa exactă (și deci navigarea) e permisă doar dacă hostul a ales

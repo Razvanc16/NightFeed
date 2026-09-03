@@ -305,7 +305,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
                   <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00C864", fontFamily: "'DM Mono', monospace", marginBottom: 4, fontWeight: 700 }}><PinIcon size={12} /> ADRESĂ EXACTĂ</div>
                   <div style={{ fontSize: 14, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{req.posted_events.venue}</div>
                   {req.posted_events.lat && (
-                    <button onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${req.posted_events.lat},${req.posted_events.lng}`, "_blank")} style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "rgba(0,200,100,0.2)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, padding: "6px 12px", color: "#00C864", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+                    <button onClick={() => { window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${req.posted_events.lat},${req.posted_events.lng}`; }} style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "rgba(0,200,100,0.2)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, padding: "6px 12px", color: "#00C864", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
                       <MapIcon size={13} /> Navighez
                     </button>
                   )}
