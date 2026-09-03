@@ -890,7 +890,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 archivedEvents.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
                     <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}><OutboxIcon size={28} /></div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Inter', sans-serif", marginBottom: 6 }}>Arhiva e goală</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>Arhiva e goală</div>
                     <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Evenimentele pe care le arhivezi apar aici.</div>
                   </div>
                 ) : archivedEvents.map(event => (
@@ -900,7 +900,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                         {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{event.title}</div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {formatPrice(event.price) || "Gratuit"}</div>
                       </div>
                       <ActionMenu items={[
@@ -1018,7 +1018,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             <input
               value={deleteConfirmText}
               onChange={e => setDeleteConfirmText(e.target.value)}
-              placeholder="ȘTERGE"
+              placeholder="STERGE"
               style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", outline: "none", marginBottom: 14, textTransform: "uppercase" }}
             />
             <div style={{ display: "flex", gap: 10 }}>

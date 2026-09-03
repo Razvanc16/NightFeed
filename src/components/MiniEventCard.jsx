@@ -114,7 +114,7 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
         <div style={{ fontSize: 9, fontWeight: 700, color: event.color, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>
           {event.type === "official" ? "Oficial" : "Neoficial"}
         </div>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", lineHeight: 1.25, marginBottom: 3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", lineHeight: 1.25, marginBottom: 3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
           {event.title}
         </div>
         <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>{formatPrice(event.price)}</div>

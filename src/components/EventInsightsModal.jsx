@@ -36,7 +36,7 @@ export default function EventInsightsModal({ event, rawId, onClose, onViewProfil
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 10350, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
         <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "22px 20px", width: "100%", maxWidth: 340, border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>{event.title}</div>
+          <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>{event.title}</div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 18 }}>{event.date} · {formatPrice(event.price) || "Gratuit"}</div>
 
           {!stats ? (
@@ -44,11 +44,11 @@ export default function EventInsightsModal({ event, rawId, onClose, onViewProfil
           ) : (
             <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
               <button onClick={() => setPeopleSheetFor({ source: "likes", eventId: prefixedId, title: "Aprecieri" })} style={{ flex: 1, padding: "14px 10px", borderRadius: 14, background: "rgba(255,51,102,0.08)", border: "1px solid rgba(255,51,102,0.2)", cursor: "pointer", textAlign: "center" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{stats.likes}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stats.likes}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Aprecieri</div>
               </button>
               <button onClick={() => setPeopleSheetFor({ source: isRequestBased ? "requests" : "attendances", eventId: prefixedId, title: "Participă" })} style={{ flex: 1, padding: "14px 10px", borderRadius: 14, background: "rgba(0,200,100,0.08)", border: "1px solid rgba(0,200,100,0.2)", cursor: "pointer", textAlign: "center" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{stats.attending}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stats.attending}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Participă</div>
               </button>
             </div>

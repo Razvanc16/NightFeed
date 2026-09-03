@@ -56,7 +56,7 @@ export default function MyTicketsPage({ user, onClose, onOpenEvent }) {
     <div style={{ position: "fixed", inset: 0, background: "#080808", zIndex: 300, overflowY: "auto", paddingBottom: 80, animation: "slideUp 0.3s ease-out" }}>
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>Biletele mele</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Biletele mele</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 3 }}>Codul QR pentru intrarea la evenimente</div>
         </div>
         <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
@@ -82,7 +82,7 @@ export default function MyTicketsPage({ user, onClose, onOpenEvent }) {
               {t.event?.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.event?.title || "Eveniment"}</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.event?.title || "Eveniment"}</div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{t.event?.date}</div>
             </div>
             {t.checked_in ? (
@@ -102,7 +102,7 @@ export default function MyTicketsPage({ user, onClose, onOpenEvent }) {
         <div onClick={() => setOpenTicket(null)} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 4 }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", textAlign: "left" }}>{openTicket.event?.title || "Eveniment"}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", textAlign: "left" }}>{openTicket.event?.title || "Eveniment"}</div>
               {onOpenEvent && (
                 <button
                   onClick={() => { const eid = openTicket.event_id; setOpenTicket(null); onClose(); onOpenEvent(eid); }}

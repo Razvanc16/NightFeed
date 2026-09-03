@@ -6,7 +6,7 @@ import PasswordChecklist from "./PasswordChecklist";
 import PasswordInput from "./PasswordInput";
 import LegalPage from "./LegalPage";
 import BrandBackdrop from "./BrandBackdrop";
-import { Mail, KeyRound, Rocket, ArrowLeft, ArrowRight } from "lucide-react";
+import { EnvelopeIcon, KeyIcon, RocketIcon, ArrowLeftIcon, ArrowRightIcon } from "./Icons";
 
 const container = {
   hidden: {},
@@ -242,7 +242,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           onClick={onBack}
           className="absolute left-6 top-[calc(env(safe-area-inset-top,0px)+20px)] z-30 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 font-sans text-[13px] font-semibold text-white/70 backdrop-blur-md md:left-10"
         >
-          <ArrowLeft size={14} /> Înapoi
+          <ArrowLeftIcon size={14} /> Înapoi
         </button>
       )}
 
@@ -256,21 +256,21 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           <div className="absolute inset-0 rounded-full bg-[#FF3366] opacity-40 blur-xl" />
           <img src="/icon-512.png" alt="NightFeed" className="relative h-full w-full rounded-2xl object-cover shadow-[0_0_40px_rgba(255,51,102,0.4)]" />
         </div>
-        <div className="font-sans text-2xl font-[900] tracking-tight text-white">
+        <div className="font-syne text-2xl font-[900] tracking-tight text-white">
           Night<span className="text-[#FF3366]">Feed</span>
         </div>
       </motion.div>
 
       {mode === "verify" && (
         <Card modeKey="verify" dir={dir}>
-          <motion.div variants={item} className="mx-auto flex text-white/60"><Mail size={48} strokeWidth={1.5} /></motion.div>
-          <motion.div variants={item} className="font-sans text-xl font-extrabold text-white">Verifică emailul!</motion.div>
+          <motion.div variants={item} className="mx-auto flex text-white/60"><EnvelopeIcon size={48} /></motion.div>
+          <motion.div variants={item} className="font-syne text-xl font-extrabold text-white">Verifică emailul!</motion.div>
           <motion.div variants={item} className="mb-2 font-sans text-[14px] leading-relaxed text-white/50">
             Am trimis un link de confirmare la <span className="text-[#FF3366]">{email}</span>. Dă click pe link și revino aici să te loghezi.
           </motion.div>
           <motion.div variants={item}>
             <PrimaryButton onClick={() => goTo("login", -1)}>
-              Mergi la login <ArrowRight size={16} />
+              Mergi la login <ArrowRightIcon size={16} />
             </PrimaryButton>
           </motion.div>
         </Card>
@@ -279,8 +279,8 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       {mode === "forgot" && (
         <Card modeKey="forgot" dir={dir}>
           <motion.div variants={item} className="mb-1 flex flex-col items-center gap-1.5">
-            <div className="flex items-center gap-2 font-sans text-base font-bold text-white">
-              Resetează parola <KeyRound size={16} />
+            <div className="flex items-center gap-2 font-syne text-base font-bold text-white">
+              Resetează parola <KeyIcon size={16} />
             </div>
             <div className="font-sans text-xs text-white/40">Îți trimitem un link de resetare pe email.</div>
           </motion.div>
@@ -314,14 +314,14 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
       {mode === "forgot-sent" && (
         <Card modeKey="forgot-sent" dir={dir}>
-          <motion.div variants={item} className="mx-auto flex text-white/60"><Mail size={48} strokeWidth={1.5} /></motion.div>
-          <motion.div variants={item} className="font-sans text-xl font-extrabold text-white">Verifică emailul!</motion.div>
+          <motion.div variants={item} className="mx-auto flex text-white/60"><EnvelopeIcon size={48} /></motion.div>
+          <motion.div variants={item} className="font-syne text-xl font-extrabold text-white">Verifică emailul!</motion.div>
           <motion.div variants={item} className="mb-2 font-sans text-[14px] leading-relaxed text-white/50">
             Ți-am trimis un link de resetare la <span className="text-[#FF3366]">{email}</span>. Dă click pe el și vei putea seta o parolă nouă.
           </motion.div>
           <motion.div variants={item}>
             <PrimaryButton onClick={() => goTo("login", -1)}>
-              Mergi la login <ArrowRight size={16} />
+              Mergi la login <ArrowRightIcon size={16} />
             </PrimaryButton>
           </motion.div>
         </Card>
@@ -329,8 +329,8 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
 
       {(mode === "login" || mode === "register") && (
         <Card modeKey={mode} dir={dir}>
-          <motion.div variants={item} className="mb-1 flex items-center justify-center gap-2 font-sans text-base font-bold text-white">
-            {mode === "login" ? "Bine ai revenit" : <>Cont nou <Rocket size={15} /></>}
+          <motion.div variants={item} className="mb-1 flex items-center justify-center gap-2 font-syne text-base font-bold text-white">
+            {mode === "login" ? "Bine ai revenit" : <>Cont nou <RocketIcon size={15} /></>}
           </motion.div>
 
           <motion.div variants={item}>

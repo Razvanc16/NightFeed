@@ -150,7 +150,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
       {/* Header */}
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>
             Cereri participare
             {pendingCount > 0 && (
               <span style={{ marginLeft: 8, background: "#FF3366", color: "#fff", fontSize: 11, borderRadius: 20, padding: "2px 8px", fontFamily: "'DM Mono', monospace" }}>{pendingCount}</span>
@@ -288,7 +288,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
                   {req.posted_events?.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{req.posted_events?.title}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{req.posted_events?.title}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{req.posted_events?.date}</div>
                   <div style={{ marginTop: 6 }}>{statusBadge(req.status)}</div>
                 </div>
@@ -325,7 +325,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
       {openTicket && (
         <div onClick={() => setOpenTicket(null)} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 4 }}>{openTicket.posted_events?.title}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>{openTicket.posted_events?.title}</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 20 }}>Arată codul la intrare</div>
 
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>

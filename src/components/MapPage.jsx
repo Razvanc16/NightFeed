@@ -584,7 +584,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
                   <span style={{ fontSize: 10, fontWeight: 800, color: "#FF3366", background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.5)", borderRadius: 10, padding: "1px 6px", fontFamily: "'DM Mono', monospace" }}>18+</span>
                 )}
               </div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>{selectedEvent.title}</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{selectedEvent.title}</div>
             </div>
           </div>
 

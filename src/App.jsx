@@ -693,10 +693,10 @@ export default function App() {
       <style>{`
         /* touch-action nu se moștenește din body pe copii — de-asta e pe *,
            nu doar pe body, ca să blocheze pinch/dublu-tap zoom oriunde atingi
-           pagina. Harta din MapPage rămâne intactă: .leaflet-container din
-           leaflet.css are un selector mai specific, deci câștigă local. */
+           pagina. Harta din MapPage (Google Maps) e neafectată — gesturile
+           ei de pan/zoom sunt gestionate intern de SDK, nu de touch-action. */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: pan-x pan-y; }
-        body { background: #000; overflow: hidden; font-family: 'DM Sans', 'Inter', sans-serif; }
+        body { background: #000; overflow: hidden; font-family: 'DM Sans', sans-serif; }
         /* Fără plafon de lățime — se întinde pe tot ecranul, indiferent cât de
            lat e monitorul. transform:translateZ(0) rămâne util chiar și fără
            max-width: orice ancestor cu transform devine "containing block"
@@ -973,7 +973,7 @@ export default function App() {
                       background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.5)",
                     }}><MoonIcon size={36} /></div>
-                    <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
                       Liniște deocamdată
                     </div>
                     <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
@@ -986,7 +986,7 @@ export default function App() {
                     <button onClick={() => feedMode === "following" ? setFeedMode("foryou") : setShowPost(true)} style={{
                       padding: "14px 28px", borderRadius: 30, border: "none", cursor: "pointer",
                       background: "linear-gradient(120deg, #FF3366, #B44FFF)", color: "#fff",
-                      fontSize: 15, fontWeight: 700, fontFamily: "'Inter', sans-serif",
+                      fontSize: 15, fontWeight: 700, fontFamily: "'Syne', sans-serif",
                       boxShadow: "0 8px 30px rgba(255,51,102,0.35)",
                     }}>
                       {feedMode === "following" ? "Vezi Pentru tine" : "+ Postează primul eveniment"}

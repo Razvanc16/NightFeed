@@ -88,7 +88,7 @@ export default function AvatarCropSheet({ file, imageUrl, onCancel, onConfirm })
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 10300, background: "#080808", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 20, animation: "tabEnter 0.25s cubic-bezier(0.16,1,0.3,1)" }}>
-      <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", marginBottom: 6 }}>Ajustează poza</div>
+      <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>Ajustează poza</div>
       <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 20 }}>Trage și mărește poza în interiorul cercului</div>
 
       <div
@@ -133,7 +133,7 @@ export default function AvatarCropSheet({ file, imageUrl, onCancel, onConfirm })
         </button>
         <button
           onClick={handleConfirm}
-          style={{ flex: 1, padding: "13px", borderRadius: 14, background: "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+          style={{ flex: 1, padding: "13px", borderRadius: 14, background: "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
         >
           <CheckCircleIcon size={15} /> Salvează
         </button>

@@ -75,7 +75,7 @@ export default function PostPage({ user, onClose, editEvent }) {
     venue: editEvent?.venue || "",
     eventDate: toDateInputValue(editEvent?.event_date),
     eventTime: toTimeInputValue(editEvent?.event_date),
-    price: editEvent?.price || "",
+    price: editEvent?.price || "Gratuit",
     type: editEvent?.type || "homemade",
     location_visible: editEvent ? !!editEvent.location_visible : false,
     vibe: editEvent?.vibe || null,
@@ -722,14 +722,14 @@ export default function PostPage({ user, onClose, editEvent }) {
           <div onClick={() => setShowNoPhotoConfirm(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 500, animation: "backdropIn 0.2s ease-out" }} />
           <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 501, background: "#0f0f12", borderTop: "2px solid rgba(255,51,102,0.3)", borderRadius: "24px 24px 0 0", padding: "22px 20px 40px", animation: "slideUp 0.25s ease-out" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 6, color: "#FF3366" }}><CameraIcon size={36} /></div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", textAlign: "center", marginBottom: 8 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", textAlign: "center", marginBottom: 8 }}>
               Postezi fără poză?
             </div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", textAlign: "center", lineHeight: 1.5, marginBottom: 20 }}>
               Evenimentele cu poză primesc mult mai multă atenție în feed. Poți oricând să adaugi una acum.
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <button onClick={() => { setShowNoPhotoConfirm(false); fileRef.current?.click(); }} style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", cursor: "pointer" }}>
+              <button onClick={() => { setShowNoPhotoConfirm(false); fileRef.current?.click(); }} style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}>
                 Adaugă o poză
               </button>
               <button onClick={() => { setShowNoPhotoConfirm(false); doSubmit(); }} style={{ width: "100%", padding: "13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>

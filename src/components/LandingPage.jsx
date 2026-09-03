@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, LogIn, Home, PartyPopper, MapPin } from "lucide-react";
+import { ArrowRightIcon, KeyIcon, HouseIcon, ConfettiIcon, PinIcon } from "./Icons";
 import BrandBackdrop from "./BrandBackdrop";
 
 const container = {
@@ -28,7 +28,7 @@ function FloatingBadge({ icon: Icon, label, className, delay = 0, floatY = 10, d
         animate={{ y: [0, -floatY, 0] }}
         transition={{ duration, repeat: Infinity, ease: "easeInOut", delay }}
       >
-        <Icon size={14} className="text-[#FF6B6B]" />
+        <Icon size={14} style={{ color: "#FF6B6B" }} />
         {label}
       </motion.div>
     </motion.div>
@@ -40,9 +40,9 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
     <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-[#09090b] px-6 py-10 md:px-10">
       <BrandBackdrop />
 
-      <FloatingBadge icon={Home} label="Petreceri homemade" className="left-[6%] top-[14%] md:left-[10%]" delay={0.5} />
-      <FloatingBadge icon={PartyPopper} label="Cluburi & evenimente" className="right-[6%] top-[20%] md:right-[12%]" delay={0.7} floatY={8} duration={6} />
-      <FloatingBadge icon={MapPin} label="Orașul tău, live" className="bottom-[12%] left-[8%] md:left-[14%]" delay={0.9} floatY={9} duration={5.5} />
+      <FloatingBadge icon={HouseIcon} label="Petreceri homemade" className="left-[6%] top-[14%] md:left-[10%]" delay={0.5} />
+      <FloatingBadge icon={ConfettiIcon} label="Cluburi & evenimente" className="right-[6%] top-[20%] md:right-[12%]" delay={0.7} floatY={8} duration={6} />
+      <FloatingBadge icon={PinIcon} label="Orașul tău, live" className="bottom-[12%] left-[8%] md:left-[14%]" delay={0.9} floatY={9} duration={5.5} />
 
       <motion.div
         variants={container}
@@ -65,7 +65,7 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
           <img src="/icon-512.png" alt="NightFeed" className="relative h-full w-full rounded-[24px] object-cover shadow-[0_0_50px_rgba(255,51,102,0.45)]" />
         </motion.div>
 
-        <motion.h1 variants={item} className="mb-3 font-sans text-[30px] font-[900] tracking-tight text-white md:text-5xl">
+        <motion.h1 variants={item} className="mb-3 font-syne text-[30px] font-[900] tracking-tight text-white md:text-5xl">
           Night<span className="text-[#FF3366]">Feed</span>
         </motion.h1>
 
@@ -81,7 +81,7 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
             className="group flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-gradient-to-r from-[#FF3366] to-[#B44FFF] px-6 py-[15px] font-sans text-[15px] font-bold text-white shadow-[0_8px_34px_rgba(255,51,102,0.4)] md:py-4 md:text-base"
           >
             Sunt utilizator nou
-            <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRightIcon size={17} className="transition-transform duration-300 group-hover:translate-x-1" />
           </motion.button>
 
           <motion.button
@@ -90,7 +90,7 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
             whileTap={{ scale: 0.97 }}
             className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-[15px] font-sans text-[15px] font-bold text-white backdrop-blur-md md:py-4 md:text-base"
           >
-            <LogIn size={16} />
+            <KeyIcon size={16} />
             Am cont
           </motion.button>
         </motion.div>

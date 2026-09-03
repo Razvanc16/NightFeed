@@ -63,7 +63,7 @@ export default function ReportSheet({ event, user, open, onClose }) {
         {sent ? (
           <div style={{ textAlign: "center", padding: "20px 0" }}>
             <div style={{ marginBottom: 12, color: "#00C864", display: "flex", justifyContent: "center" }}><CheckCircleIcon size={44} /></div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>Raportare trimisă</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Raportare trimisă</div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 8 }}>O verificăm cât mai curând.</div>
           </div>
         ) : (
@@ -71,7 +71,7 @@ export default function ReportSheet({ event, user, open, onClose }) {
             <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ color: "#FFB800" }}><WarningIcon size={18} /></span>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>Raportează</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Raportează</div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{event.title}</div>
               </div>
             </div>
@@ -101,7 +101,7 @@ export default function ReportSheet({ event, user, open, onClose }) {
 
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>Anulează</button>
-              <button onClick={handleSend} disabled={sending || !reason} style={{ flex: 2, padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: !reason ? "rgba(255,184,0,0.25)" : sending ? "rgba(255,184,0,0.4)" : "linear-gradient(135deg, #FFB800, #FF6B35)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", cursor: (sending || !reason) ? "not-allowed" : "pointer" }}>
+              <button onClick={handleSend} disabled={sending || !reason} style={{ flex: 2, padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: !reason ? "rgba(255,184,0,0.25)" : sending ? "rgba(255,184,0,0.4)" : "linear-gradient(135deg, #FFB800, #FF6B35)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: (sending || !reason) ? "not-allowed" : "pointer" }}>
                 {sending ? "Se trimite..." : "Trimite raportarea"}
               </button>
             </div>

@@ -110,7 +110,7 @@ export default function CheckinScannerSheet({ event, onClose }) {
     <div style={{ position: "fixed", inset: 0, background: "#000", zIndex: 10400, display: "flex", flexDirection: "column", animation: "backdropIn 0.2s ease-out" }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", background: "linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif" }}>Scanează bilete</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Scanează bilete</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.title}</div>
         </div>
         <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 10, padding: "7px 12px", color: "#fff", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
@@ -135,7 +135,7 @@ export default function CheckinScannerSheet({ event, onClose }) {
       {result && (
         <div style={{ position: "absolute", inset: 0, zIndex: 3, background: RESULT_STYLES[result.status].bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 30, animation: "tabEnter 0.2s ease-out" }}>
           {(() => { const Icon = RESULT_STYLES[result.status].Icon; return <Icon size={64} style={{ color: "#fff" }} />; })()}
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Inter', sans-serif", textAlign: "center" }}>{result.title}</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", textAlign: "center" }}>{result.title}</div>
           {result.detail && <div style={{ fontSize: 15, color: "rgba(255,255,255,0.9)", fontFamily: "'DM Sans', sans-serif", textAlign: "center" }}>{result.detail}</div>}
         </div>
       )}
