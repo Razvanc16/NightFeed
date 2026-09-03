@@ -59,6 +59,14 @@ const extractPriceAmount = (price) => {
 // cât și la editarea unui eveniment care are deja un preț invalid salvat.
 const MAX_PRICE = 100000;
 const MAX_PARTICIPANTS = 5000;
+// Whitelist explicită de tipuri — atributul accept="image/*,video/*" de pe
+// input e doar un hint pt. selector-ul de fișiere, ușor de ocolit ("All files"
+// în dialogul de sistem, sau un fișier setat programatic pe input); fără
+// verificare aici, orice fișier (inclusiv unul executabil redenumit .jpg)
+// ajungea direct în Supabase Storage.
+const ALLOWED_COVER_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm", "video/quicktime"];
+const MAX_IMAGE_MB = 15;
+const MAX_VIDEO_MB = 60;
 const clampPrice = (val) => {
   if (!val) return val;
   const n = Number(val);
@@ -207,6 +215,17 @@ export default function PostPage({ user, onClose, editEvent }) {
     if (!file) return;
     setCoverError("");
     setCoverUnverified(false);
+
+    if (!ALLOWED_COVER_TYPES.includes(file.type)) {
+      setCoverError("Format neacceptat — doar poze (jpg, png, webp, gif) sau video (mp4, webm, mov).");
+      return;
+    }
+    const isVideo = file.type.startsWith("video/");
+    const maxBytes = (isVideo ? MAX_VIDEO_MB : MAX_IMAGE_MB) * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setCoverError(`Fișierul e prea mare — maxim ${isVideo ? MAX_VIDEO_MB : MAX_IMAGE_MB}MB.`);
+      return;
+    }
 
     if (file.type.startsWith("video/")) {
       // Verificăm durata înainte să acceptăm — feed-ul suportă doar clipuri

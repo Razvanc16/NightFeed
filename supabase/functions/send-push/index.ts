@@ -76,6 +76,14 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Limită de lungime — fără ea, oricine autentificat putea trimite un
+    // payload uriaș (title/body de MB întregi) către push-ul altui user.
+    if (String(title).length > 200 || String(body || "").length > 1000 || String(url || "").length > 500) {
+      return new Response(JSON.stringify({ error: "Payload too large" }), {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 

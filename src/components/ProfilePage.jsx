@@ -418,6 +418,18 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     const file = e.target.files[0];
     e.target.value = ""; // altfel re-selectarea aceluiași fișier nu mai declanșează onChange
     if (!file) return;
+    // Poza trece oricum printr-un canvas la crop (re-codificată în jpeg, deci
+    // conținutul brut nu ajunge niciodată în Storage) — dar tot verificăm
+    // aici ca să nu încercăm să decodăm un fișier uriaș sau de alt tip direct
+    // în canvas, ceea ce ar putea îngheța tab-ul pe telefoane slabe.
+    if (!file.type.startsWith("image/")) {
+      alert("Te rog alege o poză (jpg, png, webp...).");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      alert("Poza e prea mare — maxim 15MB.");
+      return;
+    }
     setCropSource({ file });
   };
 
