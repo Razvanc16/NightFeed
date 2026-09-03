@@ -155,9 +155,12 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       if (mode === "login") {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          if (error.message.includes("Email not confirmed")) {
-            setError("Emailul nu e confirmat. Verifică inbox-ul!");
-          } else if (error.message.includes("Invalid login credentials")) {
+          // Mesaj identic pentru "email neconfirmat" și "credențiale greșite" —
+          // altfel, un atacator putea deduce dacă un email există în bază
+          // (răspunsuri diferite = "enumerare de useri"). Cine chiar are emailul
+          // neconfirmat oricum știe deja din ecranul "Verifică emailul!" de la
+          // înregistrare, sau poate folosi "Am uitat parola?" ca alternativă.
+          if (error.message.includes("Email not confirmed") || error.message.includes("Invalid login credentials")) {
             setError("Email sau parolă incorectă!");
           } else {
             setError(error.message);

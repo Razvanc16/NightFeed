@@ -26,12 +26,25 @@ const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY")!;
 
 webpush.setVapidDetails("mailto:contact@nightfeed.app", VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Doar originile astea au voie să apeleze funcția — altfel orice site putea
+// trimite cereri cross-origin folosind sesiunea userului (CSRF-like).
+const ALLOWED_ORIGINS = [
+  "https://nightfeed.ro",
+  "https://www.nightfeed.ro",
+  "http://localhost:5173",
+];
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  const allowed = ALLOWED_ORIGINS.includes(origin) || /^https:\/\/.*\.vercel\.app$/.test(origin);
+  return {
+    "Access-Control-Allow-Origin": allowed ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Vary": "Origin",
+  };
+}
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
