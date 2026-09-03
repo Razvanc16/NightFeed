@@ -54,7 +54,11 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
           acel ancestor scrollabil, scrolând feed-ul pe sub modal. */}
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: open ? "blur(4px)" : "none", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "opacity 0.3s", zIndex: 400, touchAction: "none" }} />
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(10,10,12,0.98)", borderTop: `2px solid ${event.color || "#FF3366"}40`, borderRadius: "24px 24px 0 0", transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)", zIndex: 401, padding: "16px 20px", paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))", touchAction: "none" }}>
+      {/* maxHeight + overflowY:auto — vezi ReportSheet pentru explicația
+          completă (conținut care poate depăși ecranul pe telefoane mici,
+          fără scroll intern spărgea vizual sheet-ul la orice tentativă de
+          scroll). touchAction "pan-y" ține scroll-ul local sheet-ului. */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxHeight: "85vh", overflowY: "auto", background: "rgba(10,10,12,0.98)", borderTop: `2px solid ${event.color || "#FF3366"}40`, borderRadius: "24px 24px 0 0", transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)", zIndex: 401, padding: "16px 20px", paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))", touchAction: "pan-y" }}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
         </div>
