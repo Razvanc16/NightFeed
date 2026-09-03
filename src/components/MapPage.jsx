@@ -253,8 +253,8 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
       zoom: 12,
       styles: DARK_MAP_STYLE,
       disableDefaultUI: true,
-      zoomControl: true,
-      zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+      zoomControl: false,
+      keyboardShortcuts: false,
       clickableIcons: false,
       backgroundColor: "#050506",
     });
