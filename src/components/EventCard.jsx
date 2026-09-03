@@ -511,7 +511,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         },
     { key: "comment", onClick: handleComment, active: false, icon: <CommentIcon /> },
     { key: "share", onClick: handleShare, active: false, icon: <ShareIcon /> },
-    { key: "report", onClick: (e) => { e.stopPropagation(); setShowReport(true); }, active: false, icon: <FlagIcon /> },
+    { key: "report", onClick: (e) => { e.stopPropagation(); animateBtn("report"); setShowReport(true); }, active: false, icon: <FlagIcon /> },
   ];
 
   return (
