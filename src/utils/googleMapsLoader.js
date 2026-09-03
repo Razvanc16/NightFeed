@@ -15,7 +15,7 @@
 //      localhost/* cât timp testezi local) — altfel oricine îți poate folosi
 //      cheia și îți consumă bugetul.
 //   5. Lipește cheia mai jos, în locul textului "PASTE_YOUR_KEY_HERE".
-export const GOOGLE_MAPS_API_KEY = "PASTE_YOUR_KEY_HERE";
+export const GOOGLE_MAPS_API_KEY = "AIzaSyB3xiE9KACBGEUE5IeY3hWhgy5Yu5V4RU4";
 
 let loadPromise = null;
 
@@ -30,10 +30,18 @@ export function loadGoogleMaps() {
       reject(new Error("Lipsește cheia Google Maps — vezi src/utils/googleMapsLoader.js"));
       return;
     }
+    // "callback=" (nu "loading=async") — varianta clasică, în care tot
+    // namespace-ul google.maps (Map, Marker, Circle, GroundOverlay,
+    // ControlPosition, Size, Point etc.) e garantat complet populat până
+    // se declanșează callback-ul. Cu loading=async, doar Map/Marker sunt
+    // disponibile imediat — restul (ex. ControlPosition) rămâne undefined
+    // până apelezi explicit google.maps.importLibrary(), ceea ce am
+    // descoperit abia la testare live (crash: "Cannot read properties of
+    // undefined (reading 'RIGHT_BOTTOM')").
+    window.__nightfeedGoogleMapsCallback = () => resolve(window.google.maps);
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=marker&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=marker&callback=__nightfeedGoogleMapsCallback`;
     script.async = true;
-    script.onload = () => resolve(window.google.maps);
     script.onerror = () => reject(new Error("Nu s-a putut încărca Google Maps."));
     document.head.appendChild(script);
   });
