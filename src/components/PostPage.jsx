@@ -738,17 +738,6 @@ export default function PostPage({ user, onClose, editEvent }) {
           )}
         </div>
 
-        {/* Restul câmpurilor */}
-        {[
-          { key: "ticket_link", label: "Link bilete", placeholder: "https://...", type: "url" },
-        ].map(field => (
-          <div key={field.key} style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>{field.label}</div>
-            <input type={field.type} placeholder={field.placeholder} value={form[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
-              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
-          </div>
-        ))}
-
         {/* Descriere */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Descriere</div>

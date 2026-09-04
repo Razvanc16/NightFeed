@@ -879,9 +879,15 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                       <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {formatPrice(event.price) || "Gratuit"}</div>
                       <div style={{ marginTop: 4, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 8px", borderRadius: 10, background: event.verified ? "rgba(0,200,100,0.15)" : "rgba(255,184,0,0.15)", border: `1px solid ${event.verified ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, fontSize: 10, color: event.verified ? "#00C864" : "#FFB800", fontFamily: "'DM Mono', monospace" }}>
-                          {event.verified ? <><CheckCircleIcon size={11} /> Verificat</> : <><ClockIcon size={11} /> În așteptare</>}
-                        </span>
+                        {/* verified privește doar evenimentele oficiale (au nevoie
+                            de aprobare manuală înainte să apară în feed) — cele
+                            neoficiale sunt deja live indiferent de acest flag, deci
+                            "În așteptare" pe ele era doar confuz, fără nicio bază reală. */}
+                        {event.type === "official" && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 8px", borderRadius: 10, background: event.verified ? "rgba(0,200,100,0.15)" : "rgba(255,184,0,0.15)", border: `1px solid ${event.verified ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, fontSize: 10, color: event.verified ? "#00C864" : "#FFB800", fontFamily: "'DM Mono', monospace" }}>
+                            {event.verified ? <><CheckCircleIcon size={11} /> Verificat</> : <><ClockIcon size={11} /> În așteptare</>}
+                          </span>
+                        )}
                         {event.code && (
                           <button
                             onClick={() => copyCode(event.code)}
