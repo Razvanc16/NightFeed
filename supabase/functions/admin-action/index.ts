@@ -91,7 +91,11 @@ Deno.serve(async (req) => {
       const { data: targetUserData } = await adminClient.auth.admin.getUserById(targetUserId);
       const targetEmail = targetUserData?.user?.email;
       if (targetEmail) {
-        await adminClient.rpc("admin_notify_account_deleted", { target_email: targetEmail }).catch(() => {});
+        try {
+          await adminClient.rpc("admin_notify_account_deleted", { target_email: targetEmail });
+        } catch {
+          // best-effort — nu blocăm ștergerea dacă emailul eșuează
+        }
       }
 
       // Aceeași listă de tabele ca la auto-ștergerea contului din
