@@ -299,6 +299,15 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
     else v.pause();
   }, [isActive, videoPaused, event.cover_url]);
 
+  // O "vizualizare" per trecere prin feed, nu per re-render — best-effort,
+  // nu blocăm nimic dacă eșuează (offline, RLS etc.).
+  useEffect(() => {
+    if (!isActive) return;
+    const rawId = (event.rawId || event.id).toString().replace("posted_", "");
+    supabase.rpc("increment_event_view", { target_event_id: rawId }).then(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, event.id]);
+
   const toggleVideoMute = (e) => {
     e.stopPropagation();
     setVideoMuted(m => !m);
