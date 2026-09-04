@@ -16,6 +16,10 @@ export const ArrowLeftIcon = ({ size = 16, style, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} className={className} {...base}><path d="M19 12H5M11 5l-7 7 7 7" /></svg>
 );
 
+export const EyeIcon = ({ size = 16, style, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} className={className} {...base}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+);
+
 export const RefreshIcon = ({ size = 16, style, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={style} className={className} {...base}>
     <path d="M3 12a9 9 0 0 1 15.3-6.36L21 8" /><path d="M21 3v5h-5" />

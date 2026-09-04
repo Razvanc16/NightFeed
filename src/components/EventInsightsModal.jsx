@@ -1,8 +1,24 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import EventPeopleSheet from "./EventPeopleSheet";
-import { CrossCircleIcon } from "./Icons";
+import { CrossCircleIcon, HeartOutlineIcon, ConfettiIcon, EyeIcon, SpeechBubbleIcon, TicketIcon, ChevronRightIcon } from "./Icons";
 import { formatPrice } from "../utils/eventTime";
+
+// Un rând de statistică — aceeași "siglă" (cerc colorat + iconiță) pentru
+// fiecare, unele clickabile (deschid lista de useri), altele doar afișaj.
+const StatRow = ({ icon: Icon, color, label, value, onClick }) => {
+  const Tag = onClick ? "button" : "div";
+  return (
+    <Tag onClick={onClick} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 4px", background: "none", border: "none", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: onClick ? "pointer" : "default", textAlign: "left" }}>
+      <div style={{ width: 34, height: 34, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18`, color }}>
+        <Icon size={16} />
+      </div>
+      <div style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif" }}>{label}</div>
+      <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{value}</div>
+      {onClick && <ChevronRightIcon size={14} style={{ color: "rgba(255,255,255,0.25)" }} />}
+    </Tag>
+  );
+};
 
 // Statistici rapide pentru un eveniment (câte aprecieri, câți participanți),
 // cu acces la listele complete — folosit atât din Profil (Postate/Arhivă),
@@ -20,7 +36,7 @@ export default function EventInsightsModal({ event, rawId, onClose, onViewProfil
     let active = true;
     setStats(null);
     (async () => {
-      const [{ count: likes }, { count: attending }, { count: comments }, { count: checkinsTotal }, { count: checkinsScanned }, { data: eventRow }] = await Promise.all([
+      const [{ count: likes }, { count: attending }, { count: comments }, { count: checkinsTotal }, { count: checkinsScanned }, { count: views }] = await Promise.all([
         supabase.from("likes").select("*", { count: "exact", head: true }).eq("event_id", prefixedId),
         isRequestBased
           ? supabase.from("attendance_requests").select("*", { count: "exact", head: true }).eq("event_id", rawId).eq("status", "accepted")
@@ -28,7 +44,9 @@ export default function EventInsightsModal({ event, rawId, onClose, onViewProfil
         supabase.from("comments").select("*", { count: "exact", head: true }).eq("event_id", prefixedId),
         supabase.from("event_checkins").select("*", { count: "exact", head: true }).eq("event_id", prefixedId),
         supabase.from("event_checkins").select("*", { count: "exact", head: true }).eq("event_id", prefixedId).eq("checked_in", true),
-        supabase.from("posted_events").select("view_count").eq("id", rawId).single(),
+        // event_views ține un rând per user unic (primary key event_id+user_id) —
+        // count(*) e deja numărul de persoane unice, nu de vizionări brute.
+        supabase.from("event_views").select("*", { count: "exact", head: true }).eq("event_id", rawId),
       ]);
       if (active) setStats({
         likes: likes || 0,
@@ -36,7 +54,7 @@ export default function EventInsightsModal({ event, rawId, onClose, onViewProfil
         comments: comments || 0,
         checkinsTotal: checkinsTotal || 0,
         checkinsScanned: checkinsScanned || 0,
-        views: eventRow?.view_count || 0,
+        views: views || 0,
       });
     })();
     return () => { active = false; };
@@ -53,28 +71,13 @@ export default function EventInsightsModal({ event, rawId, onClose, onViewProfil
           {!stats ? (
             <div style={{ textAlign: "center", padding: "20px 0", color: "rgba(255,255,255,0.3)" }}>Se încarcă...</div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8 }}>
-              <button onClick={() => setPeopleSheetFor({ source: "likes", eventId: prefixedId, title: "Aprecieri" })} style={{ padding: "14px 10px", borderRadius: 14, background: "rgba(255,51,102,0.08)", border: "1px solid rgba(255,51,102,0.2)", cursor: "pointer", textAlign: "center" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stats.likes}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Aprecieri</div>
-              </button>
-              <button onClick={() => setPeopleSheetFor({ source: isRequestBased ? "requests" : "attendances", eventId: prefixedId, title: "Participă" })} style={{ padding: "14px 10px", borderRadius: 14, background: "rgba(0,200,100,0.08)", border: "1px solid rgba(0,200,100,0.2)", cursor: "pointer", textAlign: "center" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stats.attending}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Participă</div>
-              </button>
-              <div style={{ padding: "14px 10px", borderRadius: 14, background: "rgba(79,195,247,0.08)", border: "1px solid rgba(79,195,247,0.2)", textAlign: "center" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stats.views}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Vizualizări</div>
-              </div>
-              <div style={{ padding: "14px 10px", borderRadius: 14, background: "rgba(180,79,255,0.08)", border: "1px solid rgba(180,79,255,0.2)", textAlign: "center" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stats.comments}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Comentarii</div>
-              </div>
+            <div style={{ marginBottom: 8 }}>
+              <StatRow icon={HeartOutlineIcon} color="#FF3366" label="Aprecieri" value={stats.likes} onClick={() => setPeopleSheetFor({ source: "likes", eventId: prefixedId, title: "Aprecieri" })} />
+              <StatRow icon={ConfettiIcon} color="#00C864" label="Participă" value={stats.attending} onClick={() => setPeopleSheetFor({ source: isRequestBased ? "requests" : "attendances", eventId: prefixedId, title: "Participă" })} />
+              <StatRow icon={EyeIcon} color="#4FC3F7" label="Vizualizări" value={stats.views} />
+              <StatRow icon={SpeechBubbleIcon} color="#B44FFF" label="Comentarii" value={stats.comments} />
               {stats.checkinsTotal > 0 && (
-                <div style={{ gridColumn: "1 / -1", padding: "14px 10px", borderRadius: 14, background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.2)", textAlign: "center" }}>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{stats.checkinsScanned}<span style={{ color: "rgba(255,255,255,0.35)" }}>/{stats.checkinsTotal}</span></div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Bilete scanate la intrare</div>
-                </div>
+                <StatRow icon={TicketIcon} color="#FFB800" label="Bilete scanate la intrare" value={`${stats.checkinsScanned}/${stats.checkinsTotal}`} />
               )}
             </div>
           )}
