@@ -942,9 +942,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 <div
                   key={event.id}
                   onClick={() => onOpenEvent && onOpenEvent(event.id)}
-                  style={{ borderRadius: 14, background: event.bgColor, border: `1px solid ${event.color}30`, padding: "14px", position: "relative", overflow: "hidden", cursor: onOpenEvent ? "pointer" : "default" }}
+                  style={{ borderRadius: 14, background: event.bgColor, border: `1px solid ${event.color}30`, padding: "14px", position: "relative", cursor: onOpenEvent ? "pointer" : "default" }}
                 >
-                  <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at top left, ${event.color}15 0%, transparent 60%)`, pointerEvents: "none" }} />
+                  {/* borderRadius pe gradient (nu overflow:hidden pe card) —
+                      altfel meniul de 3 puncte, deschis tot ca position:absolute
+                      în același card, era tăiat de overflow:hidden al părintelui. */}
+                  <div style={{ position: "absolute", inset: 0, borderRadius: 14, background: `radial-gradient(ellipse at top left, ${event.color}15 0%, transparent 60%)`, pointerEvents: "none" }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 12, position: "relative" }}>
                     <div style={{ width: 44, height: 44, borderRadius: 10, background: `${event.color}20`, border: `1px solid ${event.color}40`, display: "flex", alignItems: "center", justifyContent: "center", color: event.color, flexShrink: 0 }}>
                       {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
