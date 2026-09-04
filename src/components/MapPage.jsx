@@ -295,23 +295,30 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
     ...staticEvents.map(e => ({
       ...e, coords: staticCoords[e.id], isHomemade: e.type === "homemade", isPosted: false,
     })),
-    ...postedEvents.map(e => ({
-      id: `posted_${e.id}`,
-      title: e.title, venue: e.venue, date: (e.event_date && formatEventDateTime(e.event_date)) || e.date, price: e.price || "Gratuit",
-      type: e.type, description: e.description, age_restricted: !!e.age_restricted,
-      color: e.type === "official" ? "#FF3366" : "#FFB800",
-      vibe: e.vibe || null,
-      // Coordonatele exacte vs fuzzate depind acum de location_visible (setat
-      // de host la postare), nu de tip — un eveniment oficial poate alege să
-      // rămână aproximativ, unul neoficial poate alege să fie exact.
-      coords: e.location_visible ? [e.lat, e.lng] : [e.lat_approx, e.lng_approx],
-      location_visible: !!e.location_visible,
-      isHomemade: e.type === "homemade",
-      isPosted: true,
-      rawId: e.id,
-      hostId: e.user_id,
-    })),
-  ].filter(e => e.coords), [postedEvents]);
+    ...postedEvents.map(e => {
+      // Organizatorul își vede mereu propriul eveniment la locația exactă pe
+      // hartă, indiferent de location_visible — n-are niciun sens să-și
+      // ascundă lui însuși adresa pe care el a introdus-o.
+      const isMine = !!(user && e.user_id === user.id);
+      return {
+        id: `posted_${e.id}`,
+        title: e.title, venue: e.venue, date: (e.event_date && formatEventDateTime(e.event_date)) || e.date, price: e.price || "Gratuit",
+        type: e.type, description: e.description, age_restricted: !!e.age_restricted,
+        color: isMine ? "#4FC3F7" : (e.type === "official" ? "#FF3366" : "#FFB800"),
+        vibe: e.vibe || null,
+        // Coordonatele exacte vs fuzzate depind acum de location_visible (setat
+        // de host la postare), nu de tip — un eveniment oficial poate alege să
+        // rămână aproximativ, unul neoficial poate alege să fie exact.
+        coords: (e.location_visible || isMine) ? [e.lat, e.lng] : [e.lat_approx, e.lng_approx],
+        location_visible: !!e.location_visible,
+        isHomemade: e.type === "homemade",
+        isPosted: true,
+        isMine,
+        rawId: e.id,
+        hostId: e.user_id,
+      };
+    }),
+  ].filter(e => e.coords), [postedEvents, user]);
 
   useEffect(() => {
     if (!mapsLoaded || !mapInstanceRef.current) return;
@@ -338,7 +345,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
       // Cercul de "zonă aproximativă" apare doar cât timp locația chiar e
       // ascunsă — dacă hostul a activat location_visible, evenimentul (chiar
       // neoficial) primește marker clasic tip pin, cu poziția exactă.
-      if (isHomemade && !event.location_visible) {
+      if (isHomemade && !event.location_visible && !event.isMine) {
         // Cercul de zonă are un offset FIX (identic pentru toți) față de adresa reală
         const [offLat, offLng] = applyOffset(event.coords[0], event.coords[1], event.rawId ?? event.id);
         const offsetPos = { lat: offLat, lng: offLng };
@@ -513,7 +520,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
   // deja — altfel ar fi doar de fațadă să scrie "zonă aproximativă" dacă oricine
   // putea oricum să navigheze la adresa reală.
   const canSeeExactAddress = (event) => {
-    if (event.location_visible) return true;
+    if (event.location_visible || event.isMine) return true;
     if (!event.isHomemade) return false;
     const rawId = String(event.rawId ?? event.id);
     return myRequests[rawId] === "accepted";
