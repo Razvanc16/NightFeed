@@ -58,8 +58,8 @@ const MuteIcon = ({ muted }) => (
   </svg>
 );
 
-const PlayPauseIcon = ({ paused }) => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" style={{ filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.6))" }}>
+const PlayPauseIcon = ({ paused, size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="#fff" style={{ filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.6))" }}>
     {paused ? <polygon points="6 3 20 12 6 21 6 3" /> : <><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></>}
   </svg>
 );
@@ -589,9 +589,9 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               playsInline
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             />
-            {/* Sub butonul de filtre (fix, top-left, z-index mare) ca să nu se
-                suprapună cu el — filtrele "câștigau" atingerea în locul lor. */}
-            <div style={{ position: "absolute", top: 76, left: 16, zIndex: 3, display: "flex", gap: 8 }}>
+            {/* Urcat la top:20 (fostul loc al butonului de filtre, scos acum
+                din feed) — n-are ce să mai "câștige" atingerea în locul lor. */}
+            <div style={{ position: "absolute", top: 20, left: 16, zIndex: 3, display: "flex", gap: 8 }}>
               <button onClick={toggleVideoPause} style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <PlayPauseIcon paused={videoPaused} />
               </button>
@@ -599,6 +599,18 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
                 <MuteIcon muted={videoMuted} />
               </button>
             </div>
+
+            {/* Feedback vizual clar la pauză — fără el, nu era evident dacă
+                video-ul chiar s-a oprit sau doar a înghețat un cadru similar
+                cu următorul. Voal foarte subtil (nu întunecă vizibil imaginea)
+                + iconița mare de play, ca pe majoritatea playerelor video. */}
+            {videoPaused && (
+              <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", animation: "fadeIn 0.15s ease-out" }}>
+                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <PlayPauseIcon paused size={26} />
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <img

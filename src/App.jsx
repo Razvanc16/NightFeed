@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import EventCard from "./components/EventCard";
 import MiniEventCard from "./components/MiniEventCard";
-import FilterDrawer from "./components/FilterDrawer";
 import Navbar from "./components/Navbar";
 import ProgressDots from "./components/ProgressDots";
 import ProfilePage from "./components/ProfilePage";
@@ -22,9 +21,7 @@ import { filterActiveEvents, formatEventDateTime } from "./utils/eventTime";
 import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
 import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
-import { MoonIcon, FilterIcon, BellIcon } from "./components/Icons";
-
-const filterLabels = { all: "Toate", official: "Oficial", homemade: "Neoficial", today: "Azi", weekend: "Weekend", free: "Gratuit" };
+import { MoonIcon, BellIcon } from "./components/Icons";
 
 const filterFn = (event, filter) => {
   if (filter === "all") return true;
@@ -180,26 +177,14 @@ export default function App() {
     setTabDirection(VALID_TABS.indexOf(tab) >= VALID_TABS.indexOf(activeTab) ? 1 : -1);
     setActiveTab(tab);
   };
-  // Set gol = "Toate" — poți combina mai multe filtre simultan (ex: Oficial + Gratuit).
-  const [activeFilters, setActiveFilters] = useState(new Set());
-  const toggleFilter = (id) => {
-    if (id === "all") { setActiveFilters(new Set()); return; }
-    setActiveFilters(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        // Oficial/Neoficial sunt mutual exclusive — un eveniment are un singur tip.
-        if (id === "official") next.delete("homemade");
-        if (id === "homemade") next.delete("official");
-        next.add(id);
-      }
-      return next;
-    });
-  };
+  // Filtrele din feed au fost scoase (buton + drawer) — se suprapuneau vizual
+  // cu toggle-ul Pentru tine/Urmărești, ambele fixate lângă marginea de sus.
+  // activeFilters rămâne gol permanent acum (Set gol = "Toate"), matchesFilters
+  // de mai jos nu mai are ce filtra, dar rămâne neschimbată — mai puțin cod
+  // de umblat decât să rescriem toată logica de slides pe fără filtrare deloc.
+  const [activeFilters] = useState(new Set());
   const [feedMode, setFeedMode] = useState("foryou"); // "foryou" | "following"
   const [followingIds, setFollowingIds] = useState(null); // null = încă neîncărcat
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [showPost, setShowPost] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [commentsHighlightId, setCommentsHighlightId] = useState(null);
@@ -633,12 +618,11 @@ export default function App() {
       }, 50);
       return;
     }
-    // Evenimentul nu e printre slide-urile curente — probabil ascuns de un
-    // filtru activ sau de tabul "Urmăriți". Fără reset, comutam pe feed și nu
-    // se întâmpla nimic vizibil (eșec silențios). Resetăm și reîncercăm în
-    // efectul de mai jos, odată ce slide-urile se recalculează.
+    // Evenimentul nu e printre slide-urile curente — probabil ascuns de
+    // tabul "Urmăriți". Fără reset, comutam pe feed și nu se întâmpla nimic
+    // vizibil (eșec silențios). Resetăm și reîncercăm în efectul de mai jos,
+    // odată ce slide-urile se recalculează.
     pendingNavRef.current = { matchFn, commentId: null };
-    setActiveFilters(new Set());
     setFeedMode("foryou");
   };
 
@@ -671,11 +655,10 @@ export default function App() {
       }, 50);
       return;
     }
-    // La fel ca la openSpecificEvent: un filtru activ sau tabul "Urmăriți"
-    // poate ascunde exact evenimentul din notificare — fără reset, tab-ul
-    // comuta pe feed fără să ducă nicăieri.
+    // La fel ca la openSpecificEvent: tabul "Urmăriți" poate ascunde exact
+    // evenimentul din notificare — fără reset, tab-ul comuta pe feed fără să
+    // ducă nicăieri.
     pendingNavRef.current = { matchFn, commentId };
-    setActiveFilters(new Set());
     setFeedMode("foryou");
   };
 
@@ -1019,38 +1002,6 @@ export default function App() {
 
             {slides.length > 1 && <ProgressDots total={slides.length} current={currentIndex} color={slides[currentIndex]?.type === "single" ? slides[currentIndex].event.color : "#FF3366"} />}
 
-            <button
-              onClick={() => setDrawerOpen(true)}
-              style={{
-                position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", left: 16, zIndex: 50,
-                display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
-                padding: activeFilters.size > 0 ? "9px 10px 9px 14px" : "10px",
-                borderRadius: 22,
-                background: activeFilters.size > 0 ? "linear-gradient(120deg, rgba(255,51,102,0.25), rgba(180,79,255,0.25))" : "rgba(255,255,255,0.08)",
-                border: `1px solid ${activeFilters.size > 0 ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.14)"}`,
-                boxShadow: activeFilters.size > 0 ? "0 6px 22px rgba(255,51,102,0.3)" : "0 2px 12px rgba(0,0,0,0.25)",
-                backdropFilter: "blur(14px)",
-                transition: "all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
-              }}
-            >
-              <FilterIcon size={17} style={{ color: activeFilters.size > 0 ? "#fff" : "rgba(255,255,255,0.85)", flexShrink: 0 }} />
-              {activeFilters.size > 0 && (
-                <>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap" }}>
-                    {activeFilters.size === 1 ? (filterLabels[[...activeFilters][0]] || [...activeFilters][0]) : `${activeFilters.size} filtre`}
-                  </span>
-                  <span
-                    role="button"
-                    onClick={(e) => { e.stopPropagation(); setActiveFilters(new Set()); }}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 18, height: 18, borderRadius: "50%", background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 12, lineHeight: 1, marginLeft: 2 }}
-                  >
-                    ×
-                  </span>
-                </>
-              )}
-            </button>
-
-            <FilterDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} active={activeFilters} onToggle={toggleFilter} />
           </div>
 
           <CommentsSheet event={commentsEvent} user={user} open={!!commentsEvent} onClose={() => { setCommentsEvent(null); setCommentsHighlightId(null); }} onViewProfile={(uid) => { setCommentsEvent(null); setViewingProfile(uid); }} highlightCommentId={commentsHighlightId} />
