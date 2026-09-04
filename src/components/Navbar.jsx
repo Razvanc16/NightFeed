@@ -1,4 +1,5 @@
 import { SearchIcon, PersonIcon, MapIcon, PlayIcon, PlusIcon } from "./Icons";
+import { useIsDesktopNav, DESKTOP_SIDEBAR_WIDTH } from "../utils/desktopLayout";
 
 const tabs = [
   { id: "feed", icon: PlayIcon, label: "Feed" },
@@ -9,9 +10,28 @@ const tabs = [
 ];
 
 export default function Navbar({ active, onChange }) {
+  // Pe desktop (mouse + fereastră lată) bara devine sidebar în stânga, nu
+  // bară jos — ca pe TikTok/Instagram web, unde spațiul lat orizontal nu are
+  // rost irosit sub un feed vertical îngust.
+  const isDesktopNav = useIsDesktopNav();
   return (
     <div
-      style={{
+      style={isDesktopNav ? {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: DESKTOP_SIDEBAR_WIDTH,
+        background: "rgba(0,0,0,0.85)",
+        backdropFilter: "blur(20px)",
+        borderRight: "1px solid rgba(255,255,255,0.07)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 28,
+        zIndex: 100,
+      } : {
         position: "fixed",
         bottom: 0,
         left: 0,
@@ -55,7 +75,9 @@ export default function Navbar({ active, onChange }) {
               height: isPost ? 44 : "auto",
               justifyContent: "center",
               boxShadow: isPost ? "0 4px 20px rgba(255,51,102,0.4)" : "none",
-              transform: isPost ? "translateY(-8px)" : "none",
+              // Ridicarea deasupra rândului n-are sens într-un sidebar vertical
+              // (nu mai există "rând" din care să iasă în evidență).
+              transform: isPost && !isDesktopNav ? "translateY(-8px)" : "none",
               transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             }}
           >

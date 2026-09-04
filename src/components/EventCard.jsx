@@ -6,6 +6,7 @@ import { supabase } from "../supabase";
 import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon, CheckCircleIcon, CrossCircleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 import { formatPrice } from "../utils/eventTime";
+import { DESKTOP_SIDEBAR_WIDTH, DESKTOP_CARD_WIDTH } from "../utils/desktopLayout";
 
 const HeartIcon = ({ filled, color, size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"} stroke={filled ? color : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))" }}>
@@ -111,7 +112,7 @@ const Toast = ({ message, show, color }) => (
   </div>
 );
 
-export default function EventCard({ event, isActive, user, onComment, onViewProfile, isFollowingOrganizer, onToggleFollowOrganizer, onOpenLocation }) {
+export default function EventCard({ event, isActive, user, onComment, onViewProfile, isFollowingOrganizer, onToggleFollowOrganizer, onOpenLocation, desktopSidebar }) {
   // Like-urile și attend-ul (pentru evenimente non-homemade) sunt acum în Supabase,
   // vizibile pentru toți userii, pe orice device.
   const [liked, setLiked] = useState(false);
@@ -568,7 +569,14 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       onMouseMove={handlePressMove}
       onMouseUp={handlePressEnd}
       onMouseLeave={handlePressEnd}
-      style={{ width: "100%", height: "100%", position: "relative", background: event.bgColor, overflow: "hidden", userSelect: "none", WebkitUserSelect: "none", cursor: "pointer", flexShrink: 0 }}
+      style={{
+        width: "100%", height: "100%", position: "relative", background: event.bgColor, overflow: "hidden", userSelect: "none", WebkitUserSelect: "none", cursor: "pointer", flexShrink: 0,
+        // Pe desktop, cardul rămâne recognoscibil ca "feed vertical" — nu se
+        // întinde pe tot ecranul lat, ci stă centrat, cu spațiul rămas folosit
+        // de coloana de acțiuni de lângă el (vezi mai jos) și sidebar-ul din
+        // Navbar.jsx, nu lăsat gol.
+        ...(desktopSidebar ? { maxWidth: DESKTOP_CARD_WIDTH, margin: "0 auto", borderRadius: 20 } : {}),
+      }}
     >
       <style>{`
         @keyframes btnBounce { 0%{transform:scale(1)} 30%{transform:scale(0.85)} 60%{transform:scale(1.2)} 80%{transform:scale(0.95)} 100%{transform:scale(1)} }
@@ -713,8 +721,8 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
       </div>
 
-      <div style={{ position: "absolute", right: 12, bottom: 90, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-        {buttons.map(btn => (
+      {(() => {
+        const buttonList = buttons.map(btn => (
           <button key={btn.key} onClick={btn.onClick} disabled={btn.disabled} title={btn.title} style={{ background: "none", border: "none", cursor: btn.disabled ? "default" : "pointer", opacity: btn.disabled ? 0.4 : 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: 0 }}>
             <div style={{
               width: 46, height: 46, display: "flex", alignItems: "center", justifyContent: "center",
@@ -728,8 +736,37 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               </span>
             )}
           </button>
-        ))}
-      </div>
+        ));
+
+        // Pe desktop, coloana de acțiuni nu mai stă suprapusă peste poză/video
+        // (ca pe mobil) — stă lângă cardul centrat, fixă pe ecran, ca pe
+        // TikTok/Instagram web. Portal pe document.body: trebuie poziționată
+        // relativ la tot viewport-ul, nu la cardul din feed (care oricum se
+        // ascunde/reapare la fiecare swipe) — și doar cardul activ o arată,
+        // altfel ar apărea câte o coloană suprapusă pentru fiecare card din DOM.
+        if (desktopSidebar) {
+          // user && — fără el, coloana "scapă" din card (e pe portal, deci nu
+          // mai e clipuită de el) și rămâne vizibilă plutind lângă cardul de
+          // autentificare, peste preview-ul de fundal al feedului pentru
+          // useri nelogați.
+          return isActive && user && createPortal(
+            <div style={{
+              position: "fixed", top: "50%", transform: "translateY(-50%)",
+              left: `calc(50vw + ${DESKTOP_SIDEBAR_WIDTH / 2 + DESKTOP_CARD_WIDTH / 2 + 24}px)`,
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 20, zIndex: 60,
+            }}>
+              {buttonList}
+            </div>,
+            document.body
+          );
+        }
+
+        return (
+          <div style={{ position: "absolute", right: 12, bottom: 90, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            {buttonList}
+          </div>
+        );
+      })()}
 
       {burst.map(p => <BurstParticle key={p.id} x={p.x} y={p.y} color={p.color} angle={p.angle} />)}
       {hearts.map(h => <HeartParticle key={h.id} x={h.x} y={h.y} id={h.id} color={event.color} />)}

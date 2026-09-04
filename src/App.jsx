@@ -21,6 +21,7 @@ import { filterActiveEvents, formatEventDateTime } from "./utils/eventTime";
 import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
 import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
+import { useIsDesktopNav, DESKTOP_SIDEBAR_WIDTH } from "./utils/desktopLayout";
 import { MoonIcon, BellIcon } from "./components/Icons";
 
 const filterFn = (event, filter) => {
@@ -165,6 +166,13 @@ export default function App() {
     if (hasProfile === false && activeTab !== "profile") navigateTab("profile");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasProfile]);
+
+  // Sidebar-ul de pe desktop există doar cât timp Navbar-ul e vizibil (nu în
+  // timpul creării contului) — altfel paginile ar rezerva 88px degeaba în
+  // stânga, fără niciun sidebar acolo care să le justifice.
+  const isDesktopNav = useIsDesktopNav();
+  const showSidebar = isDesktopNav && hasProfile !== false;
+  const tabWrapStyle = { top: 0, right: 0, bottom: 0, left: showSidebar ? DESKTOP_SIDEBAR_WIDTH : 0, height: showSidebar ? "100dvh" : "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))" };
   // Direcția din care alunecă tab-ul nou, după poziția lui în VALID_TABS
   // față de tab-ul curent — calculată sincron (nu într-un efect) ca să fie
   // deja corectă chiar la primul render în care tab-ul devine vizibil.
@@ -803,7 +811,7 @@ export default function App() {
 
           {/* POST PAGE */}
           {showPost && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 20, animation: "slideUp 0.3s ease-out" }}>
+            <div style={{ position: "fixed", ...tabWrapStyle, zIndex: 20, animation: "slideUp 0.3s ease-out" }}>
               {user
                 ? <PostPage user={user} onClose={() => { setShowPost(false); loadPostedEvents(); }} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
@@ -826,7 +834,7 @@ export default function App() {
 
           {/* SEARCH PAGE */}
           {activeTab === "search" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
+            <div style={{ position: "fixed", ...tabWrapStyle, zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
               <SearchPage onOpenEvent={openSpecificEvent} onViewProfile={(uid) => setViewingProfile(uid)} />
             </div>
           )}
@@ -836,13 +844,13 @@ export default function App() {
               harta Leaflet (re-cerea locația GPS, redescărca toate tile-urile de pe
               internet, reconstruia toate marker-ele), ceea ce o făcea să se simtă
               foarte lentă. Exact ca la Feed, care are același tipar. */}
-          <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: activeTab === "map" ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
+          <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", ...tabWrapStyle, zIndex: 10, animation: activeTab === "map" ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
             <MapPage user={user} isActive={activeTab === "map"} focusTarget={mapFocus} onViewProfile={(uid) => setViewingProfile(uid)} />
           </div>
 
           {/* PROFILE PAGE */}
           {activeTab === "profile" && (
-            <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
+            <div style={{ position: "fixed", ...tabWrapStyle, zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
               {user
                 ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} onOpenLikes={(eventId) => setLikesSheetEventId(eventId)} onProfileSaved={() => setHasProfile(true)} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
@@ -851,9 +859,9 @@ export default function App() {
           )}
 
           {/* FEED */}
-          <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none", position: "relative", animation: (activeTab === "feed" && !showPost) ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
+          <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none", position: "relative", marginLeft: showSidebar ? DESKTOP_SIDEBAR_WIDTH : 0, width: showSidebar ? `calc(100% - ${DESKTOP_SIDEBAR_WIDTH}px)` : "100%", animation: (activeTab === "feed" && !showPost) ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
             <div style={{
-              position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", left: "50%", transform: "translateX(-50%)",
+              position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", left: showSidebar ? `calc(50% + ${DESKTOP_SIDEBAR_WIDTH / 2}px)` : "50%", transform: "translateX(-50%)",
               zIndex: 50, display: "flex", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
               borderRadius: 22, padding: 3, backdropFilter: "blur(14px)", boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
             }}>
@@ -943,7 +951,7 @@ export default function App() {
               </div>
             )}
             <div ref={feedRef} style={{
-              width: "100%", height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", overflowY: "scroll", overscrollBehavior: "none", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
+              width: "100%", height: showSidebar ? "100dvh" : "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", overflowY: "scroll", overscrollBehavior: "none", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
               // transform: "none" cât timp nu tragem în niciun sens — orice valoare
               // de transform (chiar translateY(0px)) creează un nou "containing
               // block" pentru copiii cu position:fixed din interior (ex: sheet-ul
@@ -985,9 +993,9 @@ export default function App() {
                 </div>
               ) : (
                 slides.map((slide, i) => (
-                  <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
+                  <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: showSidebar ? "100dvh" : "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
                     {slide.type === "single" ? (
-                      <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} onOpenLocation={openEventLocation} />
+                      <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} onOpenLocation={openEventLocation} desktopSidebar={showSidebar} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", background: "#050506", padding: "70px 12px 12px", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 10 }}>
                         {slide.events.map(ev => (
