@@ -686,6 +686,12 @@ export default function App() {
            pagina. Harta din MapPage (Google Maps) e neafectată — gesturile
            ei de pan/zoom sunt gestionate intern de SDK, nu de touch-action. */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: pan-x pan-y; }
+        /* overscroll-behavior:none — fără el, Chrome desenează propriul
+           spinner nativ de "pull to refresh" (al browserului, nu al nostru)
+           la orice tras-în-jos de sus de tot, indiferent ce facem în JS cu
+           indicatorul propriu — asta era "mizeria" care tot apărea pe un
+           laptop cu ecran tactil, chiar după ce am dezactivat listenerii noștri. */
+        html, body { overscroll-behavior: none; }
         body { background: #000; overflow: hidden; font-family: 'DM Sans', sans-serif; }
         /* Fără plafon de lățime — se întinde pe tot ecranul, indiferent cât de
            lat e monitorul. transform:translateZ(0) rămâne util chiar și fără
@@ -693,7 +699,7 @@ export default function App() {
            pentru toate elementele position:fixed din interior (sunt zeci, în
            toate sheet-urile/modalele), deci rămân aliniate la #root chiar
            dacă vreodată redevine mai îngust decât viewport-ul. */
-        #root { width: 100%; height: 100dvh; position: relative; overflow: hidden; transform: translateZ(0); }
+        #root { width: 100%; height: 100dvh; position: relative; overflow: hidden; transform: translateZ(0); overscroll-behavior: none; }
 
         /* Feedback tactil subtil pe toate butoanele — se "apasă" ușor la click */
         button { transition: transform 0.12s ease, filter 0.15s ease; }
@@ -926,7 +932,7 @@ export default function App() {
               </div>
             )}
             <div ref={feedRef} style={{
-              width: "100%", height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", overflowY: "scroll", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
+              width: "100%", height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", overflowY: "scroll", overscrollBehavior: "none", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
               // transform: "none" cât timp nu tragem în niciun sens — orice valoare
               // de transform (chiar translateY(0px)) creează un nou "containing
               // block" pentru copiii cu position:fixed din interior (ex: sheet-ul
