@@ -21,6 +21,17 @@ const PERIOD_PRESETS = [
   { value: "all", label: "Tot timpul" },
 ];
 
+// supabase-js dă mereu "Edge Function returned a non-2xx status code" pe
+// error.message — motivul real (ex. eroarea de la Postgres) e în corpul JSON
+// al răspunsului, accesibil doar prin error.context (Response-ul brut).
+const extractFnError = async (error) => {
+  try {
+    const body = await error.context.json();
+    if (body?.error) return String(body.error);
+  } catch {}
+  return error.message;
+};
+
 const bucketLabel = (bucket, unit) => {
   const d = new Date(bucket);
   if (unit === "hour") return d.toLocaleTimeString("ro-RO", { hour: "2-digit" });
@@ -195,7 +206,7 @@ function ReportsTab() {
   const banReportedUser = async (r) => {
     setBusyId(r.id);
     const { error } = await supabase.functions.invoke("admin-action", { body: { action: "ban_user", targetUserId: r.reported_user_id } });
-    if (error) { alert("Eroare: " + error.message); setBusyId(null); return; }
+    if (error) { alert("Eroare: " + await extractFnError(error)); setBusyId(null); return; }
     await dismiss(r.id);
   };
 
@@ -203,7 +214,7 @@ function ReportsTab() {
     if (!window.confirm(`Ștergi definitiv contul ${r.reported_user_email || "raportat"}? Nu poate fi anulat.`)) return;
     setBusyId(r.id);
     const { error } = await supabase.functions.invoke("admin-action", { body: { action: "delete_user", targetUserId: r.reported_user_id } });
-    if (error) { alert("Eroare: " + error.message); setBusyId(null); return; }
+    if (error) { alert("Eroare: " + await extractFnError(error)); setBusyId(null); return; }
     await dismiss(r.id);
   };
 
@@ -291,7 +302,7 @@ function UsersTab({ initialFilter }) {
   const callAdminAction = async (action, targetUserId) => {
     setBusyId(targetUserId);
     const { error } = await supabase.functions.invoke("admin-action", { body: { action, targetUserId } });
-    if (error) alert("Eroare: " + error.message);
+    if (error) alert("Eroare: " + await extractFnError(error));
     else load();
     setBusyId(null);
   };
