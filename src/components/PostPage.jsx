@@ -773,7 +773,10 @@ export default function PostPage({ user, onClose, editEvent }) {
       {showNoPhotoConfirm && (
         <>
           <div onClick={() => setShowNoPhotoConfirm(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 500, animation: "backdropIn 0.2s ease-out" }} />
-          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 501, background: "#0f0f12", borderTop: "2px solid rgba(255,51,102,0.3)", borderRadius: "24px 24px 0 0", padding: "22px 20px 40px", animation: "slideUp 0.25s ease-out" }}>
+          {/* paddingBottom cu safe-area — fără el, bara de navigare fixă de
+              jos acoperea butonul "Postează oricum" (vezi fix-ul identic pe
+              ReportSheet/JoinRequestSheet). */}
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxHeight: "85vh", overflowY: "auto", zIndex: 501, background: "#0f0f12", borderTop: "2px solid rgba(255,51,102,0.3)", borderRadius: "24px 24px 0 0", padding: "22px 20px", paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))", animation: "slideUp 0.25s ease-out" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 6, color: "#FF3366" }}><CameraIcon size={36} /></div>
             <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", textAlign: "center", marginBottom: 8 }}>
               Postezi fără poză?

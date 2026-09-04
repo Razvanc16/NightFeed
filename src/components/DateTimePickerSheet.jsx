@@ -94,7 +94,7 @@ export default function DateTimePickerSheet({ initialDate, initialHour, initialM
           .ntf-wheel::-webkit-scrollbar { display: none; }
           .ntf-wheel { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         `}</style>
-        <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxHeight: "88vh", overflowY: "auto", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "18px 20px 28px", borderTop: "1px solid rgba(255,255,255,0.08)", animation: "slideUp 0.25s ease-out", pointerEvents: "auto" }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxHeight: "88vh", overflowY: "auto", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "18px 20px", paddingBottom: "calc(28px + env(safe-area-inset-bottom, 0px))", borderTop: "1px solid rgba(255,255,255,0.08)", animation: "slideUp 0.25s ease-out", pointerEvents: "auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
             <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Anulează</button>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Dată și oră</div>
