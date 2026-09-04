@@ -166,13 +166,23 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
     };
     loadAttendance();
 
+    // Recalculăm din bază la fiecare eveniment realtime (nu adunăm/scădem
+    // local) — altfel propriul tău insert/delete optimist SE ADUNA A DOUA
+    // OARĂ când venea ecoul realtime al aceleiași scrieri, iar la tap-uri
+    // rapide repetate diferența se acumula vizibil (12 → 26 din câteva
+    // apăsări). La fel cum funcționează deja like-urile mai jos.
+    const refreshCount = async () => {
+      const { count } = await supabase
+        .from("attendances")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", String(event.id));
+      if (active) setAttendCount(event.attending + (count || 0));
+    };
+
     const channel = supabase
       .channel(`attendances:${event.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "attendances", filter: `event_id=eq.${event.id}` },
-        () => setAttendCount(c => c + 1)
-      )
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "attendances", filter: `event_id=eq.${event.id}` },
-        () => setAttendCount(c => Math.max(0, c - 1))
+      .on("postgres_changes", { event: "*", schema: "public", table: "attendances", filter: `event_id=eq.${event.id}` },
+        refreshCount
       )
       .subscribe();
 
