@@ -85,6 +85,15 @@ Deno.serve(async (req) => {
       const { error } = await adminClient.auth.admin.updateUserById(targetUserId, { ban_duration: "none" });
       if (error) throw error;
     } else if (action === "delete_user") {
+      // Emailul de notificare trebuie trimis ÎNAINTE să ștergem contul —
+      // odată șters din auth.users, nu mai avem de unde să-i luăm adresa.
+      // Best-effort: dacă eșuează trimiterea, ștergerea continuă oricum.
+      const { data: targetUserData } = await adminClient.auth.admin.getUserById(targetUserId);
+      const targetEmail = targetUserData?.user?.email;
+      if (targetEmail) {
+        await adminClient.rpc("admin_notify_account_deleted", { target_email: targetEmail }).catch(() => {});
+      }
+
       // Aceeași listă de tabele ca la auto-ștergerea contului din
       // ProfilePage.jsx (handleDeleteAccount) — un admin poate șterge
       // definitiv un cont abuziv/raportat repetat, la fel de complet.
