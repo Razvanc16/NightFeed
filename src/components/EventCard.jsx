@@ -576,6 +576,13 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
           to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
+        /* Pop cu mic "overshoot" (depășește 1 apoi revine) — mai viu decât un
+           fade simplu, dă senzația de "s-a apăsat un buton", nu doar apare. */
+        @keyframes pausePop {
+          0% { transform: scale(0.4); opacity: 0; }
+          60% { transform: scale(1.12); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
       `}</style>
 
       {event.cover_url && (
@@ -605,8 +612,8 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
                 cu următorul. Voal foarte subtil (nu întunecă vizibil imaginea)
                 + iconița mare de play, ca pe majoritatea playerelor video. */}
             {videoPaused && (
-              <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", animation: "fadeIn 0.15s ease-out" }}>
-                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ position: "absolute", inset: 0, zIndex: 2, background: "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", animation: "fadeIn 0.2s ease-out" }}>
+                <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", animation: "pausePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
                   <PlayPauseIcon paused size={26} />
                 </div>
               </div>
