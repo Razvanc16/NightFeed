@@ -386,6 +386,14 @@ function EventsTab({ initialStatus }) {
     setBusyId(null);
   };
 
+  const approveEvent = async (id) => {
+    setBusyId(id);
+    const { error } = await supabase.rpc("admin_approve_event", { target_event_id: id });
+    if (error) alert("Eroare: " + error.message);
+    else setEvents((prev) => prev.map((e) => e.id === id ? { ...e, verified: true } : e));
+    setBusyId(null);
+  };
+
   const toggleReporters = async (id) => {
     if (expandedId === id) { setExpandedId(null); return; }
     setExpandedId(id);
@@ -405,6 +413,7 @@ function EventsTab({ initialStatus }) {
         onChange={setStatus}
         options={[
           { value: "all", label: "Toate" },
+          { value: "pending", label: "Neaprobate" },
           { value: "active", label: "Active" },
           { value: "archived", label: "Arhivate" },
         ]}
@@ -420,7 +429,10 @@ function EventsTab({ initialStatus }) {
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.title}</div>
-                  {e.verified && <span style={{ fontSize: 9, fontWeight: 700, color: "#00C864", background: "rgba(0,200,100,0.12)", padding: "2px 6px", borderRadius: 6, flexShrink: 0 }}>OFICIAL</span>}
+                  {e.type === "official" && (e.verified
+                    ? <span style={{ fontSize: 9, fontWeight: 700, color: "#00C864", background: "rgba(0,200,100,0.12)", padding: "2px 6px", borderRadius: 6, flexShrink: 0 }}>OFICIAL</span>
+                    : <span style={{ fontSize: 9, fontWeight: 700, color: "#FFB800", background: "rgba(255,184,0,0.12)", padding: "2px 6px", borderRadius: 6, flexShrink: 0 }}>ÎN AȘTEPTARE</span>
+                  )}
                   {e.archived && <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: 6, flexShrink: 0 }}>ARHIVAT</span>}
                 </div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans', sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
@@ -432,6 +444,11 @@ function EventsTab({ initialStatus }) {
                     </span>
                   )}
                 </div>
+                {e.type === "official" && !e.verified && (e.contact_name || e.contact_phone || e.contact_social) && (
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>
+                    {[e.contact_name, e.contact_phone, e.contact_social].filter(Boolean).join(" · ")}
+                  </div>
+                )}
                 {expandedId === e.id && (
                   <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", gap: 6 }}>
                     {loadingReporters === e.id ? (
@@ -447,13 +464,24 @@ function EventsTab({ initialStatus }) {
                   </div>
                 )}
               </div>
-              <button
-                disabled={busyId === e.id}
-                onClick={() => deleteEvent(e.id, e.title)}
-                style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", flexShrink: 0 }}
-              >
-                <TrashIcon size={11} /> Șterge
-              </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                {e.type === "official" && !e.verified && (
+                  <button
+                    disabled={busyId === e.id}
+                    onClick={() => approveEvent(e.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 9, color: "#00C864", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                  >
+                    <CheckCircleIcon size={11} /> Aprobă
+                  </button>
+                )}
+                <button
+                  disabled={busyId === e.id}
+                  onClick={() => deleteEvent(e.id, e.title)}
+                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                >
+                  <TrashIcon size={11} /> Șterge
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -543,9 +571,9 @@ function TrashTab() {
   );
 }
 
-export default function AdminPage({ onClose }) {
-  const [tab, setTab] = useState("stats");
-  const [navState, setNavState] = useState({});
+export default function AdminPage({ onClose, initialTab, initialNavState }) {
+  const [tab, setTab] = useState(initialTab || "stats");
+  const [navState, setNavState] = useState(initialNavState || {});
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {

@@ -202,6 +202,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [adminInitial, setAdminInitial] = useState(null);
   const [showTickets, setShowTickets] = useState(false);
   const [scannerEvent, setScannerEvent] = useState(null);
   const [showOwnPhoto, setShowOwnPhoto] = useState(false);
@@ -839,6 +840,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 onOpenLikes={onOpenLikes}
                 onOpenAttending={() => setActiveTab("attending")}
                 onOpenRequests={(eventId) => { setActiveTab("posted"); setShowRequests(eventId); }}
+                onOpenAdminApproval={ADMIN_EMAILS.includes(user?.email) ? () => { setAdminInitial({ tab: "events", navState: { status: "pending" } }); setShowAdmin(true); } : undefined}
                 refreshKey={notifRefreshKey}
               />
             )}
@@ -1009,7 +1011,14 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         document.body
       )}
 
-      {showAdmin && createPortal(<AdminPage onClose={() => setShowAdmin(false)} />, document.body)}
+      {showAdmin && createPortal(
+        <AdminPage
+          onClose={() => { setShowAdmin(false); setAdminInitial(null); }}
+          initialTab={adminInitial?.tab}
+          initialNavState={adminInitial?.navState}
+        />,
+        document.body
+      )}
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 

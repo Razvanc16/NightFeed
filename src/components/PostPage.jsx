@@ -137,6 +137,9 @@ export default function PostPage({ user, onClose, editEvent }) {
     lat: editEvent?.lat || null,
     lng: editEvent?.lng || null,
     max_participants: editEvent?.max_participants ?? "",
+    contact_name: editEvent?.contact_name || "",
+    contact_phone: editEvent?.contact_phone || "",
+    contact_social: editEvent?.contact_social || "",
   });
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState(editEvent?.cover_url || null);
@@ -352,6 +355,9 @@ export default function PostPage({ user, onClose, editEvent }) {
     if (priceMode === "paid" && !priceAmount) {
       alert("Completează prețul, sau alege Gratuit!"); return;
     }
+    if (form.type === "official" && (!form.contact_name || !form.contact_phone)) {
+      alert("Completează numele și telefonul de contact — necesare pentru verificarea evenimentelor oficiale!"); return;
+    }
     if (!user) { alert("Trebuie să fii autentificat!"); return; }
     if (!acceptedTerms) { alert("Trebuie să accepți Termenii și Condițiile înainte să postezi!"); return; }
 
@@ -538,6 +544,23 @@ export default function PostPage({ user, onClose, editEvent }) {
             </div>
           )}
         </div>
+
+        {/* Contact — cerut doar la oficiale, ca reviewer-ul să aibă cu cine
+            vorbi dacă ceva nu e clar înainte să aprobe (nu la neoficiale,
+            unde nimeni nu validează manual). */}
+        {form.type === "official" && (
+          <div style={{ marginBottom: 16, padding: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12 }}>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>Date de contact (pentru verificare)</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <input type="text" placeholder="Nume persoană de contact" value={form.contact_name} onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))}
+                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+              <input type="tel" placeholder="Telefon" value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))}
+                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+              <input type="text" placeholder="Instagram / website local" value={form.contact_social} onChange={e => setForm(f => ({ ...f, contact_social: e.target.value }))}
+                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+            </div>
+          </div>
+        )}
 
         {/* Vibe — apare ca iconiță pe hartă în loc de pinul generic, ca oricine
             să-și dea seama dintr-o privire ce fel de petrecere e (opțional) */}

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
-import { HeartOutlineIcon, SpeechBubbleIcon, EnvelopeIcon, PersonIcon, BellOffIcon } from "./Icons";
+import { HeartOutlineIcon, SpeechBubbleIcon, EnvelopeIcon, PersonIcon, BellOffIcon, LightningIcon } from "./Icons";
 
-const ICONS = { like: HeartOutlineIcon, comment: SpeechBubbleIcon, request: EnvelopeIcon, follower: PersonIcon };
-const COLORS = { like: "#FF3366", comment: "#4FC3F7", request: "#FFB800", follower: "#B44FFF" };
+const ICONS = { like: HeartOutlineIcon, comment: SpeechBubbleIcon, request: EnvelopeIcon, follower: PersonIcon, official_request: LightningIcon };
+const COLORS = { like: "#FF3366", comment: "#4FC3F7", request: "#FFB800", follower: "#B44FFF", official_request: "#FF3366" };
 
 const timeAgo = (iso) => {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -19,7 +19,7 @@ const timeAgo = (iso) => {
 
 // embedded=true — randată ca tab în Profil (fără propriul overlay/header full-screen,
 // doar lista), în loc de propria pagină modală peste tot.
-export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes, onOpenAttending, onOpenRequests, embedded, refreshKey }) {
+export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes, onOpenAttending, onOpenRequests, onOpenAdminApproval, embedded, refreshKey }) {
   const [notifications, setNotifications] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
@@ -102,9 +102,13 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
           const rowGoesToLikes = n.type === "like" && !n.comment_id && !!(n.event_id && onOpenLikes);
           const rowGoesToAttending = !rowGoesToLikes && n.type === "request" && n.title === "Cerere acceptată!" && !!onOpenAttending;
           const rowGoesToRequests = !rowGoesToLikes && !rowGoesToAttending && n.type === "request" && n.title === "Cerere nouă de participare" && !!(n.event_id && onOpenRequests);
-          const rowGoesToEvent = !rowGoesToLikes && !rowGoesToAttending && !rowGoesToRequests && !!(n.event_id && onOpenEvent);
-          const rowGoesToProfile = !rowGoesToLikes && !rowGoesToAttending && !rowGoesToRequests && !rowGoesToEvent && !!(n.actor_id && onViewProfile);
-          const rowClickable = rowGoesToLikes || rowGoesToAttending || rowGoesToRequests || rowGoesToEvent || rowGoesToProfile;
+          // Evenimentul oficial nu e vizibil în feed cât nu e aprobat (nu are
+          // rost onOpenEvent, n-ar găsi nimic) — direct la Admin, unde chiar
+          // poate fi aprobat/respins.
+          const rowGoesToAdmin = !rowGoesToLikes && !rowGoesToAttending && !rowGoesToRequests && n.type === "official_request" && !!onOpenAdminApproval;
+          const rowGoesToEvent = !rowGoesToLikes && !rowGoesToAttending && !rowGoesToRequests && !rowGoesToAdmin && !!(n.event_id && onOpenEvent);
+          const rowGoesToProfile = !rowGoesToLikes && !rowGoesToAttending && !rowGoesToRequests && !rowGoesToAdmin && !rowGoesToEvent && !!(n.actor_id && onViewProfile);
+          const rowClickable = rowGoesToLikes || rowGoesToAttending || rowGoesToRequests || rowGoesToAdmin || rowGoesToEvent || rowGoesToProfile;
           const avatarClickable = !!(n.actor_id && onViewProfile);
           const handleRowClick = () => {
             // Spre eveniment/Particip/Cereri: schimbă tab-ul, n-are sens să
@@ -115,6 +119,7 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
             if (rowGoesToLikes) { onOpenLikes(n.event_id); }
             else if (rowGoesToAttending) { onOpenAttending(); onClose(); }
             else if (rowGoesToRequests) { onOpenRequests(n.event_id.replace("posted_", "")); onClose(); }
+            else if (rowGoesToAdmin) { onOpenAdminApproval(); onClose(); }
             else if (rowGoesToEvent) { onOpenEvent(n.event_id, n.comment_id); onClose(); }
             else if (rowGoesToProfile) { onViewProfile(n.actor_id); }
           };
