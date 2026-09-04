@@ -2,7 +2,7 @@ import JoinRequestSheet from "./JoinRequestSheet";
 import ReportSheet from "./ReportSheet";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
-import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon, CheckCircleIcon } from "./Icons";
+import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon, CheckCircleIcon, CrossCircleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 import { formatPrice } from "../utils/eventTime";
 
@@ -126,6 +126,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   const [showJoinRequest, setShowJoinRequest] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [videoMuted, setVideoMuted] = useState(true);
   const [videoPaused, setVideoPaused] = useState(false);
   const videoRef = useRef(null);
@@ -670,7 +671,12 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             </button>
           )}
         </div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8, fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
+        <div
+          onClick={(e) => { e.stopPropagation(); setShowDetails(true); }}
+          style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}
+        >
+          {event.title}
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
           <span
             onClick={(e) => { if (onOpenLocation) { e.stopPropagation(); onOpenLocation(event); } }}
@@ -684,10 +690,6 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, margin: 0, marginBottom: 12 }}>{event.description}</p>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: event.type === "official" ? `${event.color}25` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "50" : "rgba(255,255,255,0.15)"}`, color: event.type === "official" ? event.color : "rgba(255,255,255,0.75)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", display: "inline-flex", alignItems: "center", gap: 4 }}>
-            {event.type === "official" ? <LightningIcon size={11} /> : <HouseIcon size={11} />}
-            {event.type === "official" ? "Oficial" : "Neoficial"}
-          </span>
           <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{formatPrice(event.price)}</span>
           {event.code && (
             <span
@@ -731,6 +733,59 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         alreadyRequested={requestStatus === "pending" || requestStatus === "accepted"}
       />
       <ReportSheet event={event} user={user} open={showReport} onClose={() => setShowReport(false)} />
+
+      {/* Detalii eveniment — deschis din tap pe titlu. Oficial/Neoficial a
+          fost mutat aici (nu mai apare pe card) — informativ, dar nu chiar
+          de prima necesitate cât timp defilezi rapid prin feed. */}
+      <div
+        onClick={(e) => { e.stopPropagation(); setShowDetails(false); }}
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: showDetails ? "blur(4px)" : "none", opacity: showDetails ? 1 : 0, pointerEvents: showDetails ? "auto" : "none", transition: "opacity 0.3s", zIndex: 400, touchAction: "none" }}
+      />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxHeight: "80vh", overflowY: "auto", background: "rgba(10,10,12,0.98)", borderTop: `2px solid ${event.color}40`, borderRadius: "24px 24px 0 0", transform: showDetails ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0, 0.15, 1)", zIndex: 401, padding: "16px 20px", paddingBottom: "calc(32px + env(safe-area-inset-bottom, 0px))", touchAction: "pan-y" }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
+          <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", lineHeight: 1.25 }}>{event.title}</div>
+          <button onClick={() => setShowDetails(false)} style={{ flexShrink: 0, background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: 2, marginTop: 2 }}>
+            <CrossCircleIcon size={20} />
+          </button>
+        </div>
+
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 12, background: event.type === "official" ? `${event.color}25` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "50" : "rgba(255,255,255,0.15)"}`, color: event.type === "official" ? event.color : "rgba(255,255,255,0.75)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", marginTop: 8, marginBottom: 16 }}>
+          {event.type === "official" ? <LightningIcon size={11} /> : <HouseIcon size={11} />}
+          {event.type === "official" ? "Oficial" : "Neoficial"}
+        </span>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: event.description ? 16 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "'DM Sans', sans-serif" }}>
+            <PinIcon size={14} style={{ flexShrink: 0, color: "rgba(255,255,255,0.4)" }} />
+            {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "'DM Sans', sans-serif" }}>
+            <ClockIcon size={14} style={{ flexShrink: 0, color: "rgba(255,255,255,0.4)" }} /> {event.date}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>
+            {formatPrice(event.price)}
+          </div>
+        </div>
+
+        {event.description && (
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: 0, marginBottom: 16, whiteSpace: "pre-wrap" }}>{event.description}</p>
+        )}
+
+        {event.tags?.length > 0 && (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {event.tags.map(tag => (
+              <span key={tag} style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontFamily: "'DM Sans', sans-serif" }}>{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
 
       {showActionsMenu && (
         <>
