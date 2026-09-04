@@ -12,6 +12,8 @@ const TABS = [
   { key: "events", label: "Evenimente", icon: TargetIcon },
 ];
 
+const PERIODS = [7, 14, 30, 90];
+
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit", year: "2-digit" }) : "-";
 const fmtDateTime = (d) => d ? new Date(d).toLocaleString("ro-RO", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-";
 
@@ -19,8 +21,11 @@ const fmtDateTime = (d) => d ? new Date(d).toLocaleString("ro-RO", { day: "2-dig
 // standard pentru orice element nou din UI-ul ăsta, nu doar un detaliu opțional.
 const rowStyle = (i) => ({ animation: "fadeIn 0.3s cubic-bezier(0.16,1,0.3,1) backwards", animationDelay: `${Math.min(i * 0.04, 0.4)}s` });
 
-const StatCard = ({ label, value, sub, accent, i }) => (
-  <div style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 18px" }}>
+const StatCard = ({ label, value, sub, accent, i, onClick }) => (
+  <div
+    onClick={onClick}
+    style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 18px", cursor: onClick ? "pointer" : "default", transition: "background 0.15s" }}
+  >
     <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{label}</div>
     <div style={{ fontSize: 26, fontWeight: 800, color: accent || "#fff", fontFamily: "'Syne', sans-serif" }}>{value}</div>
     {sub && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", marginTop: 2 }}>{sub}</div>}
@@ -45,16 +50,31 @@ const SearchBar = ({ value, onChange, placeholder }) => (
   </div>
 );
 
-function StatsTab() {
+const FilterChips = ({ options, value, onChange }) => (
+  <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+    {options.map((opt) => (
+      <button
+        key={opt.value}
+        onClick={() => onChange(opt.value)}
+        style={{ padding: "7px 13px", borderRadius: 20, background: value === opt.value ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${value === opt.value ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.1)"}`, color: value === opt.value ? "#FF3366" : "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+      >
+        {opt.label}
+      </button>
+    ))}
+  </div>
+);
+
+function StatsTab({ onNavigate }) {
+  const [period, setPeriod] = useState(14);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     setError("");
-    const { data, error } = await supabase.rpc("admin_get_stats");
+    const { data, error } = await supabase.rpc("admin_get_stats", { period_days: period });
     if (error) setError(error.message);
     else setStats(data);
-  }, []);
+  }, [period]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -67,27 +87,38 @@ function StatsTab() {
   return (
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
-        <StatCard i={0} label="Total useri" value={stats.total_users} sub={`+${stats.new_users_7d} în 7 zile`} accent="#FF3366" />
+        <StatCard i={0} label="Total useri" value={stats.total_users} sub={`+${stats.new_users_7d} în 7 zile — vezi toți`} accent="#FF3366" onClick={() => onNavigate("users", { filter: "all" })} />
         <StatCard i={1} label="Useri noi (30z)" value={stats.new_users_30d} />
-        <StatCard i={2} label="Evenimente active" value={stats.active_events} sub={`${stats.total_events} total, ${stats.archived_events} arhivate`} accent="#00C864" />
+        <StatCard i={2} label="Evenimente active" value={stats.active_events} sub={`${stats.total_events} total, ${stats.archived_events} arhivate — vezi`} accent="#00C864" onClick={() => onNavigate("events", { status: "active" })} />
         <StatCard i={3} label="Evenimente oficiale" value={stats.official_events} />
-        <StatCard i={4} label="Raportări nerezolvate" value={stats.unresolved_reports} sub={`${stats.total_reports} total`} accent={stats.unresolved_reports > 0 ? "#FFB800" : "#fff"} />
+        <StatCard i={4} label="Raportări nerezolvate" value={stats.unresolved_reports} sub={`${stats.total_reports} total — vezi`} accent={stats.unresolved_reports > 0 ? "#FFB800" : "#fff"} onClick={() => onNavigate("reports")} />
         <StatCard i={5} label="Check-in-uri" value={stats.total_checkins} />
-        <StatCard i={6} label="Like-uri" value={stats.total_likes} />
-        <StatCard i={7} label="Participări" value={stats.total_attendances} />
       </div>
 
-      <div style={{ ...rowStyle(8), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "18px 18px 14px" }}>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 14 }}>Conturi noi — ultimele 14 zile</div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 100 }}>
+      <div style={{ ...rowStyle(6), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "18px 18px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>Conturi noi — creștere</div>
+          <div style={{ display: "flex", gap: 5 }}>
+            {PERIODS.map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                style={{ padding: "4px 10px", borderRadius: 14, background: period === p ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.05)", border: `1px solid ${period === p ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.1)"}`, color: period === p ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}
+              >
+                {p}z
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: period > 30 ? 2 : 4, height: 100, overflowX: period > 30 ? "auto" : "visible" }}>
           {days.map((d) => (
-            <div key={d.day} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <div key={d.day} style={{ flex: 1, minWidth: period > 30 ? 10 : undefined, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{d.count || ""}</div>
-              <div style={{ width: "100%", maxWidth: 18, height: Math.max(3, (d.count / maxCount) * 70), background: "linear-gradient(180deg, #FF3366, #FF6B35)", borderRadius: 4 }} />
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace" }}>{new Date(d.day).toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" })}</div>
+              <div style={{ width: "100%", maxWidth: 18, height: Math.max(3, (d.count / maxCount) * 70), background: "linear-gradient(180deg, #FF3366, #FF6B35)", borderRadius: 4 }} title={`${new Date(d.day).toLocaleDateString("ro-RO")}: ${d.count}`} />
+              {period <= 30 && <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace" }}>{new Date(d.day).toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" })}</div>}
             </div>
           ))}
-          {days.length === 0 && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", padding: "20px 0" }}>Niciun cont nou în ultimele 14 zile.</div>}
+          {days.length === 0 && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", padding: "20px 0" }}>Niciun cont nou în perioada asta.</div>}
         </div>
       </div>
     </div>
@@ -98,7 +129,7 @@ function ReportsTab() {
   const [reports, setReports] = useState(null);
   const [unresolvedOnly, setUnresolvedOnly] = useState(true);
   const [error, setError] = useState("");
-  const [resolving, setResolving] = useState(null);
+  const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(async () => {
     setReports(null);
@@ -110,11 +141,20 @@ function ReportsTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const resolve = async (id) => {
-    setResolving(id);
+  const dismiss = async (id) => {
+    setBusyId(id);
     const { error } = await supabase.rpc("admin_resolve_report", { report_id: id });
     if (!error) setReports((prev) => prev.map((r) => r.id === id ? { ...r, resolved: true } : r));
-    setResolving(null);
+    setBusyId(null);
+  };
+
+  const deletePost = async (r) => {
+    if (!window.confirm(`Ștergi definitiv evenimentul "${r.event_title || "necunoscut"}"? Organizatorul va primi un email că postarea i-a fost eliminată.`)) return;
+    setBusyId(r.id);
+    const { error } = await supabase.rpc("admin_delete_event_notify", { target_report_id: r.id });
+    if (error) alert("Eroare: " + error.message);
+    else setReports((prev) => prev.map((x) => x.id === r.id ? { ...x, resolved: true } : x));
+    setBusyId(null);
   };
 
   return (
@@ -136,17 +176,24 @@ function ReportsTab() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#FFB800", fontFamily: "'DM Sans', sans-serif" }}>{r.reason}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>{r.event_title || "eveniment necunoscut"} {r.event_venue ? `· ${r.event_venue}` : ""}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>{r.event_title || "eveniment necunoscut / deja șters"} {r.event_venue ? `· ${r.event_venue}` : ""}</div>
               </div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>{fmtDateTime(r.created_at)}</div>
             </div>
             {r.details && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 8, fontFamily: "'DM Sans', sans-serif" }}>{r.details}</div>}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 8, flexWrap: "wrap" }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace" }}>de la {r.reporter_email || "necunoscut"}</div>
               {!r.resolved && (
-                <button onClick={() => resolve(r.id)} disabled={resolving === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
-                  <CheckCircleIcon size={13} /> {resolving === r.id ? "..." : "Marchează rezolvat"}
-                </button>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button onClick={() => dismiss(r.id)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                    <CheckCircleIcon size={13} /> OK
+                  </button>
+                  {r.event_title && (
+                    <button onClick={() => deletePost(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                      <TrashIcon size={12} /> Șterge postarea
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -156,17 +203,18 @@ function ReportsTab() {
   );
 }
 
-function UsersTab() {
+function UsersTab({ initialFilter }) {
   const [search, setSearch] = useState("");
+  const [filterMode, setFilterMode] = useState(initialFilter || "all");
   const [users, setUsers] = useState(null);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.rpc("admin_list_users", { search: search || null, limit_n: 60 });
+    const { data, error } = await supabase.rpc("admin_list_users", { search: search || null, limit_n: 60, filter_mode: filterMode });
     if (error) setError(error.message);
     else { setUsers(data || []); setError(""); }
-  }, [search]);
+  }, [search, filterMode]);
 
   useEffect(() => {
     const t = setTimeout(load, 250);
@@ -186,6 +234,16 @@ function UsersTab() {
   return (
     <div>
       <SearchBar value={search} onChange={setSearch} placeholder="Caută după email, nume..." />
+      <FilterChips
+        value={filterMode}
+        onChange={setFilterMode}
+        options={[
+          { value: "all", label: "Toți" },
+          { value: "banned", label: "Blocați" },
+          { value: "reported", label: "Raportați" },
+          { value: "with_events", label: "Cu evenimente" },
+        ]}
+      />
       {error && <div style={{ color: "#FF6B6B", fontSize: 13 }}>Eroare: {error}</div>}
       {!users && !error && <Spinner />}
       {users && users.length === 0 && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", padding: "20px 0", textAlign: "center" }}>Niciun rezultat.</div>}
@@ -231,17 +289,18 @@ function UsersTab() {
   );
 }
 
-function EventsTab() {
+function EventsTab({ initialStatus }) {
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState(initialStatus || "all");
   const [events, setEvents] = useState(null);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.rpc("admin_list_events", { search: search || null, limit_n: 60 });
+    const { data, error } = await supabase.rpc("admin_list_events", { search: search || null, limit_n: 60, status_filter: status });
     if (error) setError(error.message);
     else { setEvents(data || []); setError(""); }
-  }, [search]);
+  }, [search, status]);
 
   useEffect(() => {
     const t = setTimeout(load, 250);
@@ -260,6 +319,15 @@ function EventsTab() {
   return (
     <div>
       <SearchBar value={search} onChange={setSearch} placeholder="Caută după titlu, organizator..." />
+      <FilterChips
+        value={status}
+        onChange={setStatus}
+        options={[
+          { value: "all", label: "Toate" },
+          { value: "active", label: "Active" },
+          { value: "archived", label: "Arhivate" },
+        ]}
+      />
       {error && <div style={{ color: "#FF6B6B", fontSize: 13 }}>Eroare: {error}</div>}
       {!events && !error && <Spinner />}
       {events && events.length === 0 && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", padding: "20px 0", textAlign: "center" }}>Niciun rezultat.</div>}
@@ -297,15 +365,21 @@ function EventsTab() {
 
 export default function AdminPage({ onClose }) {
   const [tab, setTab] = useState("stats");
+  const [navState, setNavState] = useState({});
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     // Verificare reală (nu doar UI) — dacă cineva ajunge aici fără să fie pe
     // lista de admini din is_admin(), RPC-ul eșuează și blocăm ecranul.
-    supabase.rpc("admin_get_stats").then(({ error }) => {
+    supabase.rpc("admin_get_stats", { period_days: 14 }).then(({ error }) => {
       if (error) setDenied(true);
     });
   }, []);
+
+  const navigate = (nextTab, opts = {}) => {
+    setNavState(opts);
+    setTab(nextTab);
+  };
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 10200, background: "#080808", overflowY: "auto", animation: "pageSlideInRight 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
@@ -330,7 +404,7 @@ export default function AdminPage({ onClose }) {
             {TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
-                onClick={() => setTab(key)}
+                onClick={() => { setNavState({}); setTab(key); }}
                 style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 20, background: tab === key ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${tab === key ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.08)"}`, color: tab === key ? "#FF3366" : "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
               >
                 <Icon size={13} /> {label}
@@ -339,10 +413,10 @@ export default function AdminPage({ onClose }) {
           </div>
 
           <div key={tab} style={{ padding: "18px 16px 60px", animation: "fadeIn 0.25s ease" }}>
-            {tab === "stats" && <StatsTab />}
+            {tab === "stats" && <StatsTab onNavigate={navigate} />}
             {tab === "reports" && <ReportsTab />}
-            {tab === "users" && <UsersTab />}
-            {tab === "events" && <EventsTab />}
+            {tab === "users" && <UsersTab initialFilter={navState.filter} />}
+            {tab === "events" && <EventsTab initialStatus={navState.status} />}
           </div>
         </>
       )}
