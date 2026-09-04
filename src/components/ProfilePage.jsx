@@ -354,7 +354,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
   const loadProfileByUserId = async () => {
     if (!user?.id) { setView("setup"); return; }
-    const { data } = await supabase.from("profiles").select("*").eq("user_id", user.id).single();
+    // .maybeSingle() + limit(1) în loc de .single(): dacă din orice motiv
+    // există (temporar) mai mult de un rând pentru user_id — ex. un
+    // double-submit la crearea profilului — .single() arunca eroare la orice
+    // vizită ulterioară a paginii, trimițându-te înapoi la formularul de
+    // creare la nesfârșit, în loc să afișeze pur și simplu profilul existent.
+    const { data } = await supabase.from("profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (data) {
       setProfile(data);
       setForm({ nume: data.nume || "", prenume: data.prenume || "", varsta: data.varsta || "", gen: data.gen || "", hobby: data.hobby || "", avatar_url: data.avatar_url || "" });
@@ -460,7 +465,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     setSaving(true);
     try {
       // Check if profile already exists for this user
-      const { data: existing } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
+      const { data: existing } = await supabase.from("profiles").select("id").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
 
       let profileId = existing?.id;
       let avatarUrl = form.avatar_url;
@@ -718,7 +723,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>Gen</div>
             <div style={{ display: "flex", gap: 8 }}>
-              {["Masculin", "Feminin", "Altul"].map(g => (
+              {["Masculin", "Feminin"].map(g => (
                 <button key={g} onClick={() => setForm(f => ({ ...f, gen: g }))} style={{ flex: 1, padding: "10px 0", borderRadius: 12, background: form.gen === g ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.gen === g ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.gen === g ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: form.gen === g ? 700 : 400, cursor: "pointer" }}>
                   {g}
                 </button>
