@@ -534,7 +534,6 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           label: event.max_participants ? `${formatNum(attendCount)}/${event.max_participants}` : formatNum(attendCount), icon: attending ? <CheckIcon color={event.color} /> : <PlusIcon />,
         },
     { key: "comment", onClick: handleComment, active: false, icon: <CommentIcon /> },
-    { key: "share", onClick: handleShare, active: false, icon: <ShareIcon /> },
   ];
 
   return (
@@ -557,6 +556,15 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           18% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; filter: brightness(1.3) saturate(1.5) hue-rotate(18deg); }
           35% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: brightness(1) saturate(1) hue-rotate(0deg); }
           100% { transform: translate(-50%, -160%) scale(0.7); opacity: 0; filter: brightness(1.15) saturate(1.3) hue-rotate(-25deg); }
+        }
+        /* translate(-50%,-50%) trebuie inclus în FIECARE cadru al animației,
+           nu doar în inline style — o animație CSS pe "transform" înlocuiește
+           tot ce era acolo static, nu se combină cu el. Fără asta, meniul
+           "sărea" vizibil dintr-un colț spre centru la fiecare deschidere
+           (animația modalPop de la modalele obișnuite îi ștergea centrarea). */
+        @keyframes actionsMenuPop {
+          from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+          to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
       `}</style>
 
@@ -703,11 +711,17 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           />
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 501, background: "rgba(22,22,26,0.98)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden", minWidth: 240, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", animation: "modalPop 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}
+            style={{ position: "fixed", left: "50%", top: "38%", transform: "translate(-50%, -50%)", zIndex: 501, background: "rgba(22,22,26,0.98)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden", minWidth: 240, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", animation: "actionsMenuPop 0.22s cubic-bezier(0.34,1.56,0.64,1) backwards" }}
           >
             <button
+              onClick={(e) => { setShowActionsMenu(false); handleShare(e); }}
+              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", color: "#fff", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+            >
+              <ShareIcon /> Distribuie
+            </button>
+            <button
               onClick={() => { setShowActionsMenu(false); setShowReport(true); }}
-              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", color: "#FF6B6B", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", borderTop: "1px solid rgba(255,255,255,0.06)", color: "#FF6B6B", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
             >
               <FlagIcon /> Raportează evenimentul
             </button>
