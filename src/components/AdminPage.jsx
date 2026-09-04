@@ -80,17 +80,26 @@ const FilterChips = ({ options, value, onChange }) => (
 
 const MiniChart = ({ title, color, data, bucket, i }) => {
   const maxCount = Math.max(1, ...data.map((d) => d.count));
+  // lățime fixă per bară (nu flex:1) — cu puține puncte, flex:1 le împrăștia
+  // pe toată lățimea cardului, la kilometri unul de altul; scroll orizontal
+  // ține locul pentru multe puncte, în loc să le înghesuie ilizibil.
+  const barWidth = bucket === "hour" ? 30 : bucket === "week" ? 32 : bucket === "month" ? 40 : 26;
   return (
     <div style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 16px 12px" }}>
       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>{title}</div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: data.length > 30 ? 2 : 4, height: 80, overflowX: data.length > 30 ? "auto" : "visible" }}>
-        {data.map((d) => (
-          <div key={d.bucket} style={{ flex: 1, minWidth: data.length > 30 ? 6 : undefined, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-            <div style={{ width: "100%", maxWidth: 16, height: Math.max(2, (d.count / maxCount) * 56), background: `linear-gradient(180deg, ${color}, ${color}80)`, borderRadius: 3 }} title={`${bucketLabel(d.bucket, bucket)}: ${d.count}`} />
-          </div>
-        ))}
-        {data.length === 0 && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>Nimic în perioada asta.</div>}
-      </div>
+      {data.length === 0 ? (
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", padding: "16px 0" }}>Nimic în perioada asta.</div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 104, overflowX: "auto", paddingBottom: 2 }}>
+          {data.map((d) => (
+            <div key={d.bucket} style={{ flexShrink: 0, width: barWidth, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>{d.count}</div>
+              <div style={{ width: "100%", maxWidth: 18, height: Math.max(3, (d.count / maxCount) * 56), background: `linear-gradient(180deg, ${color}, ${color}80)`, borderRadius: 4 }} />
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>{bucketLabel(d.bucket, bucket)}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -445,7 +454,7 @@ export default function AdminPage({ onClose }) {
           <ShieldIcon size={18} style={{ color: "#FF3366" }} />
           <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Admin</div>
         </div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, padding: "7px 12px", color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
           Închide
         </button>
       </div>
