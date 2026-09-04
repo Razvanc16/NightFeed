@@ -582,6 +582,24 @@ export default function PostPage({ user, onClose, editEvent }) {
             {searchingAddress && (
               <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: "rgba(255,255,255,0.3)" }}>...</div>
             )}
+
+            {/* Suggestions dropdown — ancorat la addressWrapRef (doar input-ul),
+                nu la tot blocul "Locație" de mai jos, care mai include și
+                butonul "Pune pin pe hartă" + eventual harta — altfel top:100%
+                cădea sub tot ce urma, nu direct sub câmp. */}
+            {addressResults.length > 0 && addressFocused && (
+              <div style={{ position: "absolute", ...(addressDropUpward ? { bottom: "100%", marginBottom: 4 } : { top: "100%", marginTop: 4 }), left: 0, right: 0, background: "rgba(15,15,18,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, zIndex: 100, overflow: "hidden", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", animation: "fadeIn 0.15s ease-out" }}>
+                {addressResults.map((r, i) => (
+                  <div key={i} onClick={() => handleSelectAddress(r)} style={{ padding: "12px 16px", cursor: "pointer", borderBottom: i < addressResults.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none", transition: "background 0.15s" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 2 }}><PinIcon size={12} /> {r.short}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <button
@@ -615,21 +633,6 @@ export default function PostPage({ user, onClose, editEvent }) {
               <div style={{ padding: "6px 10px", fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", background: "rgba(255,255,255,0.03)" }}>
                 Mișcă harta ca pinul să ajungă exact unde vrei.
               </div>
-            </div>
-          )}
-
-          {/* Suggestions dropdown */}
-          {addressResults.length > 0 && addressFocused && (
-            <div style={{ position: "absolute", ...(addressDropUpward ? { bottom: "100%", marginBottom: 4 } : { top: "100%", marginTop: 4 }), left: 0, right: 0, background: "rgba(15,15,18,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, zIndex: 100, overflow: "hidden", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", animation: "fadeIn 0.15s ease-out" }}>
-              {addressResults.map((r, i) => (
-                <div key={i} onClick={() => handleSelectAddress(r)} style={{ padding: "12px 16px", cursor: "pointer", borderBottom: i < addressResults.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none", transition: "background 0.15s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 2 }}><PinIcon size={12} /> {r.short}</div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</div>
-                </div>
-              ))}
             </div>
           )}
 
