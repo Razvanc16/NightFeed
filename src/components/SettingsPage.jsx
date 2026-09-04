@@ -1,5 +1,5 @@
 import {
-  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, PencilIcon, TicketIcon, ClockIcon, HeartOutlineIcon, EnvelopeIcon,
+  BellIcon, BellOffIcon, DocumentIcon, TrashIcon, LogoutIcon, ChevronRightIcon, PencilIcon, TicketIcon, ClockIcon, HeartOutlineIcon, EnvelopeIcon, ShieldIcon,
 } from "./Icons";
 
 const NOTIF_PREF_TYPES = [
@@ -44,6 +44,7 @@ export default function SettingsPage({
   onClose, onEditProfile, onShowLegal, onShowLiked, onDeleteAccount, onLogout,
   onShowTickets, onShowHistory,
   profile, pushStatus, pushBusy, onTogglePush, onToggleNotifPref,
+  isAdmin, onShowAdmin,
 }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 10100, background: "#080808", overflowY: "auto", animation: "pageSlideInRight 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
@@ -109,6 +110,15 @@ export default function SettingsPage({
           <Row icon={<DocumentIcon size={16} />} label="Confidențialitate & Termeni" onClick={onShowLegal} />
           <Row icon={<EnvelopeIcon size={16} />} label="contact@nightfeed.ro" onClick={() => { window.location.href = "mailto:contact@nightfeed.ro"; }} />
         </div>
+
+        {isAdmin && (
+          <>
+            <SectionLabel>Echipă</SectionLabel>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <Row icon={<ShieldIcon size={15} />} label="Admin" color="#FF3366" onClick={onShowAdmin} />
+            </div>
+          </>
+        )}
 
         <SectionLabel>Zonă periculoasă</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

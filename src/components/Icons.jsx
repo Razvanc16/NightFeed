@@ -237,6 +237,14 @@ export const leafIconSvg = (color = "#fff") => `<svg width="16" height="16" view
 export const foodIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v7a2 2 0 0 0 4 0V2"/><path d="M9 9v13"/><path d="M17 2c-1.7 0-3 1.8-3 4s1.3 4 3 4v11"/></svg>`;
 export const gamingIconSvg = (color = "#fff") => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="20" height="10" rx="5"/><line x1="7" y1="11" x2="7" y2="15"/><line x1="5" y1="13" x2="9" y2="13"/><circle cx="16" cy="11" r="1" fill="${color}" stroke="none"/><circle cx="18.5" cy="14" r="1" fill="${color}" stroke="none"/></svg>`;
 
+export const ShieldIcon = ({ size = 16, style, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} className={className} {...base}><path d="M12 3 4 6v6c0 5 3.5 8.5 8 9 4.5-0.5 8-4 8-9V6z" /></svg>
+);
+
+export const ChartIcon = ({ size = 16, style, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style} className={className} {...base}><path d="M3 3v18h18" /><rect x="7" y="12" width="3" height="6" /><rect x="12.5" y="8" width="3" height="10" /><rect x="18" y="5" width="3" height="13" /></svg>
+);
+
 export const VIBE_OPTIONS = [
   { id: "alcohol", label: "Cu alcool", icon: BottleIcon, svg: bottleIconSvg },
   { id: "no_alcohol", label: "Fără alcool", icon: NoAlcoholIcon, svg: noAlcoholIconSvg },

@@ -7,6 +7,8 @@ import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
 import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
+import AdminPage from "./AdminPage";
+import { ADMIN_EMAILS } from "../utils/admin";
 import NotificationsPage from "./NotificationsPage";
 import AvatarCropSheet from "./AvatarCropSheet";
 import PhotoViewerModal from "./PhotoViewerModal";
@@ -199,6 +201,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [showTickets, setShowTickets] = useState(false);
   const [scannerEvent, setScannerEvent] = useState(null);
   const [showOwnPhoto, setShowOwnPhoto] = useState(false);
@@ -980,9 +983,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           pushBusy={pushBusy}
           onTogglePush={handleTogglePush}
           onToggleNotifPref={toggleNotifPref}
+          isAdmin={ADMIN_EMAILS.includes(user?.email)}
+          onShowAdmin={() => { setShowSettings(false); setShowAdmin(true); }}
         />,
         document.body
       )}
+
+      {showAdmin && createPortal(<AdminPage onClose={() => setShowAdmin(false)} />, document.body)}
 
       {showLegal && createPortal(<LegalPage onClose={() => setShowLegal(false)} />, document.body)}
 
