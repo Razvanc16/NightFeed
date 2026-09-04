@@ -139,6 +139,7 @@ export default function PostPage({ user, onClose, editEvent }) {
     max_participants: editEvent?.max_participants ?? "",
     contact_name: editEvent?.contact_name || "",
     contact_phone: editEvent?.contact_phone || "",
+    contact_email: editEvent?.contact_email || "",
     contact_social: editEvent?.contact_social || "",
   });
   const [coverFile, setCoverFile] = useState(null);
@@ -355,8 +356,8 @@ export default function PostPage({ user, onClose, editEvent }) {
     if (priceMode === "paid" && !priceAmount) {
       alert("Completează prețul, sau alege Gratuit!"); return;
     }
-    if (form.type === "official" && (!form.contact_name || !form.contact_phone)) {
-      alert("Completează numele și telefonul de contact — necesare pentru verificarea evenimentelor oficiale!"); return;
+    if (form.type === "official" && (!form.contact_name || !form.contact_phone || !form.contact_email)) {
+      alert("Completează numele, telefonul și emailul de contact — necesare pentru verificarea evenimentelor oficiale!"); return;
     }
     if (!user) { alert("Trebuie să fii autentificat!"); return; }
     if (!acceptedTerms) { alert("Trebuie să accepți Termenii și Condițiile înainte să postezi!"); return; }
@@ -555,6 +556,8 @@ export default function PostPage({ user, onClose, editEvent }) {
               <input type="text" placeholder="Nume persoană de contact" value={form.contact_name} onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))}
                 style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
               <input type="tel" placeholder="Telefon" value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))}
+                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+              <input type="email" placeholder="Email de contact" value={form.contact_email} onChange={e => setForm(f => ({ ...f, contact_email: e.target.value }))}
                 style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
               <input type="text" placeholder="Instagram / website local" value={form.contact_social} onChange={e => setForm(f => ({ ...f, contact_social: e.target.value }))}
                 style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />

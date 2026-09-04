@@ -444,9 +444,9 @@ function EventsTab({ initialStatus }) {
                     </span>
                   )}
                 </div>
-                {e.type === "official" && !e.verified && (e.contact_name || e.contact_phone || e.contact_social) && (
+                {e.type === "official" && !e.verified && (e.contact_name || e.contact_phone || e.contact_email || e.contact_social) && (
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>
-                    {[e.contact_name, e.contact_phone, e.contact_social].filter(Boolean).join(" · ")}
+                    {[e.contact_name, e.contact_phone, e.contact_email, e.contact_social].filter(Boolean).join(" · ")}
                   </div>
                 )}
                 {expandedId === e.id && (
