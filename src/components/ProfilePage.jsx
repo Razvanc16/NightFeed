@@ -121,7 +121,7 @@ const ActionMenu = ({ items }) => {
   );
 };
 
-export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent, onOpenLikes }) {
+export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent, onOpenLikes, onProfileSaved }) {
   const [view, setView] = useState("loading");
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -490,6 +490,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
       setEditing(false);
       setView("profile");
+      onProfileSaved && onProfileSaved();
     } catch (err) {
       alert("Eroare la salvare: " + err.message);
     }

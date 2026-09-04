@@ -148,11 +148,35 @@ export default function App() {
   useEffect(() => {
     try { localStorage.setItem("nf_active_tab", activeTab); } catch {}
   }, [activeTab]);
+
+  // null = nu știm încă (query în curs / fără user) — tratat ca "are profil"
+  // ca să nu blocăm nimic cât timp verificăm. false = cont nou, fără rând în
+  // profiles încă — userul putea până acum să navigheze liber pe Feed/Hartă/
+  // Postează înainte să-și completeze profilul, deși aplicația presupune
+  // peste tot că there's already un profil (nume afișat, avatar etc.).
+  const [hasProfile, setHasProfile] = useState(null);
+  useEffect(() => {
+    if (!user) { setHasProfile(null); return; }
+    let active = true;
+    supabase.from("profiles").select("id").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      if (active) setHasProfile(!!data);
+    });
+    return () => { active = false; };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (hasProfile === false && activeTab !== "profile") navigateTab("profile");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasProfile]);
   // Direcția din care alunecă tab-ul nou, după poziția lui în VALID_TABS
   // față de tab-ul curent — calculată sincron (nu într-un efect) ca să fie
   // deja corectă chiar la primul render în care tab-ul devine vizibil.
   const [tabDirection, setTabDirection] = useState(1);
   const navigateTab = (tab) => {
+    // Cont nou, fără profil încă — blocat pe Profil (unde se vede formularul
+    // de completare) până salvează, indiferent ce altceva încearcă să
+    // deschidă (Feed, Hartă, un eveniment din notificare etc.).
+    if (hasProfile === false && tab !== "profile") return;
     setTabDirection(VALID_TABS.indexOf(tab) >= VALID_TABS.indexOf(activeTab) ? 1 : -1);
     setActiveTab(tab);
   };
@@ -582,7 +606,11 @@ export default function App() {
   }, [activeFilters, feedMode]);
 
   const handleTabChange = (tab) => {
-    if (tab === "post") { setShowPost(true); return; }
+    if (tab === "post") {
+      if (hasProfile === false) { navigateTab("profile"); return; }
+      setShowPost(true);
+      return;
+    }
     // Dacă ești pe ecranul de creare eveniment și apeși pe orice alt buton din
     // meniul de jos, renunțăm direct la creare — nu mai trebuie neapărat să
     // apeși "Închide" din colțul din dreapta sus.
@@ -833,7 +861,7 @@ export default function App() {
           {activeTab === "profile" && (
             <div style={{ position: "fixed", inset: 0, height: "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
               {user
-                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} onOpenLikes={(eventId) => setLikesSheetEventId(eventId)} />
+                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} onOpenLikes={(eventId) => setLikesSheetEventId(eventId)} onProfileSaved={() => setHasProfile(true)} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
               }
             </div>
