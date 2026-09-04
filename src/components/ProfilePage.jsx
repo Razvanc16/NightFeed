@@ -796,6 +796,15 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         const canAdvance = !step.required || step.valid;
         return (
           <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", display: "flex", flexDirection: "column", minHeight: "100%", boxSizing: "border-box" }}>
+            {/* Fără asta, cineva ajuns aici din greșeală (cont greșit, s-a
+                răzgândit) rămânea complet blocat — Navbar-ul și orice altă
+                ieșire sunt ascunse intenționat cât timp nu există un profil. */}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+              <button onClick={() => { if (window.confirm("Te deloghezi? Poți relua crearea profilului oricând.")) onLogout && onLogout(); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer", padding: "4px 0" }}>
+                Nu ești tu? Delogare
+              </button>
+            </div>
+
             {/* Progres — puncte, unul per pas, ca la Tinder */}
             <div style={{ display: "flex", gap: 5, marginBottom: 28 }}>
               {steps.map((s, i) => (
