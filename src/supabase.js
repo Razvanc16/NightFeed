@@ -12,8 +12,3 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     detectSessionInUrl: true,
   },
 });
-
-// Temporar, pt. debugging din consolă (bug-ul de upload la covers) — nu
-// expune nimic sensibil (ANON_KEY e oricum public în orice bundle client-side,
-// RLS protejează datele indiferent), dar de scos după ce găsim cauza.
-if (typeof window !== "undefined") window.supabase = supabase;

@@ -328,7 +328,14 @@ export default function PostPage({ user, onClose, editEvent }) {
         // feed (fără o coloană nouă în bază: .mp4/.mov/.webm etc. = video).
         const ext = coverFile.name.split(".").pop();
         const path = `covers/${user.id}_${Date.now()}.${ext}`;
-        const { error } = await supabase.storage.from("covers").upload(path, coverFile, { upsert: true });
+        // upsert:true nu e necesar — path-ul conține Date.now(), deci e mereu
+        // unic, niciodată nu există deja un fișier la calea asta. Găsit live:
+        // pe bucket-ul "covers" (spre deosebire de "avatars"), upsert:true
+        // declanșa constant "new row violates row-level security policy" la
+        // Storage (cauza exactă rămâne neclară — politicile RLS sunt identice
+        // între cele două bucket-uri), în timp ce un insert simplu funcționează
+        // mereu. Fără upsert, ocolim complet problema.
+        const { error } = await supabase.storage.from("covers").upload(path, coverFile);
         if (error) throw error;
         const { data } = supabase.storage.from("covers").getPublicUrl(path);
         cover_url = data.publicUrl;
