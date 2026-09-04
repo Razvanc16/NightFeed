@@ -485,6 +485,10 @@ export default function App() {
   useEffect(() => {
     const feed = feedRef.current;
     if (!feed) return;
+    // Un laptop cu ecran tactil are mouse-ul ca input principal, dar tot
+    // trimite evenimente touch reale la o atingere accidentală a ecranului —
+    // fără verificarea asta, indicatorul de reload apărea "din senin" pe PC.
+    if (window.matchMedia("(pointer: fine)").matches) return;
 
     const atBottom = () => feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 2;
 
