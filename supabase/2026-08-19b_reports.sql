@@ -62,45 +62,47 @@ begin
   end;
 
   html_body := format($html$
-<div style="background-color:#0a0a0c;padding:40px 16px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%%" style="max-width:520px;margin:0 auto;border-collapse:collapse;">
+<div style="background-color:#f4f4f5;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%%" style="max-width:460px;margin:0 auto;background-color:#ffffff;border:1px solid #e4e4e7;border-radius:6px;">
     <tr>
-      <td style="background-color:#FFB800;background-image:linear-gradient(135deg,#FFB800,#FF6B35);padding:22px 28px;border-radius:16px 16px 0 0;">
-        <div style="font-size:20px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">NightFeed</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:2px;">Notificare internă</div>
+      <td style="padding:24px 28px 0 28px;">
+        <span style="font-size:13px;font-weight:700;letter-spacing:0.04em;color:#FF3366;">NIGHTFEED</span>
       </td>
     </tr>
     <tr>
-      <td style="background-color:#17171b;padding:28px;">
-        <div style="display:inline-block;background-color:rgba(255,184,0,0.14);color:#FFB800;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:5px 12px;border-radius:20px;margin-bottom:18px;">Raportare nouă</div>
-        <table role="presentation" width="100%%" style="border-collapse:collapse;margin-top:6px;">
+      <td style="padding:6px 28px 20px 28px;border-bottom:1px solid #e4e4e7;">
+        <div style="font-size:16px;font-weight:600;color:#18181b;">Raportare nouă</div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:20px 28px;">
+        <table role="presentation" width="100%%" style="border-collapse:collapse;">
           <tr>
-            <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);font-size:13px;vertical-align:top;">Motiv</td>
-            <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);color:#ffffff;font-size:14px;font-weight:600;text-align:right;">%s</td>
+            <td style="padding:5px 0;font-size:13px;color:#71717a;vertical-align:top;">Motiv</td>
+            <td style="padding:5px 0;font-size:13px;color:#E8590C;font-weight:600;text-align:right;">%s</td>
           </tr>
           <tr>
-            <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);font-size:13px;vertical-align:top;">Eveniment</td>
-            <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);color:#ffffff;font-size:14px;font-weight:600;text-align:right;">%s</td>
+            <td style="padding:5px 0;font-size:13px;color:#71717a;vertical-align:top;">Eveniment</td>
+            <td style="padding:5px 0;font-size:13px;color:#18181b;font-weight:500;text-align:right;">%s</td>
           </tr>
           <tr>
-            <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);font-size:13px;vertical-align:top;">Locație</td>
-            <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);color:#ffffff;font-size:14px;font-weight:600;text-align:right;">%s</td>
+            <td style="padding:5px 0;font-size:13px;color:#71717a;vertical-align:top;">Locație</td>
+            <td style="padding:5px 0;font-size:13px;color:#18181b;font-weight:500;text-align:right;">%s</td>
           </tr>
           <tr>
-            <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);font-size:13px;vertical-align:top;">Detalii</td>
-            <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);color:#ffffff;font-size:14px;font-weight:500;text-align:right;">%s</td>
+            <td style="padding:5px 0;font-size:13px;color:#71717a;vertical-align:top;">Detalii</td>
+            <td style="padding:5px 0;font-size:13px;color:#18181b;font-weight:400;text-align:right;">%s</td>
           </tr>
           <tr>
-            <td style="padding:10px 0;color:rgba(255,255,255,0.45);font-size:13px;vertical-align:top;">Raportat de</td>
-            <td style="padding:10px 0;color:#ffffff;font-size:13px;font-weight:600;text-align:right;">%s<br><span style="font-size:11px;color:rgba(255,255,255,0.3);font-weight:400;">%s</span></td>
+            <td style="padding:5px 0;font-size:13px;color:#71717a;vertical-align:top;">Raportat de</td>
+            <td style="padding:5px 0;font-size:13px;color:#18181b;font-weight:500;text-align:right;">%s<br><span style="font-size:11px;color:#a1a1aa;font-weight:400;">%s</span></td>
           </tr>
         </table>
       </td>
     </tr>
     <tr>
-      <td style="background-color:#0f0f12;padding:18px 28px;border-radius:0 0 16px 16px;text-align:center;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.3);">NightFeed · nightfeed.ro</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">Email generat automat — nu răspunde la această adresă.</div>
+      <td style="padding:14px 28px;background-color:#fafafa;border-top:1px solid #e4e4e7;border-radius:0 0 6px 6px;">
+        <div style="font-size:11px;color:#a1a1aa;">NightFeed · nightfeed.ro — trimis automat, nu răspunde la acest email.</div>
       </td>
     </tr>
   </table>
