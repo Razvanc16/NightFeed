@@ -16,33 +16,81 @@ const OFFICIAL_REVIEWER_ID = "0185e56d-fa21-4d25-a6e0-9885fc08743f";
 // evenimente noi, nu și la editarea uneia deja postate.
 const MAX_ACTIVE_EVENTS = 2;
 
+// Autocomplete-ul de adresă folosea Nominatim (OpenStreetMap) — gratuit, dar
+// vizibil mai lent decât Google și mult mai slab la găsit un local după nume
+// (caută mai ales adrese stradale exacte). Aplicația oricum are deja Google
+// Maps încărcat pentru hartă, deci refolosim același SDK pentru Places.
+let placesAutocompleteService = null;
+let placesService = null;
+let placesSessionToken = null;
+
+const ensurePlacesServices = async () => {
+  const maps = await loadGoogleMaps();
+  if (!placesAutocompleteService) {
+    placesAutocompleteService = new maps.places.AutocompleteService();
+    // PlacesService cere un nod DOM sau o hartă, dar nu trebuie să fie
+    // atașat vizibil — un div oarecare, nefolosit altfel, e suficient.
+    placesService = new maps.places.PlacesService(document.createElement("div"));
+  }
+  // Un singur "session token" per interacțiune de căutare (de la primul tap
+  // până la alegerea unei sugestii) — grupează cererile de autocomplete +
+  // detaliile finale într-o singură sesiune facturată, cum recomandă Google.
+  if (!placesSessionToken) placesSessionToken = new maps.places.AutocompleteSessionToken();
+};
+
 const searchAddress = async (query) => {
   if (!query || query.length < 3) return [];
   try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=ro`,
-      { headers: { "Accept-Language": "ro" } }
-    );
-    const data = await res.json();
-    return data.map(r => ({
-      label: r.display_name,
-      short: r.display_name.split(",").slice(0, 2).join(","),
-      lat: parseFloat(r.lat),
-      lng: parseFloat(r.lon),
-    }));
+    await ensurePlacesServices();
+    return await new Promise((resolve) => {
+      placesAutocompleteService.getPlacePredictions(
+        { input: query, componentRestrictions: { country: "ro" }, sessionToken: placesSessionToken },
+        (predictions, status) => {
+          if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
+            resolve([]);
+            return;
+          }
+          resolve(predictions.map(p => ({
+            label: p.description,
+            short: p.structured_formatting?.main_text
+              ? [p.structured_formatting.main_text, p.structured_formatting.secondary_text].filter(Boolean).join(", ")
+              : p.description,
+            placeId: p.place_id,
+          })));
+        }
+      );
+    });
   } catch { return []; }
+};
+
+// Coordonatele exacte nu vin în sugestiile de autocomplete (doar text) — se
+// cer separat, o singură dată, când userul chiar alege o sugestie.
+const getPlaceCoords = async (placeId) => {
+  await ensurePlacesServices();
+  return new Promise((resolve) => {
+    placesService.getDetails(
+      { placeId, fields: ["geometry"], sessionToken: placesSessionToken },
+      (place, status) => {
+        placesSessionToken = null; // sesiunea se încheie odată aleasă o sugestie
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !place?.geometry?.location) {
+          resolve(null);
+          return;
+        }
+        resolve({ lat: place.geometry.location.lat(), lng: place.geometry.location.lng() });
+      }
+    );
+  });
 };
 
 // Adresa aproximativă a unui pin pus manual pe hartă — best-effort, dacă
 // eșuează lăsăm userul să scrie el adresa (nu blocăm plasarea pinului).
 const reverseGeocode = async (lat, lng) => {
   try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-      { headers: { "Accept-Language": "ro" } }
-    );
-    const data = await res.json();
-    return data?.display_name ? data.display_name.split(",").slice(0, 2).join(",") : "";
+    const maps = await loadGoogleMaps();
+    const geocoder = new maps.Geocoder();
+    const { results } = await geocoder.geocode({ location: { lat, lng } });
+    if (!results?.[0]) return "";
+    return results[0].formatted_address.split(",").slice(0, 2).join(",");
   } catch { return ""; }
 };
 
@@ -133,6 +181,13 @@ export default function PostPage({ user, onClose, editEvent }) {
     setAddressDropUpward(spaceBelow < estimatedHeight);
   }, [addressFocused, addressResults]);
 
+  // Pornește încărcarea SDK-ului din prima clipă (nu abia când userul apasă
+  // pe hartă) — altfel prima literă tastată în câmpul de adresă aștepta după
+  // tot scriptul Google Maps, simțindu-se "înțepenit" la prima căutare.
+  useEffect(() => {
+    loadGoogleMaps().catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (!showMapPicker) return;
     let cancelled = false;
@@ -188,20 +243,24 @@ export default function PostPage({ user, onClose, editEvent }) {
     clearTimeout(searchTimer.current);
     if (val.length >= 3) {
       setSearchingAddress(true);
+      // 300ms, nu 500 — Google răspunde mult mai rapid decât Nominatim, iar
+      // un debounce mai scurt simte căutarea "instant" în loc de "încet".
       searchTimer.current = setTimeout(async () => {
         const results = await searchAddress(val);
         setAddressResults(results);
         setSearchingAddress(false);
-      }, 500);
+      }, 300);
     } else {
       setAddressResults([]);
     }
   };
 
-  const handleSelectAddress = (result) => {
-    setForm(f => ({ ...f, venue: result.short, lat: result.lat, lng: result.lng }));
+  const handleSelectAddress = async (result) => {
+    setForm(f => ({ ...f, venue: result.short }));
     setAddressResults([]);
     setAddressFocused(false);
+    const coords = await getPlaceCoords(result.placeId);
+    if (coords) setForm(f => ({ ...f, lat: coords.lat, lng: coords.lng }));
   };
 
   const [coverError, setCoverError] = useState("");

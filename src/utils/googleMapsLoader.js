@@ -40,7 +40,10 @@ export function loadGoogleMaps() {
     // undefined (reading 'RIGHT_BOTTOM')").
     window.__nightfeedGoogleMapsCallback = () => resolve(window.google.maps);
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=marker&callback=__nightfeedGoogleMapsCallback`;
+    // "places" — pt. autocomplete-ul de adresă din PostPage (înlocuiește
+    // Nominatim/OpenStreetMap, mult mai lent și mai slab la găsit localuri
+    // după nume, nu doar adrese exacte).
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=marker,places&callback=__nightfeedGoogleMapsCallback`;
     script.async = true;
     script.onerror = () => reject(new Error("Nu s-a putut încărca Google Maps."));
     document.head.appendChild(script);
