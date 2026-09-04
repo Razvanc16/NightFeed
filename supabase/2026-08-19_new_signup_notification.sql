@@ -46,7 +46,10 @@ begin
     ),
     body := jsonb_build_object(
       'from', 'NightFeed <onboarding@resend.dev>',
-      'to', jsonb_build_array('contact@nightfeed.ro'),
+      -- contact@nightfeed.ro nu funcționează cu sender-ul de test onboarding@resend.dev
+      -- (Resend restricționează sandbox-ul la adresa proprie a contului) — până
+      -- se verifică domeniul nightfeed.ro în Resend, mergem pe adresa de cont.
+      'to', jsonb_build_array('rchiceanu@gmail.com'),
       'subject', 'Cont nou pe NightFeed',
       'html', '<p>Utilizator nou: <strong>' || coalesce(new.email, 'necunoscut') || '</strong></p><p>Total utilizatori acum: <strong>' || user_count || '</strong></p>'
     )
