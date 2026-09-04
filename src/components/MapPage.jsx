@@ -357,23 +357,30 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
         const ZOOM_THRESHOLD = 15;
         const zoomedIn = map.getZoom() >= ZOOM_THRESHOLD;
 
+        // clickable urmează zoomedIn (nu fix true) — altfel cercul (rază 150m!)
+        // rămânea clickabil chiar și invizibil la zoom mic, iar orice atingere
+        // în acea zonă (inclusiv dublu-tap de zoom) deschidea popup-ul singură,
+        // fără nicio legătură cu un tap real pe eveniment.
         const circle = new google.maps.Circle({
           map, center: offsetPos, radius: 150,
           strokeColor: color, strokeOpacity: zoomedIn ? 0.55 : 0, strokeWeight: 1.5,
           fillColor: color, fillOpacity: zoomedIn ? 0.12 : 0,
-          clickable: true,
+          clickable: zoomedIn,
         });
         circle.addListener("click", () => setSelectedEvent(event));
         circlesRef.current.push(circle);
 
         // Iconița de casă e ancorată geografic (nu în pixeli, ca un marker normal),
         // ca dimensiunea ei să se scaleze împreună cu cercul la orice nivel de zoom.
+        // clickable:false fix — GroundOverlay nu are un echivalent de
+        // setClickable() după creare (doar setOpacity), deci n-am putea sincroniza
+        // starea lui cu zoom-ul mai jos; cercul de deasupra acoperă oricum aceeași
+        // zonă și rămâne singura țintă clickabilă cât timp e vizibil.
         const houseOverlay = new google.maps.GroundOverlay(
           buildHouseOverlayUrl(color),
           boundsAround(offLat, offLng, 55),
-          { map, opacity: zoomedIn ? (isMarkedActive ? 0.85 : 0.5) : 0, clickable: true }
+          { map, opacity: zoomedIn ? (isMarkedActive ? 0.85 : 0.5) : 0, clickable: false }
         );
-        houseOverlay.addListener("click", () => setSelectedEvent(event));
         markersRef.current.push(houseOverlay);
 
         // Pinul clasic (vizibil de departe, dispare la zoom apropiat).
@@ -427,6 +434,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
       circle.setOptions({
         strokeOpacity: zoomedIn ? 0.55 : 0,
         fillOpacity: zoomedIn ? 0.12 : 0,
+        clickable: zoomedIn,
       });
       houseOverlay.setOpacity(zoomedIn ? (isMarkedActive ? 0.85 : 0.5) : 0);
       pinMarker.setOpacity(zoomedIn ? 0 : 1);

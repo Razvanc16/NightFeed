@@ -1068,7 +1068,10 @@ export default function App() {
               onOpenEvent={() => { const id = likesSheetEventId; setLikesSheetEventId(null); openEventFromNotification(id); }}
             />
           )}
-          <Navbar active={activeTab} onChange={handleTabChange} />
+          {/* Ascunsă complet (nu doar blocată) cât timp userul n-are încă profil —
+              nu are sens să vadă Feed/Caută/Hartă dacă oricum nu poate ajunge
+              acolo, doar creează impresia falsă că ar putea. */}
+          {hasProfile !== false && <Navbar active={activeTab} onChange={handleTabChange} />}
 
           {notifToast && (
             <div

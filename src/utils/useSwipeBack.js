@@ -7,9 +7,11 @@ import { useEffect, useRef, useState } from "react";
 // e mai degrabă verticală decât orizontală. Pagina urmărește degetul live
 // (translateX) — dacă tragi destul SAU tragi rapid (flick scurt), tranziția
 // se termină spre onBack; altfel sare înapoi la loc.
-const DISTANCE_THRESHOLD = 70; // px — suficient tras, indiferent de viteză
-const FLICK_DISTANCE = 30; // px — prag mai mic dacă gestul e rapid
-const FLICK_VELOCITY = 0.55; // px/ms
+// Pragurile inițiale (70/30/0.55) cereau o tragere mult mai lungă decât pe
+// Instagram, unde chiar și un swipe scurt/rapid duce înapoi aproape instant.
+const DISTANCE_THRESHOLD = 45; // px — suficient tras, indiferent de viteză
+const FLICK_DISTANCE = 16; // px — prag mai mic dacă gestul e rapid
+const FLICK_VELOCITY = 0.35; // px/ms
 
 export function useSwipeBack(ref, onBack, enabled = true) {
   const [dragX, setDragX] = useState(0);
