@@ -10,6 +10,7 @@ const TABS = [
   { key: "reports", label: "Raportări", icon: WarningIcon },
   { key: "users", label: "Utilizatori", icon: PersonIcon },
   { key: "events", label: "Evenimente", icon: TargetIcon },
+  { key: "trash", label: "Șterse", icon: TrashIcon },
 ];
 
 const PERIOD_PRESETS = [
@@ -183,7 +184,7 @@ function ReportsTab() {
   };
 
   const deletePost = async (r) => {
-    if (!window.confirm(`Ștergi definitiv evenimentul "${r.event_title || "necunoscut"}"? Organizatorul va primi un email că postarea i-a fost eliminată.`)) return;
+    if (!window.confirm(`Muți evenimentul "${r.event_title || "necunoscut"}" în Șterse? Rămâne recuperabil 7 zile. Organizatorul va primi un email că postarea i-a fost eliminată.`)) return;
     setBusyId(r.id);
     const { error } = await supabase.rpc("admin_delete_event_notify", { target_report_id: r.id });
     if (error) alert("Eroare: " + error.message);
@@ -377,7 +378,7 @@ function EventsTab({ initialStatus }) {
   }, [load]);
 
   const deleteEvent = async (id, title) => {
-    if (!window.confirm(`Ștergi definitiv evenimentul "${title}"? Nu poate fi anulat.`)) return;
+    if (!window.confirm(`Muți evenimentul "${title}" în Șterse? Rămâne recuperabil 7 zile din tab-ul Șterse, apoi se șterge definitiv.`)) return;
     setBusyId(id);
     const { error } = await supabase.rpc("admin_delete_event", { target_event_id: id });
     if (error) alert("Eroare: " + error.message);
@@ -461,6 +462,87 @@ function EventsTab({ initialStatus }) {
   );
 }
 
+const daysLeft = (deletedAt) => {
+  const expiresAt = new Date(deletedAt).getTime() + 7 * 24 * 60 * 60 * 1000;
+  const d = Math.ceil((expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
+  return Math.max(0, d);
+};
+
+function TrashTab() {
+  const [items, setItems] = useState(null);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+
+  const load = useCallback(async () => {
+    const { data, error } = await supabase.rpc("admin_list_trash");
+    if (error) setError(error.message);
+    else { setItems(data || []); setError(""); }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const restore = async (id) => {
+    setBusyId(id);
+    const { error } = await supabase.rpc("admin_restore_event", { target_event_id: id });
+    if (error) alert("Eroare: " + error.message);
+    else setItems((prev) => prev.filter((e) => e.id !== id));
+    setBusyId(null);
+  };
+
+  const purge = async (id, title) => {
+    if (!window.confirm(`Ștergi definitiv "${title}"? Nu mai poate fi recuperat după asta.`)) return;
+    setBusyId(id);
+    const { error } = await supabase.rpc("admin_purge_event", { target_event_id: id });
+    if (error) alert("Eroare: " + error.message);
+    else setItems((prev) => prev.filter((e) => e.id !== id));
+    setBusyId(null);
+  };
+
+  return (
+    <div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 14, lineHeight: 1.5 }}>
+        Evenimentele șterse din Raportări/Evenimente ajung aici și rămân recuperabile 7 zile, apoi se șterg definitiv automat.
+      </div>
+      {error && <div style={{ color: "#FF6B6B", fontSize: 13 }}>Eroare: {error}</div>}
+      {!items && !error && <Spinner />}
+      {items && items.length === 0 && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", padding: "20px 0", textAlign: "center" }}>Coșul e gol.</div>}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {(items || []).map((e, i) => (
+          <div key={e.id} style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{e.title}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans', sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{e.organizer_email || "organizator necunoscut"}</div>
+                <div style={{ fontSize: 11, color: "#FFB800", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>
+                  șters {fmtDateTime(e.admin_deleted_at)} · dispare definitiv în {daysLeft(e.admin_deleted_at)}z
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <button
+                  disabled={busyId === e.id}
+                  onClick={() => restore(e.id)}
+                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 9, color: "#00C864", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                >
+                  <CheckCircleIcon size={11} /> Restaurează
+                </button>
+                <button
+                  disabled={busyId === e.id}
+                  onClick={() => purge(e.id, e.title)}
+                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                >
+                  <TrashIcon size={11} /> Șterge definitiv
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage({ onClose }) {
   const [tab, setTab] = useState("stats");
   const [navState, setNavState] = useState({});
@@ -515,6 +597,7 @@ export default function AdminPage({ onClose }) {
             {tab === "reports" && <ReportsTab />}
             {tab === "users" && <UsersTab initialFilter={navState.filter} />}
             {tab === "events" && <EventsTab initialStatus={navState.status} />}
+            {tab === "trash" && <TrashTab />}
           </div>
         </>
       )}
