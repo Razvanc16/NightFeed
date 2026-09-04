@@ -22,7 +22,7 @@ import { filterActiveEvents, formatEventDateTime } from "./utils/eventTime";
 import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
 import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
-import { MoonIcon, FilterIcon, BellIcon, RefreshIcon } from "./components/Icons";
+import { MoonIcon, FilterIcon, BellIcon } from "./components/Icons";
 
 const filterLabels = { all: "Toate", official: "Oficial", homemade: "Neoficial", today: "Azi", weekend: "Weekend", free: "Gratuit" };
 
@@ -190,20 +190,6 @@ export default function App() {
   const notifToastHideTimer = useRef(null);
   const pendingNavRef = useRef(null); // { matchFn, commentId } — eveniment de deschis odată ce filtrele resetate recalculează slide-urile
 
-  // Pull-to-refresh nu are niciun echivalent de mouse (ascultătorii sunt pe
-  // touchstart/move/end, deliberat) — pe un device cu mouse ca principal
-  // pointer (desktop), arătăm în schimb un buton mic de refresh. "pointer:
-  // fine" e mai fiabil decât un simplu innerWidth: un tablet lat cu touch
-  // rămâne "coarse" (fără buton), un telefon conectat la mouse (rar, dar
-  // există) ar primi corect butonul.
-  const [isMouseDevice, setIsMouseDevice] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(pointer: fine)");
-    setIsMouseDevice(mq.matches);
-    const onChange = (e) => setIsMouseDevice(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
 
   // Pull-to-refresh pe feed: trage în jos cât ești pe primul eveniment (scrollTop 0)
   const [pullDistance, setPullDistance] = useState(0);
@@ -867,24 +853,7 @@ export default function App() {
               ))}
             </div>
 
-            {isMouseDevice && (
-              <button
-                onClick={doRefresh}
-                disabled={refreshing}
-                title="Reîmprospătează"
-                style={{
-                  position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", right: 16,
-                  zIndex: 50, width: 38, height: 38, borderRadius: "50%", cursor: refreshing ? "default" : "pointer",
-                  background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
-                  backdropFilter: "blur(14px)", boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
-                  color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
-                <RefreshIcon size={16} style={{ animation: refreshing ? "ptrSpin 0.9s linear infinite" : "none" }} />
-              </button>
-            )}
-
-            {(pullDistance > 0 || refreshing) && (
+{(pullDistance > 0 || refreshing) && (
               <div style={{
                 position: "absolute", top: 0, left: 0, right: 0, height: 90, zIndex: 5, pointerEvents: "none",
                 display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 12,
