@@ -19,3 +19,19 @@ export function useIsDesktopNav() {
   }, []);
   return isDesktopNav;
 }
+
+// Prag separat, mai lat — sub el, sidebar + card centrat + acțiuni lângă
+// card încap deja confortabil (900px e suficient), dar mai adăugăm și
+// panourile de organizator/detalii pe laterale doar dacă mai e loc real,
+// altfel s-ar înghesui unele peste altele pe ferestre de 900-1199px.
+export function useIsWideDesktop() {
+  const [isWide, setIsWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: fine) and (min-width: 1200px)");
+    setIsWide(mq.matches);
+    const onChange = (e) => setIsWide(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return isWide;
+}

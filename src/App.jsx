@@ -21,7 +21,7 @@ import { filterActiveEvents, formatEventDateTime } from "./utils/eventTime";
 import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
 import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
-import { useIsDesktopNav, DESKTOP_SIDEBAR_WIDTH } from "./utils/desktopLayout";
+import { useIsDesktopNav, useIsWideDesktop, DESKTOP_SIDEBAR_WIDTH } from "./utils/desktopLayout";
 import { MoonIcon, BellIcon } from "./components/Icons";
 
 const filterFn = (event, filter) => {
@@ -171,7 +171,9 @@ export default function App() {
   // timpul creării contului) — altfel paginile ar rezerva 88px degeaba în
   // stânga, fără niciun sidebar acolo care să le justifice.
   const isDesktopNav = useIsDesktopNav();
+  const isWideDesktop = useIsWideDesktop();
   const showSidebar = isDesktopNav && hasProfile !== false;
+  const showSidePanels = showSidebar && isWideDesktop;
   const tabWrapStyle = { top: 0, right: 0, bottom: 0, left: showSidebar ? DESKTOP_SIDEBAR_WIDTH : 0, height: showSidebar ? "100dvh" : "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))" };
   // Direcția din care alunecă tab-ul nou, după poziția lui în VALID_TABS
   // față de tab-ul curent — calculată sincron (nu într-un efect) ca să fie
@@ -995,7 +997,7 @@ export default function App() {
                 slides.map((slide, i) => (
                   <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: showSidebar ? "100dvh" : "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
                     {slide.type === "single" ? (
-                      <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} onOpenLocation={openEventLocation} desktopSidebar={showSidebar} />
+                      <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} onOpenLocation={openEventLocation} desktopSidebar={showSidebar} desktopWide={showSidePanels} />
                     ) : (
                       <div style={{ width: "100%", height: "100%", background: "#050506", padding: "70px 12px 12px", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 10 }}>
                         {slide.events.map(ev => (

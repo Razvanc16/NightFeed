@@ -112,7 +112,7 @@ const Toast = ({ message, show, color }) => (
   </div>
 );
 
-export default function EventCard({ event, isActive, user, onComment, onViewProfile, isFollowingOrganizer, onToggleFollowOrganizer, onOpenLocation, desktopSidebar }) {
+export default function EventCard({ event, isActive, user, onComment, onViewProfile, isFollowingOrganizer, onToggleFollowOrganizer, onOpenLocation, desktopSidebar, desktopWide }) {
   // Like-urile și attend-ul (pentru evenimente non-homemade) sunt acum în Supabase,
   // vizibile pentru toți userii, pe orice device.
   const [liked, setLiked] = useState(false);
@@ -541,6 +541,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
   const buttons = [
     { key: "like", onClick: handleLike, active: liked, label: formatNum(likeCount), icon: <HeartIcon filled={liked} color={event.color} size={32} /> },
+    { key: "comment", onClick: handleComment, active: false, icon: <CommentIcon /> },
     event.isPosted && event.type === "homemade" && !event.location_visible
       ? {
           key: "attend",
@@ -555,7 +556,6 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           title: isOwnEvent ? "Nu poți participa la propriul eveniment" : undefined,
           label: event.max_participants ? `${formatNum(attendCount)}/${event.max_participants}` : formatNum(attendCount), icon: attending ? <CheckIcon color={event.color} /> : <PlusIcon />,
         },
-    { key: "comment", onClick: handleComment, active: false, icon: <CommentIcon /> },
   ];
 
   return (
@@ -659,7 +659,10 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           </div>
         </>
       )}
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "65%", background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 50%, transparent 100%)", pointerEvents: "none" }} />
+      {/* Pe wide-desktop, titlul/descrierea/organizatorul se mută în panourile
+          laterale (mai jos, pe portal) — nu mai are rost voalul de întunecare
+          nici textul suprapus peste video/poză, care rămâne "curat". */}
+      {!desktopWide && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "65%", background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 50%, transparent 100%)", pointerEvents: "none" }} />}
 
       {event.age_restricted && (
         <div style={{ position: "absolute", top: 20, right: 16, padding: "4px 10px", borderRadius: 20, background: "rgba(255,51,102,0.25)", border: "1px solid rgba(255,51,102,0.6)", backdropFilter: "blur(10px)" }}>
@@ -667,7 +670,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
       )}
 
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 64, padding: "0 16px 28px" }}>
+      {!desktopWide && <div style={{ position: "absolute", bottom: 0, left: 0, right: 64, padding: "0 16px 28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <div
             onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
@@ -719,7 +722,80 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             </span>
           )}
         </div>
-      </div>
+      </div>}
+
+      {desktopWide && isActive && user && createPortal(
+        <>
+          {/* Panou stânga — organizator, în golul dintre sidebar și card */}
+          <div style={{ position: "fixed", top: "50%", left: DESKTOP_SIDEBAR_WIDTH + 24, transform: "translateY(-50%)", width: 220, zIndex: 55, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center" }}>
+            {event.type === "official" && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 12, background: `${event.color}20`, color: event.color, fontFamily: "'DM Mono', monospace" }}>
+                <LightningIcon size={11} /> Oficial
+              </span>
+            )}
+            <div
+              onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
+              style={{ width: 76, height: 76, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: event.organizer_avatar ? "transparent" : `${event.color}25`, border: `2px solid ${event.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 700, color: event.color, cursor: event.organizer_id ? "pointer" : "default" }}
+            >
+              {event.organizer_avatar ? <img src={event.organizer_avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.organizer || "?").charAt(0).toUpperCase()}
+            </div>
+            <div
+              onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
+              style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif", cursor: event.organizer_id ? "pointer" : "default" }}
+            >
+              {event.organizer}
+            </div>
+            {!isOwnEvent && event.organizer_id && onToggleFollowOrganizer && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleFollowOrganizer(event.organizer_id); }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 20, cursor: "pointer", background: isFollowingOrganizer ? "rgba(255,255,255,0.1)" : `${event.color}25`, border: `1px solid ${isFollowingOrganizer ? "rgba(255,255,255,0.2)" : event.color + "60"}`, color: isFollowingOrganizer ? "rgba(255,255,255,0.6)" : event.color, fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}
+              >
+                {isFollowingOrganizer ? <><CheckCircleIcon size={12} /> Urmărești</> : "+ Urmărește"}
+              </button>
+            )}
+          </div>
+
+          {/* Panou dreapta — titlu/descriere/detalii, în golul de după coloana
+              de acțiuni (care nu mai are rost suprapusă peste card ca pe mobil,
+              cât timp e destul loc lat să stea alături). */}
+          <div style={{ position: "fixed", top: "50%", left: `calc(50vw + ${DESKTOP_SIDEBAR_WIDTH / 2 + DESKTOP_CARD_WIDTH / 2 + 108}px)`, right: 24, transform: "translateY(-50%)", maxWidth: 360, maxHeight: "80vh", overflowY: "auto", zIndex: 55 }}>
+            <div
+              onClick={() => setShowDetails(true)}
+              style={{ fontSize: 24, fontWeight: 800, color: "#fff", lineHeight: 1.25, marginBottom: 10, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}
+            >
+              {event.title}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+              <span
+                onClick={() => onOpenLocation && onOpenLocation(event)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace", cursor: onOpenLocation ? "pointer" : "default" }}
+              >
+                <PinIcon size={13} />
+                {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace", marginBottom: 14 }}>
+              <ClockIcon size={13} /> {event.date}
+            </div>
+            {event.description && (
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, margin: 0, marginBottom: 14 }}>{event.description}</p>
+            )}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{formatPrice(event.price)}</span>
+              {event.code && (
+                <span
+                  onClick={() => { navigator.clipboard?.writeText(event.code); showToast("Cod copiat!", "#00C864"); }}
+                  style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
+                  title="Apasă pentru a copia codul"
+                >
+                  <KeyIcon size={12} /> {event.code}
+                </span>
+              )}
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
 
       {(() => {
         const buttonList = buttons.map(btn => (
@@ -762,7 +838,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         }
 
         return (
-          <div style={{ position: "absolute", right: 12, bottom: 90, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+          <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
             {buttonList}
           </div>
         );
