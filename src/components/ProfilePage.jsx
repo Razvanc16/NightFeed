@@ -215,7 +215,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [pushStatus, setPushStatus] = useState("checking"); // unsupported | denied | not-subscribed | subscribed
   const [pushBusy, setPushBusy] = useState(false);
   const fileRef = useRef(null);
-  const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", avatar_url: "" });
+  const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", prompt_answer: "", instagram: "", avatar_url: "" });
+  // Pasul curent din wizard-ul de creare cont (unul câte unul, ca la Tinder)
+  // — doar la crearea inițială; editarea unui profil existent rămâne
+  // formularul clasic, cu toate câmpurile una sub alta.
+  const [wizardStep, setWizardStep] = useState(0);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [cropSource, setCropSource] = useState(null); // { file } sau { url } — vezi handleAvatarChange
@@ -362,7 +366,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     const { data } = await supabase.from("profiles").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (data) {
       setProfile(data);
-      setForm({ nume: data.nume || "", prenume: data.prenume || "", varsta: data.varsta || "", gen: data.gen || "", hobby: data.hobby || "", avatar_url: data.avatar_url || "" });
+      setForm({ nume: data.nume || "", prenume: data.prenume || "", varsta: data.varsta || "", gen: data.gen || "", hobby: data.hobby || "", prompt_answer: data.prompt_answer || "", instagram: data.instagram || "", avatar_url: data.avatar_url || "" });
       setView("profile");
     } else {
       setView("setup");
@@ -673,11 +677,161 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         </div>
       )}
 
-      {isSetup && (
-        <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", animation: "slideUp 0.3s ease-out" }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>
-            {editing ? "Editează profilul" : "Creează-ți profilul"}
+      {view === "setup" && (() => {
+        const steps = [
+          {
+            key: "avatar", title: "Adaugă o poză", subtitle: "Opțional, dar profilele cu poză primesc mult mai multă încredere",
+            required: false,
+            render: () => (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 8 }}>
+                <div style={{ position: "relative" }}>
+                  <div onClick={() => fileRef.current?.click()} style={{ width: 120, height: 120, borderRadius: "50%", background: avatarSrc ? "transparent" : "rgba(255,51,102,0.15)", border: "2px dashed rgba(255,51,102,0.4)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" }}>
+                    {avatarSrc ? <img src={avatarSrc} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ color: "rgba(255,51,102,0.6)" }}><CameraIcon size={38} /></span>}
+                  </div>
+                  {avatarSrc && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setCropSource({ url: avatarSrc }); }}
+                      title="Ajustează poza actuală"
+                      style={{ position: "absolute", bottom: -2, right: -2, width: 32, height: 32, borderRadius: "50%", background: "#FF3366", border: "2px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff" }}
+                    >
+                      <PencilIcon size={14} />
+                    </button>
+                  )}
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 10 }}>Apasă pentru poză</div>
+              </div>
+            ),
+          },
+          {
+            key: "prenume", title: "Cum te cheamă?", subtitle: "Prenumele tău",
+            required: true, valid: !!form.prenume,
+            render: () => (
+              <input autoFocus type="text" placeholder="ex: Ion" value={form.prenume} onChange={e => setForm(f => ({ ...f, prenume: e.target.value }))}
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+            ),
+          },
+          {
+            key: "nume", title: "Și numele de familie?", subtitle: "Apare pe profilul tău",
+            required: true, valid: !!form.nume,
+            render: () => (
+              <input autoFocus type="text" placeholder="ex: Popescu" value={form.nume} onChange={e => setForm(f => ({ ...f, nume: e.target.value }))}
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+            ),
+          },
+          {
+            key: "varsta", title: "Câți ani ai?", subtitle: "Vizibilă pe profil",
+            required: false,
+            render: () => (
+              <input autoFocus type="number" placeholder="ex: 22" value={form.varsta} onChange={e => setForm(f => ({ ...f, varsta: e.target.value }))}
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+            ),
+          },
+          {
+            key: "gen", title: "Genul tău", subtitle: null,
+            required: false,
+            render: () => (
+              <div style={{ display: "flex", gap: 10 }}>
+                {["Masculin", "Feminin"].map(g => (
+                  <button key={g} onClick={() => setForm(f => ({ ...f, gen: g }))} style={{ flex: 1, padding: "16px 0", borderRadius: 14, background: form.gen === g ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.gen === g ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.gen === g ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 15, fontFamily: "'DM Sans', sans-serif", fontWeight: form.gen === g ? 700 : 400, cursor: "pointer" }}>
+                    {g}
+                  </button>
+                ))}
+              </div>
+            ),
+          },
+          {
+            key: "hobby", title: "Bio", subtitle: "Câteva cuvinte despre tine",
+            required: false,
+            render: () => (
+              <textarea
+                autoFocus rows={4} placeholder="Câteva cuvinte despre tine" value={form.hobby}
+                onChange={e => setForm(f => ({ ...f, hobby: e.target.value }))}
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 16, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+              />
+            ),
+          },
+          {
+            // Prompt gen Hinge/Tinder — arată direct pe cererea de participare
+            // trimisă unui host, ca să-și dea seama repede cui îi acceptă
+            // cererea, nu doar un nume și o poză generică.
+            key: "prompt_answer", title: "Ce cauți la o ieșire?", subtitle: "Apare hosturilor când ceri să participi la o petrecere",
+            required: false,
+            render: () => (
+              <textarea
+                autoFocus rows={3} placeholder="ex: cunoscut oameni noi, dans, o bere relaxată..." value={form.prompt_answer}
+                onChange={e => setForm(f => ({ ...f, prompt_answer: e.target.value }))}
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 16, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+              />
+            ),
+          },
+          {
+            key: "instagram", title: "Instagram", subtitle: "Opțional — ajută hosturile să te verifice înainte să te accepte",
+            required: false,
+            render: () => (
+              <input autoFocus type="text" placeholder="ex: @nume.prenume" value={form.instagram} onChange={e => setForm(f => ({ ...f, instagram: e.target.value }))}
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+            ),
+          },
+          {
+            key: "final", title: "Ultimul pas", subtitle: "Confirmă și ești gata de NightFeed",
+            required: false, isFinal: true,
+            render: () => (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                  <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>
+                    Am citit și accept <span onClick={() => setShowLegal(true)} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>Termenii și Politica de Confidențialitate</span>
+                  </span>
+                </label>
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                  <input type="checkbox" checked={confirmedAge} onChange={e => setConfirmedAge(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>Confirm că am cel puțin 16 ani</span>
+                </label>
+              </div>
+            ),
+          },
+        ];
+        const step = steps[wizardStep];
+        const canAdvance = !step.required || step.valid;
+        return (
+          <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", display: "flex", flexDirection: "column", minHeight: "100%", boxSizing: "border-box" }}>
+            {/* Progres — puncte, unul per pas, ca la Tinder */}
+            <div style={{ display: "flex", gap: 5, marginBottom: 28 }}>
+              {steps.map((s, i) => (
+                <div key={s.key} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= wizardStep ? "linear-gradient(90deg, #FF3366, #FF6B35)" : "rgba(255,255,255,0.1)" }} />
+              ))}
+            </div>
+
+            <div key={step.key} style={{ animation: "tabSlideFromRight 0.3s cubic-bezier(0.16,1,0.3,1)", flex: 1 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: step.subtitle ? 6 : 24 }}>{step.title}</div>
+              {step.subtitle && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 24, lineHeight: 1.5 }}>{step.subtitle}</div>}
+              {step.render()}
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 24 }}>
+              {wizardStep > 0 && (
+                <button onClick={() => setWizardStep(s => s - 1)} style={{ flex: 1, padding: "14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                  Înapoi
+                </button>
+              )}
+              {step.isFinal ? (
+                <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: saving ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: saving ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
+                  {saving ? "Se salvează..." : <>Creează profilul <RocketIcon size={16} /></>}
+                </button>
+              ) : (
+                <button onClick={() => canAdvance && setWizardStep(s => s + 1)} disabled={!canAdvance} style={{ flex: 2, padding: "14px", background: canAdvance ? "linear-gradient(135deg, #FF3366, #FF6B35)" : "rgba(255,255,255,0.06)", border: "none", borderRadius: 14, color: canAdvance ? "#fff" : "rgba(255,255,255,0.3)", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: canAdvance ? "pointer" : "not-allowed" }}>
+                  Continuă
+                </button>
+              )}
+            </div>
           </div>
+        );
+      })()}
+
+      {editing && (
+        <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", animation: "slideUp 0.3s ease-out" }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>Editează profilul</div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginBottom: 28 }}>Apare pe NightFeed</div>
 
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 28 }}>
@@ -720,6 +874,21 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             />
           </div>
 
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Ce cauți la o ieșire?</div>
+            <textarea
+              rows={3} placeholder="ex: cunoscut oameni noi, dans, o bere relaxată..." value={form.prompt_answer}
+              onChange={e => setForm(f => ({ ...f, prompt_answer: e.target.value }))}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+            />
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Instagram</div>
+            <input type="text" placeholder="ex: @nume.prenume" value={form.instagram} onChange={e => setForm(f => ({ ...f, instagram: e.target.value }))}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+          </div>
+
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>Gen</div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -731,27 +900,10 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             </div>
           </div>
 
-          {!profile && (
-            <div style={{ marginBottom: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-                <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>
-                  Am citit și accept <span onClick={() => setShowLegal(true)} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>Termenii și Politica de Confidențialitate</span>
-                </span>
-              </label>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-                <input type="checkbox" checked={confirmedAge} onChange={e => setConfirmedAge(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>Confirm că am cel puțin 16 ani</span>
-              </label>
-            </div>
-          )}
-
           <button onClick={handleSave} disabled={saving} style={{ width: "100%", padding: "14px", background: saving ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: saving ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
-            {saving ? "Se salvează..." : editing ? "Salvează modificările" : <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Creează profilul <RocketIcon size={16} /></span>}
+            {saving ? "Se salvează..." : "Salvează modificările"}
           </button>
-          {editing && (
-            <button onClick={() => { setEditing(false); setAvatarPreview(null); }} style={{ width: "100%", padding: "12px", background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.4)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", marginTop: 10 }}>Anulează</button>
-          )}
+          <button onClick={() => { setEditing(false); setAvatarPreview(null); }} style={{ width: "100%", padding: "12px", background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.4)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", marginTop: 10 }}>Anulează</button>
         </div>
       )}
 

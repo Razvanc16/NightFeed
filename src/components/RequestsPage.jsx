@@ -32,11 +32,22 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
   const loadRequests = async () => {
     setLoading(true);
     // Cereri primite (eu sunt host)
-    const { data: incoming } = await supabase
+    const { data: incomingRaw } = await supabase
       .from("attendance_requests")
       .select("*, posted_events(title, type, date, event_date, archived)")
       .eq("host_id", user.id)
       .order("created_at", { ascending: false });
+
+    // Poza, vârsta și "ce caută" fiecărui solicitant — ca hostul să-și dea
+    // seama repede cui îi acceptă cererea, nu doar dintr-un nume și un mesaj
+    // opțional (gen Tinder/Hinge, unde ai mereu o poză + un profil scurt).
+    const requesterIds = [...new Set((incomingRaw || []).map(r => r.requester_id))];
+    let profilesById = {};
+    if (requesterIds.length) {
+      const { data: profs } = await supabase.from("profiles").select("user_id, avatar_url, varsta, hobby, prompt_answer, instagram").in("user_id", requesterIds);
+      (profs || []).forEach(p => { profilesById[p.user_id] = p; });
+    }
+    const incoming = (incomingRaw || []).map(r => ({ ...r, requester_profile: profilesById[r.requester_id] || null }));
 
     // Cereri trimise (eu sunt requester) — venue/lat/lng nu mai vin din embed
     // (coloane blocate la nivel de bază de date), ci separat din view-ul care
@@ -237,14 +248,29 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
           ) : filteredRequests.map(req => (
             <div key={req.id} style={{ borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#FF3366", flexShrink: 0 }}>
-                  <PersonIcon size={18} />
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: req.requester_profile?.avatar_url ? "transparent" : "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#FF3366", flexShrink: 0, overflow: "hidden" }}>
+                  {req.requester_profile?.avatar_url ? <img src={req.requester_profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <PersonIcon size={18} />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{req.requester_username || "Utilizator"}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
+                    {req.requester_username || "Utilizator"}
+                    {req.requester_profile?.varsta && <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400 }}> · {req.requester_profile.varsta} ani</span>}
+                  </div>
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
                     vrea să participe la <span style={{ color: "#FF3366" }}>{req.posted_events?.title}</span>
                   </div>
+                  {req.requester_profile?.hobby && (
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>{req.requester_profile.hobby}</div>
+                  )}
+                  {req.requester_profile?.prompt_answer && (
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8, borderLeft: "2px solid rgba(255,184,0,0.4)" }}>
+                      <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace" }}>Caută</span><br />
+                      {req.requester_profile.prompt_answer}
+                    </div>
+                  )}
+                  {req.requester_profile?.instagram && (
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>@{req.requester_profile.instagram.replace(/^@/, "")}</div>
+                  )}
                   {req.message && (
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8, borderLeft: "2px solid rgba(255,51,102,0.4)" }}>
                       "{req.message}"
