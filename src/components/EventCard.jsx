@@ -125,6 +125,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   const [btnAnim, setBtnAnim] = useState({ like: false, attend: false, share: false, comment: false });
   const [showJoinRequest, setShowJoinRequest] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [videoMuted, setVideoMuted] = useState(true);
   const [videoPaused, setVideoPaused] = useState(false);
   const videoRef = useRef(null);
@@ -132,6 +133,9 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
   const singleTapTimer = useRef(null);
   useEffect(() => () => clearTimeout(singleTapTimer.current), []);
   const cardRef = useRef(null);
+  const longPressTimer = useRef(null);
+  const longPressTriggered = useRef(false);
+  const pressStartPos = useRef({ x: 0, y: 0 });
   const toastTimer = useRef(null);
   const attendBusyRef = useRef(false);
   const likeBusyRef = useRef(false);
@@ -294,14 +298,6 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
     setVideoPaused(p => !p);
   };
 
-  // Ține apăsat pe video ca să meargă la 2x — dai drumul, revine la normal.
-  const handleVideoHoldStart = (e) => {
-    if (videoRef.current) videoRef.current.playbackRate = 2;
-  };
-  const handleVideoHoldEnd = (e) => {
-    if (videoRef.current) videoRef.current.playbackRate = 1;
-  };
-
   const showToast = (message, color) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ show: true, message, color });
@@ -382,7 +378,35 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
     likeBusyRef.current = false;
   };
 
+  // Long-press (ca pe TikTok) — deschide un meniu cu Raportează, în loc de
+  // butonul de flag permanent din bara de acțiuni (fura click-uri accidentale,
+  // mai ales pe ecrane mari — vezi feedback-ul care a scos butonul de tot).
+  const LONG_PRESS_MS = 450;
+  const LONG_PRESS_TOLERANCE = 10;
+  const handlePressStart = (e) => {
+    longPressTriggered.current = false;
+    const point = e.touches ? e.touches[0] : e;
+    pressStartPos.current = { x: point.clientX, y: point.clientY };
+    clearTimeout(longPressTimer.current);
+    longPressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true;
+      clearTimeout(singleTapTimer.current);
+      setShowActionsMenu(true);
+      if (navigator.vibrate) navigator.vibrate(12);
+    }, LONG_PRESS_MS);
+  };
+  const handlePressMove = (e) => {
+    const point = e.touches ? e.touches[0] : e;
+    const dx = Math.abs(point.clientX - pressStartPos.current.x);
+    const dy = Math.abs(point.clientY - pressStartPos.current.y);
+    if (dx > LONG_PRESS_TOLERANCE || dy > LONG_PRESS_TOLERANCE) clearTimeout(longPressTimer.current);
+  };
+  const handlePressEnd = () => clearTimeout(longPressTimer.current);
+
   const handleDoubleTap = (e) => {
+    // Long-press-ul a apucat deja să deschidă meniul — click-ul sintetic de
+    // la eliberarea degetului/mouse-ului nu mai trebuie tratat ca tap normal.
+    if (longPressTriggered.current) { longPressTriggered.current = false; return; }
     const now = Date.now();
     if (now - lastTap.current < 300) {
       // E al doilea tap din pereche — anulăm pauza programată de primul tap
@@ -511,11 +535,21 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         },
     { key: "comment", onClick: handleComment, active: false, icon: <CommentIcon /> },
     { key: "share", onClick: handleShare, active: false, icon: <ShareIcon /> },
-    { key: "report", onClick: (e) => { e.stopPropagation(); animateBtn("report"); setShowReport(true); }, active: false, icon: <FlagIcon /> },
   ];
 
   return (
-    <div ref={cardRef} onClick={handleDoubleTap} style={{ width: "100%", height: "100%", position: "relative", background: event.bgColor, overflow: "hidden", userSelect: "none", WebkitUserSelect: "none", cursor: "pointer", flexShrink: 0 }}>
+    <div
+      ref={cardRef}
+      onClick={handleDoubleTap}
+      onTouchStart={handlePressStart}
+      onTouchMove={handlePressMove}
+      onTouchEnd={handlePressEnd}
+      onMouseDown={handlePressStart}
+      onMouseMove={handlePressMove}
+      onMouseUp={handlePressEnd}
+      onMouseLeave={handlePressEnd}
+      style={{ width: "100%", height: "100%", position: "relative", background: event.bgColor, overflow: "hidden", userSelect: "none", WebkitUserSelect: "none", cursor: "pointer", flexShrink: 0 }}
+    >
       <style>{`
         @keyframes btnBounce { 0%{transform:scale(1)} 30%{transform:scale(0.85)} 60%{transform:scale(1.2)} 80%{transform:scale(0.95)} 100%{transform:scale(1)} }
         @keyframes heartFlyColor {
@@ -535,11 +569,6 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               muted={videoMuted}
               loop
               playsInline
-              onTouchStart={handleVideoHoldStart}
-              onTouchEnd={handleVideoHoldEnd}
-              onMouseDown={handleVideoHoldStart}
-              onMouseUp={handleVideoHoldEnd}
-              onMouseLeave={handleVideoHoldEnd}
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             />
             {/* Sub butonul de filtre (fix, top-left, z-index mare) ca să nu se
@@ -563,8 +592,8 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       )}
 
       {/* pointerEvents:none — altfel acest voal decorativ (fără niciun
-          handler propriu) prindea el atingerile în locul video-ului de
-          dedesubt, blocând ținut-apăsat-pentru-2x. */}
+          handler propriu) prindea el atingerile în locul video-ului/cardului
+          de dedesubt, blocând tap-ul/long-press-ul. */}
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 30%, ${event.color}40 0%, transparent 70%)`, pointerEvents: "none" }} />
       {!event.cover_url && (
         <>
@@ -665,6 +694,32 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         alreadyRequested={requestStatus === "pending" || requestStatus === "accepted"}
       />
       <ReportSheet event={event} user={user} open={showReport} onClose={() => setShowReport(false)} />
+
+      {showActionsMenu && (
+        <>
+          <div
+            onClick={(e) => { e.stopPropagation(); setShowActionsMenu(false); }}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 500, animation: "backdropIn 0.2s ease" }}
+          />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 501, background: "rgba(22,22,26,0.98)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden", minWidth: 240, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", animation: "modalPop 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}
+          >
+            <button
+              onClick={() => { setShowActionsMenu(false); setShowReport(true); }}
+              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", color: "#FF6B6B", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+            >
+              <FlagIcon /> Raportează evenimentul
+            </button>
+            <button
+              onClick={() => setShowActionsMenu(false)}
+              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", borderTop: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+            >
+              Anulează
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

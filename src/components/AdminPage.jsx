@@ -361,6 +361,9 @@ function EventsTab({ initialStatus }) {
   const [events, setEvents] = useState(null);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const [reportersById, setReportersById] = useState({});
+  const [loadingReporters, setLoadingReporters] = useState(null);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.rpc("admin_list_events", { search: search || null, limit_n: 60, status_filter: status });
@@ -380,6 +383,17 @@ function EventsTab({ initialStatus }) {
     if (error) alert("Eroare: " + error.message);
     else setEvents((prev) => prev.filter((e) => e.id !== id));
     setBusyId(null);
+  };
+
+  const toggleReporters = async (id) => {
+    if (expandedId === id) { setExpandedId(null); return; }
+    setExpandedId(id);
+    if (!reportersById[id]) {
+      setLoadingReporters(id);
+      const { data, error } = await supabase.rpc("admin_get_event_reports", { target_event_uuid: id });
+      if (!error) setReportersById((prev) => ({ ...prev, [id]: data || [] }));
+      setLoadingReporters(null);
+    }
   };
 
   return (
@@ -411,8 +425,26 @@ function EventsTab({ initialStatus }) {
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans', sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
                   {e.organizer_email || "organizator necunoscut"}
-                  {e.reports_count > 0 && <span style={{ color: "#FFB800" }}> · {e.reports_count} raportări</span>}
+                  {e.reports_count > 0 && (
+                    <span onClick={() => toggleReporters(e.id)} style={{ color: "#FFB800", cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted" }}>
+                      {" "}· {e.reports_count} raportări{expandedId === e.id ? " ▲" : " ▼"}
+                    </span>
+                  )}
                 </div>
+                {expandedId === e.id && (
+                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", gap: 6 }}>
+                    {loadingReporters === e.id ? (
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Se încarcă...</div>
+                    ) : (reportersById[e.id] || []).map((r) => (
+                      <div key={r.id} style={{ fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}>
+                        <span style={{ color: "#fff", fontWeight: 600 }}>{r.reporter_email || "necunoscut"}</span>
+                        <span style={{ color: "rgba(255,255,255,0.45)" }}> — {r.reason}</span>
+                        <span style={{ color: "rgba(255,255,255,0.3)" }}> · {fmtDateTime(r.created_at)}</span>
+                        {r.details && <div style={{ color: "rgba(255,255,255,0.5)", marginTop: 2 }}>{r.details}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <button
                 disabled={busyId === e.id}
