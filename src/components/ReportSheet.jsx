@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../supabase";
 import { CheckCircleIcon, WarningIcon } from "./Icons";
 
@@ -62,7 +63,13 @@ export default function ReportSheet({ event, reportedUser, user, open, onClose }
 
   if (!target) return null;
 
-  return (
+  // Portal direct pe document.body — cardul din feed care deschide raportarea
+  // e descendent al containerului scrollabil, care primește un transform
+  // temporar la tragere (pull-to-refresh). Orice transform pe un ancestor
+  // creează un nou "containing block" pentru position:fixed, deci fără
+  // portal sheet-ul "fix" rămânea de fapt ancorat de acel container și se
+  // deplasa vizual odată cu el la scroll — exact bug-ul raportat.
+  return createPortal(
     <>
       {/* touchAction:none — vezi JoinRequestSheet pentru explicația completă
           (fără el, swipe-ul pe backdrop scrolează feed-ul de dedesubt). */}
@@ -127,6 +134,7 @@ export default function ReportSheet({ event, reportedUser, user, open, onClose }
           </>
         )}
       </div>
-    </>
+    </>,
+    document.body
   );
 }

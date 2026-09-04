@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../supabase";
 import { CheckCircleIcon, RocketIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
@@ -46,7 +47,11 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
 
   if (!event) return null;
 
-  return (
+  // Portal pe document.body — vezi ReportSheet pentru explicația completă
+  // (fără el, containerul scrollabil al feed-ului primește un transform
+  // temporar la pull-to-refresh, ceea ce rupea poziționarea "fixă" a acestui
+  // sheet și îl făcea să se deplaseze vizual odată cu scroll-ul).
+  return createPortal(
     <>
       {/* touchAction:none — fără el, sheet-ul (deși position:fixed) rămâne
           descendent în DOM din containerul scrollabil al feed-ului, iar un
@@ -96,6 +101,7 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
           </>
         )}
       </div>
-    </>
+    </>,
+    document.body
   );
 }

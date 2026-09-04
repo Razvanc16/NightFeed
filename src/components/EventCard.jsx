@@ -1,6 +1,7 @@
 import JoinRequestSheet from "./JoinRequestSheet";
 import ReportSheet from "./ReportSheet";
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../supabase";
 import { LightningIcon, HouseIcon, PinIcon, LockIcon, ClockIcon, KeyIcon, CheckCircleIcon, CrossCircleIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
@@ -743,6 +744,12 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
       />
       <ReportSheet event={event} user={user} open={showReport} onClose={() => setShowReport(false)} />
 
+      {/* Portal pe document.body pentru ambele sheet-uri de mai jos — vezi
+          ReportSheet.jsx pentru explicația completă (fără portal, transform-ul
+          temporar de pull-to-refresh de pe containerul scrollabil al feed-ului
+          le rupea poziționarea "fixă", făcându-le să se deplaseze cu scroll-ul). */}
+      {createPortal(
+        <>
       {/* Detalii eveniment — deschis din tap pe titlu. Oficial/Neoficial a
           fost mutat aici (nu mai apare pe card) — informativ, dar nu chiar
           de prima necesitate cât timp defilezi rapid prin feed. */}
@@ -826,6 +833,9 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             </button>
           </div>
         </>
+      )}
+        </>,
+        document.body
       )}
     </div>
   );
