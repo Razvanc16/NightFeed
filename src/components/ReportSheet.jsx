@@ -2,14 +2,26 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { CheckCircleIcon, WarningIcon } from "./Icons";
 
-const REASONS = [
+const EVENT_REASONS = [
   "Îmi apare fața / date personale fără acord",
   "Conținut ilegal sau înșelător",
   "Hărțuire sau spam",
   "Altceva",
 ];
 
-export default function ReportSheet({ event, user, open, onClose }) {
+const USER_REASONS = [
+  "Cont fals / se dă drept altcineva",
+  "Hărțuire sau amenințări",
+  "Conținut ilegal sau înșelător",
+  "Altceva",
+];
+
+// event XOR reportedUser ({ id, name }) — același sheet servește raportarea
+// unui eveniment și raportarea unui cont, ca să nu dublăm tot UI-ul ăsta.
+export default function ReportSheet({ event, reportedUser, user, open, onClose }) {
+  const target = event || reportedUser;
+  const isUserReport = !event && !!reportedUser;
+  const REASONS = isUserReport ? USER_REASONS : EVENT_REASONS;
   const [reason, setReason] = useState(null);
   const [details, setDetails] = useState("");
   const [sending, setSending] = useState(false);
@@ -35,6 +47,7 @@ export default function ReportSheet({ event, user, open, onClose }) {
     const { error } = await supabase.from("reports").insert([{
       reporter_id: user.id,
       event_id: event?.id ? String(event.id) : null,
+      reported_user_id: isUserReport ? reportedUser.id : null,
       reason,
       details: details.trim() || null,
     }]);
@@ -47,7 +60,7 @@ export default function ReportSheet({ event, user, open, onClose }) {
     setSending(false);
   };
 
-  if (!event) return null;
+  if (!target) return null;
 
   return (
     <>
@@ -77,8 +90,8 @@ export default function ReportSheet({ event, user, open, onClose }) {
             <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ color: "#FFB800" }}><WarningIcon size={18} /></span>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Raportează</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{event.title}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{isUserReport ? "Raportează utilizator" : "Raportează"}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{isUserReport ? reportedUser.name : event.title}</div>
               </div>
             </div>
 

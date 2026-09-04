@@ -12,7 +12,21 @@ const TABS = [
   { key: "events", label: "Evenimente", icon: TargetIcon },
 ];
 
-const PERIODS = [7, 14, 30, 90];
+const PERIOD_PRESETS = [
+  { value: "day", label: "Ultima zi" },
+  { value: "week", label: "Ultima săptămână" },
+  { value: "3months", label: "Ultimele 3 luni" },
+  { value: "year", label: "Ultimul an" },
+  { value: "all", label: "Tot timpul" },
+];
+
+const bucketLabel = (bucket, unit) => {
+  const d = new Date(bucket);
+  if (unit === "hour") return d.toLocaleTimeString("ro-RO", { hour: "2-digit" });
+  if (unit === "week") return d.toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" });
+  if (unit === "month") return d.toLocaleDateString("ro-RO", { month: "short", year: "2-digit" });
+  return d.toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" });
+};
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit", year: "2-digit" }) : "-";
 const fmtDateTime = (d) => d ? new Date(d).toLocaleString("ro-RO", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-";
@@ -64,63 +78,74 @@ const FilterChips = ({ options, value, onChange }) => (
   </div>
 );
 
+const MiniChart = ({ title, color, data, bucket, i }) => {
+  const maxCount = Math.max(1, ...data.map((d) => d.count));
+  return (
+    <div style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 16px 12px" }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>{title}</div>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: data.length > 30 ? 2 : 4, height: 80, overflowX: data.length > 30 ? "auto" : "visible" }}>
+        {data.map((d) => (
+          <div key={d.bucket} style={{ flex: 1, minWidth: data.length > 30 ? 6 : undefined, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+            <div style={{ width: "100%", maxWidth: 16, height: Math.max(2, (d.count / maxCount) * 56), background: `linear-gradient(180deg, ${color}, ${color}80)`, borderRadius: 3 }} title={`${bucketLabel(d.bucket, bucket)}: ${d.count}`} />
+          </div>
+        ))}
+        {data.length === 0 && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>Nimic în perioada asta.</div>}
+      </div>
+    </div>
+  );
+};
+
 function StatsTab({ onNavigate }) {
-  const [period, setPeriod] = useState(14);
+  const [preset, setPreset] = useState("week");
   const [stats, setStats] = useState(null);
+  const [series, setSeries] = useState(null);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     setError("");
-    const { data, error } = await supabase.rpc("admin_get_stats", { period_days: period });
-    if (error) setError(error.message);
-    else setStats(data);
-  }, [period]);
+    const [statsRes, seriesRes] = await Promise.all([
+      supabase.rpc("admin_get_stats"),
+      supabase.rpc("admin_get_series", { preset }),
+    ]);
+    if (statsRes.error) setError(statsRes.error.message);
+    else setStats(statsRes.data);
+    if (!seriesRes.error) setSeries(seriesRes.data);
+  }, [preset]);
 
   useEffect(() => { load(); }, [load]);
 
   if (error) return <div style={{ padding: 20, color: "#FF6B6B", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Eroare: {error}</div>;
   if (!stats) return <Spinner />;
 
-  const days = stats.signups_by_day || [];
-  const maxCount = Math.max(1, ...days.map((d) => d.count));
-
   return (
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
         <StatCard i={0} label="Total useri" value={stats.total_users} sub={`+${stats.new_users_7d} în 7 zile — vezi toți`} accent="#FF3366" onClick={() => onNavigate("users", { filter: "all" })} />
-        <StatCard i={1} label="Useri noi (30z)" value={stats.new_users_30d} />
+        <StatCard i={1} label="Useri noi (30z)" value={stats.new_users_30d} sub="vezi grafic mai jos" />
         <StatCard i={2} label="Evenimente active" value={stats.active_events} sub={`${stats.total_events} total, ${stats.archived_events} arhivate — vezi`} accent="#00C864" onClick={() => onNavigate("events", { status: "active" })} />
         <StatCard i={3} label="Evenimente oficiale" value={stats.official_events} />
         <StatCard i={4} label="Raportări nerezolvate" value={stats.unresolved_reports} sub={`${stats.total_reports} total — vezi`} accent={stats.unresolved_reports > 0 ? "#FFB800" : "#fff"} onClick={() => onNavigate("reports")} />
         <StatCard i={5} label="Check-in-uri" value={stats.total_checkins} />
       </div>
 
-      <div style={{ ...rowStyle(6), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "18px 18px 14px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>Conturi noi — creștere</div>
-          <div style={{ display: "flex", gap: 5 }}>
-            {PERIODS.map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                style={{ padding: "4px 10px", borderRadius: 14, background: period === p ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.05)", border: `1px solid ${period === p ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.1)"}`, color: period === p ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}
-              >
-                {p}z
-              </button>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: period > 30 ? 2 : 4, height: 100, overflowX: period > 30 ? "auto" : "visible" }}>
-          {days.map((d) => (
-            <div key={d.day} style={{ flex: 1, minWidth: period > 30 ? 10 : undefined, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{d.count || ""}</div>
-              <div style={{ width: "100%", maxWidth: 18, height: Math.max(3, (d.count / maxCount) * 70), background: "linear-gradient(180deg, #FF3366, #FF6B35)", borderRadius: 4 }} title={`${new Date(d.day).toLocaleDateString("ro-RO")}: ${d.count}`} />
-              {period <= 30 && <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace" }}>{new Date(d.day).toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" })}</div>}
-            </div>
-          ))}
-          {days.length === 0 && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", padding: "20px 0" }}>Niciun cont nou în perioada asta.</div>}
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>Evoluție</div>
+        <select
+          value={preset}
+          onChange={(e) => setPreset(e.target.value)}
+          style={{ padding: "7px 12px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 12, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+        >
+          {PERIOD_PRESETS.map((p) => <option key={p.value} value={p.value} style={{ background: "#15151a" }}>{p.label}</option>)}
+        </select>
       </div>
+
+      {!series ? <Spinner /> : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <MiniChart i={6} title="Conturi noi" color="#FF3366" data={series.signups || []} bucket={series.bucket} />
+          <MiniChart i={7} title="Evenimente postate" color="#00C864" data={series.events || []} bucket={series.bucket} />
+          <MiniChart i={8} title="Raportări" color="#FFB800" data={series.reports || []} bucket={series.bucket} />
+        </div>
+      )}
     </div>
   );
 }
@@ -157,6 +182,21 @@ function ReportsTab() {
     setBusyId(null);
   };
 
+  const banReportedUser = async (r) => {
+    setBusyId(r.id);
+    const { error } = await supabase.functions.invoke("admin-action", { body: { action: "ban_user", targetUserId: r.reported_user_id } });
+    if (error) { alert("Eroare: " + error.message); setBusyId(null); return; }
+    await dismiss(r.id);
+  };
+
+  const deleteReportedUser = async (r) => {
+    if (!window.confirm(`Ștergi definitiv contul ${r.reported_user_email || "raportat"}? Nu poate fi anulat.`)) return;
+    setBusyId(r.id);
+    const { error } = await supabase.functions.invoke("admin-action", { body: { action: "delete_user", targetUserId: r.reported_user_id } });
+    if (error) { alert("Eroare: " + error.message); setBusyId(null); return; }
+    await dismiss(r.id);
+  };
+
   return (
     <div>
       <button
@@ -175,8 +215,16 @@ function ReportsTab() {
           <div key={r.id} style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: `1px solid ${r.resolved ? "rgba(255,255,255,0.07)" : "rgba(255,184,0,0.25)"}`, borderRadius: 14, padding: 16, opacity: r.resolved ? 0.55 : 1 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#FFB800", fontFamily: "'DM Sans', sans-serif" }}>{r.reason}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>{r.event_title || "eveniment necunoscut / deja șters"} {r.event_venue ? `· ${r.event_venue}` : ""}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#FFB800", fontFamily: "'DM Sans', sans-serif" }}>{r.reason}</div>
+                  {r.reported_user_id && <span style={{ fontSize: 9, fontWeight: 700, color: "#B44FFF", background: "rgba(180,79,255,0.12)", padding: "2px 6px", borderRadius: 6 }}>CONT</span>}
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>
+                  {r.reported_user_id
+                    ? (r.reported_user_name || r.reported_user_email || "cont necunoscut / șters")
+                    : (r.event_title || "eveniment necunoscut / deja șters")}
+                  {r.event_venue ? ` · ${r.event_venue}` : ""}
+                </div>
               </div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>{fmtDateTime(r.created_at)}</div>
             </div>
@@ -184,11 +232,20 @@ function ReportsTab() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 8, flexWrap: "wrap" }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace" }}>de la {r.reporter_email || "necunoscut"}</div>
               {!r.resolved && (
-                <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   <button onClick={() => dismiss(r.id)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
                     <CheckCircleIcon size={13} /> OK
                   </button>
-                  {r.event_title && (
+                  {r.reported_user_id ? (
+                    <>
+                      <button onClick={() => banReportedUser(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.3)", borderRadius: 10, color: "#FFB800", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                        Blochează contul
+                      </button>
+                      <button onClick={() => deleteReportedUser(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                        <TrashIcon size={12} /> Șterge contul
+                      </button>
+                    </>
+                  ) : r.event_title && (
                     <button onClick={() => deletePost(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
                       <TrashIcon size={12} /> Șterge postarea
                     </button>

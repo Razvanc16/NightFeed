@@ -3,8 +3,9 @@ import { createPortal } from "react-dom";
 import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
 import PhotoViewerModal from "./PhotoViewerModal";
+import ReportSheet from "./ReportSheet";
 import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
-import { MoonIcon, LightningIcon, HouseIcon, CheckCircleIcon } from "./Icons";
+import { MoonIcon, LightningIcon, HouseIcon, CheckCircleIcon, WarningIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 import { useSwipeBack } from "../utils/useSwipeBack";
 
@@ -34,6 +35,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   const [busy, setBusy] = useState(false);
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const [showPhoto, setShowPhoto] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   const isSelf = currentUser?.id === profileUserId;
   const containerRef = useRef(null);
@@ -122,8 +124,13 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80, ...swipeBack.style }}>
       {/* Header cu back */}
-      <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 0", display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <button onClick={onBack} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer" }}>← Înapoi</button>
+        {!isSelf && currentUser && (
+          <button onClick={() => setShowReport(true)} title="Raportează utilizatorul" style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "50%", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
+            <WarningIcon size={15} />
+          </button>
+        )}
       </div>
 
       {/* Avatar + nume */}
@@ -206,6 +213,8 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
           onViewProfile={(uid) => onViewProfile && onViewProfile(uid)}
         />
       )}
+
+      <ReportSheet reportedUser={{ id: profileUserId, name: displayName }} user={currentUser} open={showReport} onClose={() => setShowReport(false)} />
     </div>
   );
 }
