@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase";
+import PublicProfilePage from "./PublicProfilePage";
+import { formatPrice } from "../utils/eventTime";
 import {
   ChartIcon, WarningIcon, PersonIcon, TargetIcon, TrashIcon, CheckCircleIcon,
-  NoEntryIcon, RefreshIcon, ShieldIcon, SearchIcon,
+  NoEntryIcon, RefreshIcon, ShieldIcon, SearchIcon, ArrowLeftIcon, TagIcon,
 } from "./Icons";
 
 const TABS = [
@@ -171,7 +173,7 @@ function StatsTab({ onNavigate }) {
   );
 }
 
-function ReportsTab() {
+function ReportsTab({ onViewUser, onViewEvent }) {
   const [reports, setReports] = useState(null);
   const [unresolvedOnly, setUnresolvedOnly] = useState(true);
   const [error, setError] = useState("");
@@ -232,7 +234,14 @@ function ReportsTab() {
       {reports && reports.length === 0 && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", padding: "20px 0", textAlign: "center" }}>Nimic aici.</div>}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {(reports || []).map((r, i) => (
+        {(reports || []).map((r, i) => {
+          const eventRawId = r.event_id && r.event_id.startsWith("posted_") ? r.event_id.slice(7) : null;
+          const identityClickable = !!(r.reported_user_id || eventRawId);
+          const goToIdentity = () => {
+            if (r.reported_user_id) onViewUser(r.reported_user_id);
+            else if (eventRawId) onViewEvent(eventRawId);
+          };
+          return (
           <div key={r.id} style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: `1px solid ${r.resolved ? "rgba(255,255,255,0.07)" : "rgba(255,184,0,0.25)"}`, borderRadius: 14, padding: 16, opacity: r.resolved ? 0.55 : 1 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
               <div>
@@ -240,7 +249,10 @@ function ReportsTab() {
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#FFB800", fontFamily: "'DM Sans', sans-serif" }}>{r.reason}</div>
                   {r.reported_user_id && <span style={{ fontSize: 9, fontWeight: 700, color: "#B44FFF", background: "rgba(180,79,255,0.12)", padding: "2px 6px", borderRadius: 6 }}>CONT</span>}
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>
+                <div
+                  onClick={identityClickable ? goToIdentity : undefined}
+                  style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4, cursor: identityClickable ? "pointer" : "default", textDecoration: identityClickable ? "underline" : "none", textDecorationStyle: "dotted" }}
+                >
                   {r.reported_user_id
                     ? (r.reported_user_name || r.reported_user_email || "cont necunoscut / șters")
                     : (r.event_title || "eveniment necunoscut / deja șters")}
@@ -275,13 +287,14 @@ function ReportsTab() {
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function UsersTab({ initialFilter }) {
+function UsersTab({ initialFilter, onViewUser }) {
   const [search, setSearch] = useState("");
   const [filterMode, setFilterMode] = useState(initialFilter || "all");
   const [users, setUsers] = useState(null);
@@ -328,7 +341,7 @@ function UsersTab({ initialFilter }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {(users || []).map((u, i) => (
-          <div key={u.id} style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 14, display: "flex", alignItems: "center", gap: 12 }}>
+          <div key={u.id} onClick={() => onViewUser(u.id)} style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 14, display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
             {u.avatar_url
               ? <img src={u.avatar_url} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
               : <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)", fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(u.prenume || u.email || "?")[0].toUpperCase()}</div>
@@ -347,14 +360,14 @@ function UsersTab({ initialFilter }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
               <button
                 disabled={busyId === u.id}
-                onClick={() => callAdminAction(isBanned(u) ? "unban_user" : "ban_user", u.id)}
+                onClick={(e) => { e.stopPropagation(); callAdminAction(isBanned(u) ? "unban_user" : "ban_user", u.id); }}
                 style={{ padding: "6px 10px", background: isBanned(u) ? "rgba(0,200,100,0.1)" : "rgba(255,184,0,0.1)", border: `1px solid ${isBanned(u) ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, borderRadius: 9, color: isBanned(u) ? "#00C864" : "#FFB800", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", whiteSpace: "nowrap" }}
               >
                 {isBanned(u) ? "Deblochează" : "Blochează"}
               </button>
               <button
                 disabled={busyId === u.id}
-                onClick={() => { if (window.confirm(`Ștergi definitiv contul ${u.email}? Nu poate fi anulat.`)) callAdminAction("delete_user", u.id); }}
+                onClick={(e) => { e.stopPropagation(); if (window.confirm(`Ștergi definitiv contul ${u.email}? Nu poate fi anulat.`)) callAdminAction("delete_user", u.id); }}
                 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
               >
                 <TrashIcon size={11} /> Șterge
@@ -367,7 +380,7 @@ function UsersTab({ initialFilter }) {
   );
 }
 
-function EventsTab({ initialStatus }) {
+function EventsTab({ initialStatus, onViewEvent }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState(initialStatus || "all");
   const [events, setEvents] = useState(null);
@@ -435,7 +448,7 @@ function EventsTab({ initialStatus }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {(events || []).map((e, i) => (
-          <div key={e.id} style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: `1px solid ${e.reports_count > 0 ? "rgba(255,184,0,0.25)" : "rgba(255,255,255,0.08)"}`, borderRadius: 14, padding: 14 }}>
+          <div key={e.id} onClick={() => onViewEvent(e.id)} style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: `1px solid ${e.reports_count > 0 ? "rgba(255,184,0,0.25)" : "rgba(255,255,255,0.08)"}`, borderRadius: 14, padding: 14, cursor: "pointer" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -450,7 +463,7 @@ function EventsTab({ initialStatus }) {
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
                   {e.organizer_email || "organizator necunoscut"}
                   {e.reports_count > 0 && (
-                    <span onClick={() => toggleReporters(e.id)} style={{ color: "#FFB800", cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted" }}>
+                    <span onClick={(ev) => { ev.stopPropagation(); toggleReporters(e.id); }} style={{ color: "#FFB800", cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted" }}>
                       {" "}· {e.reports_count} raportări{expandedId === e.id ? " ▲" : " ▼"}
                     </span>
                   )}
@@ -479,7 +492,7 @@ function EventsTab({ initialStatus }) {
                 {e.type === "official" && !e.verified && (
                   <button
                     disabled={busyId === e.id}
-                    onClick={() => approveEvent(e.id)}
+                    onClick={(ev) => { ev.stopPropagation(); approveEvent(e.id); }}
                     style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 9, color: "#00C864", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
                   >
                     <CheckCircleIcon size={11} /> Aprobă
@@ -487,7 +500,7 @@ function EventsTab({ initialStatus }) {
                 )}
                 <button
                   disabled={busyId === e.id}
-                  onClick={() => deleteEvent(e.id, e.title)}
+                  onClick={(ev) => { ev.stopPropagation(); deleteEvent(e.id, e.title); }}
                   style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
                 >
                   <TrashIcon size={11} /> Șterge
@@ -497,6 +510,96 @@ function EventsTab({ initialStatus }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Previzualizare completă a unui eveniment (poză, descriere, tag-uri,
+// contact) — deschisă la tap pe un rând din Evenimente/Raportări. Citește
+// direct prin admin_get_event_detail (security definer), nu prin RLS-ul
+// normal, care ascunde oficialele nevalidate chiar și de admin.
+function AdminEventPreview({ eventId, onClose, onViewOrganizer }) {
+  const [event, setEvent] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setEvent(null);
+    setError("");
+    supabase.rpc("admin_get_event_detail", { target_event_id: eventId }).then(({ data, error }) => {
+      if (!active) return;
+      if (error) setError(error.message);
+      else setEvent(data);
+    });
+    return () => { active = false; };
+  }, [eventId]);
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "#080808", overflowY: "auto", animation: "pageSlideInRight 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
+      <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <button onClick={onClose} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+          <ArrowLeftIcon size={14} /> Înapoi la Admin
+        </button>
+      </div>
+
+      {error && <div style={{ padding: 20, color: "#FF6B6B", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Eroare: {error}</div>}
+      {!event && !error && <Spinner />}
+
+      {event && (
+        <div style={{ padding: "20px 20px 60px" }}>
+          {event.cover_url && (
+            <div style={{ width: "100%", aspectRatio: "16/10", borderRadius: 16, overflow: "hidden", marginBottom: 16, background: "rgba(255,255,255,0.05)" }}>
+              <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+          )}
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
+            {event.type === "official" && (event.verified
+              ? <span style={{ fontSize: 10, fontWeight: 700, color: "#00C864", background: "rgba(0,200,100,0.12)", padding: "3px 8px", borderRadius: 6 }}>OFICIAL</span>
+              : <span style={{ fontSize: 10, fontWeight: 700, color: "#FFB800", background: "rgba(255,184,0,0.12)", padding: "3px 8px", borderRadius: 6 }}>ÎN AȘTEPTARE</span>
+            )}
+            {event.archived && <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 6 }}>ARHIVAT</span>}
+          </div>
+
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>{event.title}</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginBottom: 4 }}>{event.venue || "fără locație"}</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginBottom: 18 }}>
+            {fmtDateTime(event.event_date)} · {formatPrice(event.price) || "Gratuit"}
+          </div>
+
+          {event.description && (
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5, marginBottom: 18, whiteSpace: "pre-wrap" }}>
+              {event.description}
+            </div>
+          )}
+
+          {event.tags?.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 18 }}>
+              {event.tags.map((t) => (
+                <span key={t} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.06)", padding: "5px 10px", borderRadius: 20 }}>
+                  <TagIcon size={10} /> {t}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={() => onViewOrganizer(event.organizer_id)}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", marginBottom: 18 }}
+          >
+            <PersonIcon size={14} /> Vezi profilul organizatorului ({event.organizer_email || "necunoscut"})
+          </button>
+
+          {event.type === "official" && (event.contact_name || event.contact_phone || event.contact_email || event.contact_social) && (
+            <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12 }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Date de contact</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6 }}>
+                {[event.contact_name, event.contact_phone, event.contact_email, event.contact_social].filter(Boolean).join(" · ")}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -582,10 +685,16 @@ function TrashTab() {
   );
 }
 
-export default function AdminPage({ onClose, initialTab, initialNavState }) {
+export default function AdminPage({ onClose, initialTab, initialNavState, currentUser }) {
   const [tab, setTab] = useState(initialTab || "stats");
   const [navState, setNavState] = useState(initialNavState || {});
   const [denied, setDenied] = useState(false);
+  // Tap pe un cont/eveniment din liste deschide profilul/previzualizarea lui
+  // DEASUPRA panoului de Admin (nu navighează în afara lui) — Admin rămâne
+  // montat dedesubt tot timpul, așa că butonul "Înapoi" al fiecărei
+  // previzualizări te aduce mereu înapoi exact aici, fără cod suplimentar.
+  const [viewUserId, setViewUserId] = useState(null);
+  const [viewEventId, setViewEventId] = useState(null);
 
   useEffect(() => {
     // Verificare reală (nu doar UI) — dacă cineva ajunge aici fără să fie pe
@@ -633,12 +742,31 @@ export default function AdminPage({ onClose, initialTab, initialNavState }) {
 
           <div key={tab} style={{ padding: "18px 16px 60px", animation: "fadeIn 0.25s ease" }}>
             {tab === "stats" && <StatsTab onNavigate={navigate} />}
-            {tab === "reports" && <ReportsTab />}
-            {tab === "users" && <UsersTab initialFilter={navState.filter} />}
-            {tab === "events" && <EventsTab initialStatus={navState.status} />}
+            {tab === "reports" && <ReportsTab onViewUser={setViewUserId} onViewEvent={setViewEventId} />}
+            {tab === "users" && <UsersTab initialFilter={navState.filter} onViewUser={setViewUserId} />}
+            {tab === "events" && <EventsTab initialStatus={navState.status} onViewEvent={setViewEventId} />}
             {tab === "trash" && <TrashTab />}
           </div>
         </>
+      )}
+
+      {viewUserId && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "#080808" }}>
+          <PublicProfilePage
+            profileUserId={viewUserId}
+            currentUser={currentUser}
+            onBack={() => setViewUserId(null)}
+            onViewProfile={(uid) => setViewUserId(uid)}
+          />
+        </div>
+      )}
+
+      {viewEventId && (
+        <AdminEventPreview
+          eventId={viewEventId}
+          onClose={() => setViewEventId(null)}
+          onViewOrganizer={(uid) => { setViewEventId(null); setViewUserId(uid); }}
+        />
       )}
     </div>
   );

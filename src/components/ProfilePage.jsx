@@ -1016,6 +1016,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           onClose={() => { setShowAdmin(false); setAdminInitial(null); }}
           initialTab={adminInitial?.tab}
           initialNavState={adminInitial?.navState}
+          currentUser={user}
         />,
         document.body
       )}
