@@ -20,66 +20,62 @@ const MAX_ACTIVE_EVENTS = 2;
 // vizibil mai lent decât Google și mult mai slab la găsit un local după nume
 // (caută mai ales adrese stradale exacte). Aplicația oricum are deja Google
 // Maps încărcat pentru hartă, deci refolosim același SDK pentru Places.
-let placesAutocompleteService = null;
-let placesService = null;
+//
+// IMPORTANT: nu AutocompleteService/PlacesService (API-ul "legacy") — de la
+// 1 martie 2025, Google nu mai activează Places API (legacy) pentru proiecte
+// noi ("not available to new customers"), confirmat live (eroare
+// LegacyApiNotActivatedMapError). Trebuie noul Places API — clasele
+// AutocompleteSuggestion / Place, prin google.maps.importLibrary("places").
 let placesSessionToken = null;
 
-const ensurePlacesServices = async () => {
+const ensurePlacesLibrary = async () => {
   const maps = await loadGoogleMaps();
-  if (!placesAutocompleteService) {
-    placesAutocompleteService = new maps.places.AutocompleteService();
-    // PlacesService cere un nod DOM sau o hartă, dar nu trebuie să fie
-    // atașat vizibil — un div oarecare, nefolosit altfel, e suficient.
-    placesService = new maps.places.PlacesService(document.createElement("div"));
+  if (!maps.places?.AutocompleteSuggestion) {
+    await window.google.maps.importLibrary("places");
   }
-  // Un singur "session token" per interacțiune de căutare (de la primul tap
-  // până la alegerea unei sugestii) — grupează cererile de autocomplete +
-  // detaliile finale într-o singură sesiune facturată, cum recomandă Google.
-  if (!placesSessionToken) placesSessionToken = new maps.places.AutocompleteSessionToken();
+  if (!placesSessionToken) placesSessionToken = new window.google.maps.places.AutocompleteSessionToken();
 };
 
 const searchAddress = async (query) => {
   if (!query || query.length < 3) return [];
   try {
-    await ensurePlacesServices();
-    return await new Promise((resolve) => {
-      placesAutocompleteService.getPlacePredictions(
-        { input: query, componentRestrictions: { country: "ro" }, sessionToken: placesSessionToken },
-        (predictions, status) => {
-          if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
-            resolve([]);
-            return;
-          }
-          resolve(predictions.map(p => ({
-            label: p.description,
-            short: p.structured_formatting?.main_text
-              ? [p.structured_formatting.main_text, p.structured_formatting.secondary_text].filter(Boolean).join(", ")
-              : p.description,
-            placeId: p.place_id,
-          })));
-        }
-      );
+    await ensurePlacesLibrary();
+    const { AutocompleteSuggestion } = window.google.maps.places;
+    const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input: query,
+      includedRegionCodes: ["ro"],
+      sessionToken: placesSessionToken,
     });
-  } catch { return []; }
+    return (suggestions || [])
+      .filter(s => s.placePrediction)
+      .map(s => {
+        const p = s.placePrediction;
+        return {
+          label: p.text.text,
+          short: [p.mainText?.text, p.secondaryText?.text].filter(Boolean).join(", ") || p.text.text,
+          placePrediction: p,
+        };
+      });
+  } catch (err) {
+    console.error("Eroare autocomplete adresă:", err);
+    return [];
+  }
 };
 
 // Coordonatele exacte nu vin în sugestiile de autocomplete (doar text) — se
 // cer separat, o singură dată, când userul chiar alege o sugestie.
-const getPlaceCoords = async (placeId) => {
-  await ensurePlacesServices();
-  return new Promise((resolve) => {
-    placesService.getDetails(
-      { placeId, fields: ["geometry"], sessionToken: placesSessionToken },
-      (place, status) => {
-        placesSessionToken = null; // sesiunea se încheie odată aleasă o sugestie
-        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !place?.geometry?.location) {
-          resolve(null);
-          return;
-        }
-        resolve({ lat: place.geometry.location.lat(), lng: place.geometry.location.lng() });
-      }
-    );
-  });
+const getPlaceCoords = async (result) => {
+  try {
+    await ensurePlacesLibrary();
+    const place = result.placePrediction.toPlace();
+    await place.fetchFields({ fields: ["location"] });
+    placesSessionToken = null; // sesiunea se încheie odată aleasă o sugestie
+    if (!place.location) return null;
+    return { lat: place.location.lat(), lng: place.location.lng() };
+  } catch (err) {
+    console.error("Eroare la detaliile locației:", err);
+    return null;
+  }
 };
 
 // Adresa aproximativă a unui pin pus manual pe hartă — best-effort, dacă
@@ -259,7 +255,7 @@ export default function PostPage({ user, onClose, editEvent }) {
     setForm(f => ({ ...f, venue: result.short }));
     setAddressResults([]);
     setAddressFocused(false);
-    const coords = await getPlaceCoords(result.placeId);
+    const coords = await getPlaceCoords(result);
     if (coords) setForm(f => ({ ...f, lat: coords.lat, lng: coords.lng }));
   };
 
