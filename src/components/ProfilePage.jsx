@@ -207,6 +207,23 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const [pushBusy, setPushBusy] = useState(false);
   const fileRef = useRef(null);
   const [form, setForm] = useState({ nume: "", prenume: "", varsta: "", gen: "", hobby: "", prompt_answer: "", instagram: "", avatar_url: "" });
+  // Data nașterii nu se salvează separat (profiles n-are o coloană pentru
+  // ea) — e doar un mod mai natural de a introduce vârsta decât să tastezi
+  // direct un număr; din ea calculăm form.varsta, care e ce se salvează
+  // efectiv, la fel ca înainte. La editarea unui profil existent rămâne
+  // goală (nu știm data exactă din vârsta deja salvată) — dacă n-o atingi,
+  // form.varsta rămâne cea încărcată din profil.
+  const [birthdate, setBirthdate] = useState("");
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const calcAge = (dateStr) => {
+    if (!dateStr) return "";
+    const b = new Date(dateStr);
+    if (isNaN(b.getTime())) return "";
+    const now = new Date();
+    let age = now.getFullYear() - b.getFullYear();
+    if (now.getMonth() < b.getMonth() || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age--;
+    return age;
+  };
   // Pasul curent din wizard-ul de creare cont (unul câte unul, ca la Tinder)
   // — doar la crearea inițială; editarea unui profil existent rămâne
   // formularul clasic, cu toate câmpurile una sub alta.
@@ -728,11 +745,19 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             ),
           },
           {
-            key: "varsta", title: "Câți ani ai?", subtitle: "Vizibilă pe profil",
+            key: "varsta", title: "Data nașterii", subtitle: "Calculăm automat vârsta, vizibilă pe profil",
             required: false,
             render: () => (
-              <input autoFocus type="number" placeholder="ex: 22" value={form.varsta} onChange={e => setForm(f => ({ ...f, varsta: e.target.value }))}
-                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+              <>
+                <input
+                  autoFocus type="date" max={todayISO} value={birthdate}
+                  onChange={e => { setBirthdate(e.target.value); setForm(f => ({ ...f, varsta: calcAge(e.target.value) })); }}
+                  style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none", colorScheme: "dark" }}
+                />
+                {birthdate && form.varsta < 16 && (
+                  <div style={{ fontSize: 12, color: "#FF3366", marginTop: 8 }}>NightFeed e doar pentru 16+.</div>
+                )}
+              </>
             ),
           },
           {
@@ -873,7 +898,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           {[
             { key: "prenume", label: "Prenume", placeholder: "ex: Ion", type: "text" },
             { key: "nume", label: "Nume", placeholder: "ex: Popescu", type: "text" },
-            { key: "varsta", label: "Vârstă", placeholder: "ex: 22", type: "number" },
           ].map(field => (
             <div key={field.key} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>{field.label}</div>
@@ -881,6 +905,22 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
             </div>
           ))}
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Data nașterii</div>
+            <input
+              type="date" max={todayISO} value={birthdate}
+              onChange={e => { setBirthdate(e.target.value); setForm(f => ({ ...f, varsta: calcAge(e.target.value) })); }}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", colorScheme: "dark" }}
+            />
+            {/* Nu știm data exactă din vârsta deja salvată — arătăm doar
+                vârsta curentă ca reper, cât timp nu alegi o dată nouă aici. */}
+            {!birthdate && form.varsta ? (
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>Vârstă actuală: {form.varsta} ani</div>
+            ) : birthdate && form.varsta < 16 ? (
+              <div style={{ fontSize: 11, color: "#FF3366", marginTop: 6 }}>NightFeed e doar pentru 16+.</div>
+            ) : null}
+          </div>
 
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Bio</div>

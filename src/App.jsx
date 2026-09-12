@@ -988,8 +988,11 @@ export default function App() {
             </button>
 
 {(pullDistance > 0 || refreshing) && (
+              // top decalat sub comutatorul Pentru tine/Urmăriți (fixat la
+              // calc(20px + safe-area)) — altfel indicatorul de refresh se
+              // suprapunea peste el, chiar sub pastilă.
               <div style={{
-                position: "absolute", top: 0, left: 0, right: 0, height: 90, zIndex: 5, pointerEvents: "none",
+                position: "absolute", top: "calc(56px + env(safe-area-inset-top, 0px))", left: 0, right: 0, height: 90, zIndex: 5, pointerEvents: "none",
                 display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 12,
                 opacity: Math.min(pullDistance / 24, 1),
               }}>
