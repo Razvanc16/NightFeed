@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { PersonIcon, MapIcon, PlayIcon, PlusIcon, BellIcon } from "./Icons";
 import { useIsDesktopNav, DESKTOP_SIDEBAR_WIDTH } from "../utils/desktopLayout";
 
@@ -14,8 +15,26 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
   // bară jos — ca pe TikTok/Instagram web, unde spațiul lat orizontal nu are
   // rost irosit sub un feed vertical îngust.
   const isDesktopNav = useIsDesktopNav();
+
+  // Indicator care alunecă spre tab-ul activ (nu doar un fade instant) — poziția
+  // se măsoară din DOM (getBoundingClientRect), nu e hardcodată pe lățimile
+  // butoanelor, ca să nu se rupă de fiecare dată când mai ajustăm dimensiunile.
+  const containerRef = useRef(null);
+  const btnRefs = useRef({});
+  const [indicator, setIndicator] = useState({ left: 0, width: 0, ready: false });
+  useLayoutEffect(() => {
+    if (isDesktopNav) return;
+    const btn = btnRefs.current[active];
+    const container = containerRef.current;
+    if (!btn || !container) return;
+    const cRect = container.getBoundingClientRect();
+    const bRect = btn.getBoundingClientRect();
+    setIndicator({ left: bRect.left - cRect.left, width: bRect.width, ready: true });
+  }, [active, isDesktopNav]);
+
   return (
     <div
+      ref={containerRef}
       style={isDesktopNav ? {
         position: "fixed",
         top: 0,
@@ -58,12 +77,24 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
         zIndex: 100,
       }}
     >
+      {/* Pilula care alunecă spre tab-ul activ — desenată sub butoane (primul
+          copil în DOM), poziționată absolut față de container. */}
+      {!isDesktopNav && (
+        <div style={{
+          position: "absolute", top: 6, bottom: 6, left: indicator.left, width: indicator.width,
+          borderRadius: 19, background: "rgba(255,255,255,0.14)",
+          opacity: indicator.ready ? 1 : 0,
+          transition: "left 0.35s cubic-bezier(0.34,1.56,0.64,1), width 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s",
+          pointerEvents: "none",
+        }} />
+      )}
       {tabs.map((tab) => {
         const isActive = active === tab.id;
         const isPost = tab.id === "post";
         return (
           <button
             key={tab.id}
+            ref={!isPost ? (el) => { btnRefs.current[tab.id] = el; } : undefined}
             onClick={() => onChange(tab.id)}
             title={tab.label}
             aria-label={tab.label}
@@ -84,14 +115,11 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
               boxShadow: isPost ? "0 4px 20px rgba(255,51,102,0.4)" : "none",
               transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             } : {
-              // Fără etichetă text pe bara de jos — doar iconița, cu un fundal
-              // rotunjit ("pilulă") pe tab-ul activ, gen App Store.
+              // Fără etichetă text pe bara de jos — doar iconița; fundalul
+              // "pilulă" al tab-ului activ e desenat separat, ca indicator
+              // care alunecă (vezi mai sus), nu direct pe buton.
               position: "relative",
-              background: isPost
-                ? "linear-gradient(135deg, #FF3366, #FF6B35)"
-                : isActive
-                ? "rgba(255,255,255,0.14)"
-                : "transparent",
+              background: isPost ? "linear-gradient(135deg, #FF3366, #FF6B35)" : "transparent",
               border: "none",
               cursor: "pointer",
               display: "flex",
