@@ -1074,7 +1074,7 @@ export default function App() {
                     {slide.type === "single" ? (
                       <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} onOpenLocation={openEventLocation} desktopSidebar={showSidebar} desktopWide={showSidePanels} />
                     ) : (
-                      <div style={{ width: "100%", height: "100%", background: "#050506", padding: "70px 12px 12px", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 10 }}>
+                      <div style={{ width: "100%", height: "100%", background: "#050506", padding: "70px 12px calc(90px + env(safe-area-inset-bottom, 0px))", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 10 }}>
                         {slide.events.map(ev => (
                           <MiniEventCard key={ev.id} event={ev} user={user} onOpenComments={(event) => setCommentsEvent(event)} />
                         ))}

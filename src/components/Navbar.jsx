@@ -42,11 +42,10 @@ export default function Navbar({ active, onChange, badges = {} }) {
         display: "flex",
         alignItems: "center",
         gap: 10,
-        padding: "8px 12px",
+        padding: "6px 10px",
         borderRadius: 999,
-        // Mai transparentă (0.4 în loc de 0.6) — fundalul din spate se
-        // vede mai clar prin blur, ca în poza de referință.
-        background: "rgba(20,18,22,0.4)",
+        // Și mai transparentă (0.26) — la teste tot părea prea opacă.
+        background: "rgba(20,18,22,0.26)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
         border: "1px solid rgba(255,255,255,0.1)",
@@ -95,11 +94,11 @@ export default function Navbar({ active, onChange, badges = {} }) {
               justifyContent: "center",
               // Butoanele normale sunt late și scunde (ovale), nu pătrate —
               // Post rămâne cerc, puțin ridicat deasupra rândului, ca un FAB.
-              width: isPost ? 58 : 60,
-              height: isPost ? 58 : 46,
-              borderRadius: isPost ? 29 : 23,
+              width: isPost ? 50 : 58,
+              height: isPost ? 50 : 38,
+              borderRadius: isPost ? 25 : 19,
               boxShadow: isPost ? "0 4px 16px rgba(255,51,102,0.4)" : "none",
-              transform: isPost ? "translateY(-6px)" : "none",
+              transform: isPost ? "translateY(-4px)" : "none",
               transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             }}
           >
@@ -121,7 +120,7 @@ export default function Navbar({ active, onChange, badges = {} }) {
                 lineHeight: 1,
               }}
             >
-              <tab.icon size={isPost ? (isDesktopNav ? 22 : 24) : isDesktopNav ? 18 : 22} />
+              <tab.icon size={isPost ? (isDesktopNav ? 22 : 21) : isDesktopNav ? 18 : 19} />
               {!!badges[tab.id] && (
                 <span style={{ position: "absolute", top: -6, right: -9, minWidth: 17, height: 17, padding: "0 3px", borderRadius: 9, background: "#FF3366", border: "1.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 800, color: "#fff", lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>
                   {badges[tab.id] > 9 ? "9+" : badges[tab.id]}

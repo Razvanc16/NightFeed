@@ -670,7 +670,10 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
       )}
 
-      {!desktopWide && <div style={{ position: "absolute", bottom: 0, left: 0, right: 64, padding: "0 16px 28px" }}>
+      {/* padding-bottom mărit (era 28px) — cardul merge acum până la
+          marginea reală a ecranului (bara de jos plutește deasupra, nu mai
+          rezervă spațiu), deci fără el textul ajungea chiar sub bară. */}
+      {!desktopWide && <div style={{ position: "absolute", bottom: 0, left: 0, right: 64, padding: "0 16px calc(90px + env(safe-area-inset-bottom, 0px))" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <div
             onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
