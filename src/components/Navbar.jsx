@@ -72,6 +72,12 @@ export default function Navbar({ active, onChange, badges = {} }) {
               padding: isPost ? 0 : "6px 14px",
               borderRadius: isPost ? "50%" : 14,
               width: isPost ? 44 : "auto",
+              // Lățime egală pentru cele 4 butoane din bara de jos (nu și pe
+              // sidebar-ul de desktop, unde ar strica gruparea verticală
+              // centrată) — altfel "Notificări" (cuvânt mult mai lung decât
+              // "Feed"/"Hartă"/"Profil") lua mai mult spațiu decât restul, iar
+              // butonul central "Post" nu mai ieșea la mijlocul real al barei.
+              flex: !isPost && !isDesktopNav ? 1 : "none",
               height: isPost ? 44 : "auto",
               justifyContent: "center",
               boxShadow: isPost ? "0 4px 20px rgba(255,51,102,0.4)" : "none",
