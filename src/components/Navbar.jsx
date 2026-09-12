@@ -9,7 +9,7 @@ const tabs = [
   { id: "profile", icon: PersonIcon, label: "Profil" },
 ];
 
-export default function Navbar({ active, onChange, badges = {} }) {
+export default function Navbar({ active, onChange, badges = {}, hidden = false }) {
   // Pe desktop (mouse + fereastră lată) bara devine sidebar în stânga, nu
   // bară jos — ca pe TikTok/Instagram web, unde spațiul lat orizontal nu are
   // rost irosit sub un feed vertical îngust.
@@ -38,7 +38,11 @@ export default function Navbar({ active, onChange, badges = {} }) {
         position: "fixed",
         left: "50%",
         bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
-        transform: "translateX(-50%)",
+        // La scroll în jos (Hartă/Notificări/Profil — vezi App.jsx), bara
+        // alunecă sub ecran, ca pe Instagram; la scroll în sus revine.
+        transform: `translateX(-50%) translateY(${hidden ? "140%" : "0"})`,
+        opacity: hidden ? 0 : 1,
+        pointerEvents: hidden ? "none" : "auto",
         display: "flex",
         alignItems: "center",
         gap: 10,
@@ -50,6 +54,7 @@ export default function Navbar({ active, onChange, badges = {} }) {
         WebkitBackdropFilter: "blur(24px)",
         border: "1px solid rgba(255,255,255,0.1)",
         boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+        transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
         zIndex: 100,
       }}
     >

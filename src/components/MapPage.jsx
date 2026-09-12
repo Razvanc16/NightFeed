@@ -78,7 +78,7 @@ const boundsAround = (lat, lng, radiusMeters) => {
   return { south: lat - dLat, north: lat + dLat, west: lng - dLng, east: lng + dLng };
 };
 
-export default function MapPage({ user, isActive, focusTarget, onViewProfile }) {
+export default function MapPage({ user, isActive, focusTarget, onViewProfile, onDragging }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -260,6 +260,11 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
     });
     mapInstanceRef.current = map;
     map.addListener("zoom_changed", () => setZoom(map.getZoom()));
+    // Ascunde bara de jos cât timp tragi harta (App.jsx) — la fel ca la
+    // scroll pe Notificări/Profil, dar aici prin evenimentele native de
+    // pan ale Google Maps, nu prin "scroll" (harta n-are DOM scroll).
+    map.addListener("dragstart", () => onDragging && onDragging(true));
+    map.addListener("dragend", () => onDragging && onDragging(false));
 
     // Cerem locația automat la deschiderea hărții. Dacă userul acceptă, harta se
     // centrează pe el; dacă refuză sau browserul nu suportă geolocation, rămâne

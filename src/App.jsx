@@ -192,6 +192,29 @@ export default function App() {
     setTabDirection(VALID_TABS.indexOf(tab) >= VALID_TABS.indexOf(activeTab) ? 1 : -1);
     setActiveTab(tab);
   };
+
+  // Ascunde bara de jos la scroll în jos pe Hartă/Notificări/Profil (revine
+  // la scroll în sus), ca pe Instagram. "scroll" nu urcă (bubble) în DOM, deci
+  // ascultăm în faza de capturare pe document — prinde scroll-ul din
+  // containerul intern al oricăreia dintre cele trei pagini, indiferent care
+  // e activă, fără să mai umblăm prin fiecare componentă cu un ref separat.
+  useEffect(() => {
+    setNavHidden(false);
+    if (!["map", "notifications", "profile"].includes(activeTab)) return;
+    let lastTop = 0;
+    const onScrollCapture = (e) => {
+      const top = e.target?.scrollTop;
+      if (typeof top !== "number") return;
+      const delta = top - lastTop;
+      if (top <= 8) setNavHidden(false);
+      else if (delta > 6) setNavHidden(true);
+      else if (delta < -6) setNavHidden(false);
+      lastTop = top;
+    };
+    document.addEventListener("scroll", onScrollCapture, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", onScrollCapture, { capture: true });
+  }, [activeTab]);
+
   // Filtrele din feed au fost scoase (buton + drawer) — se suprapuneau vizual
   // cu toggle-ul Pentru tine/Urmărești, ambele fixate lângă marginea de sus.
   // activeFilters rămâne gol permanent acum (Set gol = "Toate"), matchesFilters
@@ -220,6 +243,11 @@ export default function App() {
   // — ts schimbă identitatea ca să poți reapăsa aceeași notificare de mai
   // multe ori la rând.
   const [pendingProfileAction, setPendingProfileAction] = useState(null);
+  // Bara de jos se ascunde la scroll în jos pe Hartă/Notificări/Profil (ca pe
+  // Instagram) — vezi efectele mai jos care o actualizează. Pe Feed rămâne
+  // mereu vizibilă (nu s-a cerut și acolo, iar swipe-ul pe slide-uri nu e
+  // "scroll" în sensul ăsta).
+  const [navHidden, setNavHidden] = useState(false);
   const feedRef = useRef(null);
   const recoveryModeRef = useRef(false);
   const notifToastTimer = useRef(null);
@@ -887,7 +915,7 @@ export default function App() {
               internet, reconstruia toate marker-ele), ceea ce o făcea să se simtă
               foarte lentă. Exact ca la Feed, care are același tipar. */}
           <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", ...tabWrapStyle, zIndex: 10, animation: activeTab === "map" ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
-            <MapPage user={user} isActive={activeTab === "map"} focusTarget={mapFocus} onViewProfile={(uid) => setViewingProfile(uid)} />
+            <MapPage user={user} isActive={activeTab === "map"} focusTarget={mapFocus} onViewProfile={(uid) => setViewingProfile(uid)} onDragging={setNavHidden} />
           </div>
 
           {/* NOTIFICATIONS PAGE */}
@@ -1107,7 +1135,7 @@ export default function App() {
           {/* Ascunsă complet (nu doar blocată) cât timp userul n-are încă profil —
               nu are sens să vadă Feed/Hartă/Notificări dacă oricum nu poate
               ajunge acolo, doar creează impresia falsă că ar putea. */}
-          {hasProfile !== false && <Navbar active={activeTab} onChange={handleTabChange} badges={{ notifications: unreadNotifCount }} />}
+          {hasProfile !== false && <Navbar active={activeTab} onChange={handleTabChange} badges={{ notifications: unreadNotifCount }} hidden={navHidden} />}
 
           {notifToast && (
             <div
