@@ -24,6 +24,7 @@ import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
 import { useIsDesktopNav, useIsWideDesktop, DESKTOP_SIDEBAR_WIDTH } from "./utils/desktopLayout";
 import { ADMIN_EMAILS } from "./utils/admin";
+import { rubberband } from "./utils/rubberband";
 import { MoonIcon, BellIcon, SearchIcon } from "./components/Icons";
 
 const filterFn = (event, filter) => {
@@ -591,7 +592,7 @@ export default function App() {
         const delta = e.touches[0].clientY - pullStartY.current;
         if (delta > 6 && feed.scrollTop <= 0) {
           e.preventDefault();
-          setPull(Math.min(delta * 0.5, PULL_MAX));
+          setPull(rubberband(delta, PULL_MAX));
         } else if (delta <= 0) {
           pullStartY.current = null;
           setPull(0);
@@ -602,7 +603,7 @@ export default function App() {
         const delta = endPullStartY.current - e.touches[0].clientY;
         if (delta > 6 && atBottom()) {
           e.preventDefault();
-          setEndPullValue(Math.min(delta * 0.5, END_PULL_MAX));
+          setEndPullValue(rubberband(delta, END_PULL_MAX));
         } else if (delta <= 0) {
           endPullStartY.current = null;
           setEndPullValue(0);
@@ -825,13 +826,16 @@ export default function App() {
            întreagă folosește doar animation/transition inline (nicio clasă
            CSS), deci singurul loc dintr-un stylesheet care le poate opri pe
            toate deodată e o regulă globală cu !important (bate stilul inline,
-           care nu are !important implicit). Nu ascunde nimic, doar elimină
-           mișcarea — sheet-urile tot apar/dispar, doar instant, nu animat. */
+           care nu are !important implicit). 120ms (nu 0) — un cross-fade
+           scurt tot ajută la înțelegere (ce apare/dispare), doar elimină
+           alunecările/elasticul mari, ca la recomandarea Apple de "cross-fade
+           în loc de slide/spring", fără să mai rescriem fiecare tranziție
+           individual ca să folosească opacity în loc de transform. */
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
-            animation-duration: 0.001ms !important;
+            animation-duration: 120ms !important;
             animation-iteration-count: 1 !important;
-            transition-duration: 0.001ms !important;
+            transition-duration: 120ms !important;
             scroll-behavior: auto !important;
           }
         }

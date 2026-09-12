@@ -16,6 +16,7 @@ import CheckinScannerSheet from "./CheckinScannerSheet";
 import EventInsightsModal from "./EventInsightsModal";
 import MyHistoryPage from "./MyHistoryPage";
 import { filterActiveEvents, cleanupOwnExpiredEvents, formatPrice } from "../utils/eventTime";
+import { rubberband } from "../utils/rubberband";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
@@ -328,7 +329,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       const delta = e.touches[0].clientY - pullStartY.current;
       if (delta > 6 && el.scrollTop <= 0) {
         e.preventDefault();
-        setPull(Math.min(delta * 0.5, PULL_MAX));
+        setPull(rubberband(delta, PULL_MAX));
       } else if (delta <= 0) {
         pullStartY.current = null;
         setPull(0);
