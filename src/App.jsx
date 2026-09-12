@@ -10,6 +10,7 @@ import SplashScreen from "./components/SplashScreen";
 import AuthPage from "./components/AuthPage";
 import LandingPage from "./components/LandingPage";
 import NotificationsPage from "./components/NotificationsPage";
+import SearchPage from "./components/SearchPage";
 import PublicProfilePage from "./components/PublicProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import PostPage from "./components/PostPage";
@@ -23,7 +24,7 @@ import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
 import { useIsDesktopNav, useIsWideDesktop, DESKTOP_SIDEBAR_WIDTH } from "./utils/desktopLayout";
 import { ADMIN_EMAILS } from "./utils/admin";
-import { MoonIcon, BellIcon } from "./components/Icons";
+import { MoonIcon, BellIcon, SearchIcon } from "./components/Icons";
 
 const filterFn = (event, filter) => {
   if (filter === "all") return true;
@@ -197,6 +198,9 @@ export default function App() {
   const [feedMode, setFeedMode] = useState("foryou"); // "foryou" | "following"
   const [followingIds, setFollowingIds] = useState(null); // null = încă neîncărcat
   const [showPost, setShowPost] = useState(false);
+  // Căutarea nu mai are tab propriu în bara de jos (înlocuit de Hartă/Notificări)
+  // — rămâne accesibilă ca overlay, dintr-o iconiță pe Feed.
+  const [showSearch, setShowSearch] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [commentsHighlightId, setCommentsHighlightId] = useState(null);
   const [likesSheetEventId, setLikesSheetEventId] = useState(null);
@@ -862,6 +866,18 @@ export default function App() {
             </div>
           )}
 
+          {/* SEARCH — overlay peste Feed, deschis din iconița de căutare (vezi FEED mai jos).
+              Căutarea nu mai are tab propriu în bara de jos (înlocuit de Hartă/Notificări). */}
+          {showSearch && (
+            <div style={{ position: "fixed", inset: 0, zIndex: 9995, background: "#080808", animation: "pageSlideInRight 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+              <SearchPage
+                onOpenEvent={(event) => { setShowSearch(false); openSpecificEvent(event); }}
+                onViewProfile={(uid) => { setShowSearch(false); setViewingProfile(uid); }}
+                onClose={() => setShowSearch(false)}
+              />
+            </div>
+          )}
+
           {/* MAP PAGE — rămâne montată (doar ascunsă), nu demontată la schimbarea
               tab-ului: altfel, la fiecare vizită se distrugea și recrea de la zero
               harta Leaflet (re-cerea locația GPS, redescărca toate tile-urile de pe
@@ -925,6 +941,20 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+            <button
+              onClick={() => setShowSearch(true)}
+              title="Caută"
+              style={{
+                position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", right: 16,
+                zIndex: 50, width: 38, height: 38, borderRadius: "50%", cursor: "pointer",
+                background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
+                backdropFilter: "blur(14px)", boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+                color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <SearchIcon size={16} />
+            </button>
 
 {(pullDistance > 0 || refreshing) && (
               <div style={{

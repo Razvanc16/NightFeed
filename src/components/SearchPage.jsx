@@ -24,7 +24,7 @@ const convertPostedEvent = (e, organizerMap = {}) => {
   };
 };
 
-export default function SearchPage({ onOpenEvent, onViewProfile }) {
+export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
   const [searchMode, setSearchMode] = useState("events"); // "events" | "people"
   const [query, setQuery] = useState("");
   const [code, setCode] = useState("");
@@ -103,8 +103,17 @@ export default function SearchPage({ onOpenEvent, onViewProfile }) {
   return (
     <div style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80 }}>
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px" }}>
-        <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>Caută</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 24 }}>Găsește petreceri sau intră cu un cod</div>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 24 }}>
+          <div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>Caută</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>Găsește petreceri sau intră cu un cod</div>
+          </div>
+          {onClose && (
+            <button onClick={onClose} style={{ flexShrink: 0, marginTop: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+              Închide
+            </button>
+          )}
+        </div>
 
         {/* Acces direct cu cod */}
         <div style={{ background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 14, padding: "10px 12px", marginBottom: 16 }}>
