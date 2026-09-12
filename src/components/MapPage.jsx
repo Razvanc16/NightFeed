@@ -482,15 +482,19 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile }) 
     setSelectedEvent(null);
     try {
       const username = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "User";
-      // upsert, nu insert simplu — apăsat rapid/repetat crea mai multe cereri
-      // pentru același eveniment (constrângerea unică e pe event_id+requester_id).
-      const { error } = await supabase.from("attendance_requests").upsert([{
+      // Ștergem orice cerere anterioară, apoi inserăm una nouă, în loc de
+      // upsert — vezi explicația completă în JoinRequestSheet.jsx: pe
+      // conflict, upsert face un UPDATE, blocat de RLS pentru requester
+      // (doar hostul poate actualiza o cerere existentă), deci o reîncercare
+      // pica mereu cu eroare RLS. DELETE + INSERT rămân permise requester-ului.
+      await supabase.from("attendance_requests").delete().eq("event_id", rawId).eq("requester_id", user.id);
+      const { error } = await supabase.from("attendance_requests").insert([{
         event_id: rawId,
         requester_id: user.id,
         requester_username: username,
         host_id: event.hostId,
         status: "pending",
-      }], { onConflict: "event_id,requester_id" });
+      }]);
       if (error) throw error;
       setMyRequests(prev => ({ ...prev, [rawId]: "pending" }));
       if (event.hostId) {

@@ -14,17 +14,24 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
     setSending(true);
 
     const username = [user.user_metadata?.prenume, user.user_metadata?.nume].filter(Boolean).join(" ") || user.email?.split("@")[0] || "User";
-    // upsert, nu insert simplu — apăsat rapid/repetat pe "Trimite cererea"
-    // crea mai multe cereri pentru același eveniment.
     const rawId = (event.rawId || event.id).toString().replace('posted_', '');
-    const { error } = await supabase.from("attendance_requests").upsert([{
+    // Ștergem orice cerere anterioară (event_id+requester_id e unic — vezi
+    // 2026-08-17b_requests_unique_and_checkin_persist.sql), apoi inserăm una
+    // nouă, în loc de upsert: pe conflict, upsert face de fapt un UPDATE, iar
+    // politica RLS de update de pe attendance_requests permite doar hostului
+    // să schimbe o cerere existentă (accept/refuz) — un requester care
+    // reapasă "Trimite cererea" (ex: după ce a fost refuzat) pica mereu cu
+    // "new row violates row-level security policy ... USING expression".
+    // DELETE + INSERT rămân ambele permise requester-ului.
+    await supabase.from("attendance_requests").delete().eq("event_id", rawId).eq("requester_id", user.id);
+    const { error } = await supabase.from("attendance_requests").insert([{
       event_id: rawId,
       requester_id: user.id,
       requester_username: username,
       host_id: event.organizer_id,
       status: "pending",
       message: message.trim() || null,
-    }], { onConflict: "event_id,requester_id" });
+    }]);
 
     if (!error) {
       setSent(true);
