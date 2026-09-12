@@ -7,8 +7,8 @@ import { WarningIcon } from "./Icons";
 
 const Section = ({ title, children }) => (
   <div style={{ marginBottom: 22 }}>
-    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 8 }}>{title}</div>
-    <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>{children}</div>
+    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 8 }}>{title}</div>
+    <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.7, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{children}</div>
   </div>
 );
 
@@ -16,12 +16,12 @@ export default function LegalPage({ onClose }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 10200, background: "#080808", animation: "pageSlideInRight 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>← Înapoi</button>
-        <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Confidențialitate & Termeni</div>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>← Înapoi</button>
+        <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Confidențialitate & Termeni</div>
       </div>
 
       <div style={{ height: "calc(100% - 76px)", overflowY: "auto", padding: "20px 20px 60px" }}>
-        <div style={{ padding: "10px 14px", background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, fontSize: 12, color: "#FFB800", fontFamily: "'DM Sans', sans-serif", marginBottom: 24, lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <div style={{ padding: "10px 14px", background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, fontSize: 12, color: "#FFB800", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 24, lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: 8 }}>
           <WarningIcon size={16} style={{ flexShrink: 0, marginTop: 1 }} /> Document draft, generat ca punct de plecare. Nu înlocuiește sfatul unui avocat — recomandăm revizuire juridică înainte de lansarea publică a aplicației.
         </div>
 

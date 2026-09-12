@@ -104,7 +104,7 @@ const Toast = ({ message, show, color }) => (
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     background: "rgba(20,20,20,0.95)", border: `1px solid ${color}60`,
     borderRadius: 20, padding: "10px 20px", color: "#fff", fontSize: 13,
-    fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: 500,
     zIndex: 300, backdropFilter: "blur(20px)",
     boxShadow: `0 4px 20px ${color}30`, whiteSpace: "nowrap", pointerEvents: "none",
   }}>
@@ -666,7 +666,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
       {event.age_restricted && (
         <div style={{ position: "absolute", top: 20, right: 16, padding: "4px 10px", borderRadius: 20, background: "rgba(255,51,102,0.25)", border: "1px solid rgba(255,51,102,0.6)", backdropFilter: "blur(10px)" }}>
-          <span style={{ fontSize: 11, fontWeight: 800, color: "#FF3366", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace" }}>18+</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: "#FF3366", letterSpacing: "0.05em", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>18+</span>
         </div>
       )}
 
@@ -679,17 +679,17 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: event.organizer_id ? "pointer" : "default", minWidth: 0 }}
           >
-            <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: event.organizer_avatar ? "transparent" : `${event.color}30`, border: `1px solid ${event.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: event.color, fontFamily: "'DM Mono', monospace" }}>
+            <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: event.organizer_avatar ? "transparent" : `${event.color}30`, border: `1px solid ${event.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: event.color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
               {event.organizer_avatar ? <img src={event.organizer_avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.organizer || "?").charAt(0).toUpperCase()}
             </div>
-            <span style={{ fontSize: 11, color: event.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", opacity: 0.9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span style={{ fontSize: 11, color: event.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", opacity: 0.9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {event.organizer}{event.organizer_id && " ›"}
             </span>
           </div>
           {!isOwnEvent && event.organizer_id && onToggleFollowOrganizer && (
             <button
               onClick={(e) => { e.stopPropagation(); onToggleFollowOrganizer(event.organizer_id); }}
-              style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 20, cursor: "pointer", background: isFollowingOrganizer ? "rgba(255,255,255,0.1)" : `${event.color}25`, border: `1px solid ${isFollowingOrganizer ? "rgba(255,255,255,0.2)" : event.color + "60"}`, color: isFollowingOrganizer ? "rgba(255,255,255,0.6)" : event.color, fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}
+              style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 20, cursor: "pointer", background: isFollowingOrganizer ? "rgba(255,255,255,0.1)" : `${event.color}25`, border: `1px solid ${isFollowingOrganizer ? "rgba(255,255,255,0.2)" : event.color + "60"}`, color: isFollowingOrganizer ? "rgba(255,255,255,0.6)" : event.color, fontSize: 10, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
             >
               {isFollowingOrganizer ? <><CheckCircleIcon size={11} /> Urmărești</> : "+ Urmărește"}
             </button>
@@ -697,28 +697,28 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
         <div
           onClick={(e) => { e.stopPropagation(); setShowDetails(true); }}
-          style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}
+          style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
         >
           {event.title}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
           <span
             onClick={(e) => { if (onOpenLocation) { e.stopPropagation(); onOpenLocation(event); } }}
-            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace", cursor: onOpenLocation ? "pointer" : "default" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: onOpenLocation ? "pointer" : "default" }}
           >
             <PinIcon size={13} />
             {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
           </span>
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>·</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}><ClockIcon size={13} /> {event.date}</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}><ClockIcon size={13} /> {event.date}</span>
         </div>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, margin: 0, marginBottom: 12 }}>{event.description}</p>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{formatPrice(event.price)}</span>
+          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{formatPrice(event.price)}</span>
           {event.code && (
             <span
               onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(event.code); showToast("Cod copiat!", "#00C864"); }}
-              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
               title="Apasă pentru a copia codul"
             >
               <KeyIcon size={12} /> {event.code}
@@ -732,7 +732,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           {/* Panou stânga — organizator, în golul dintre sidebar și card */}
           <div style={{ position: "fixed", top: "50%", left: DESKTOP_SIDEBAR_WIDTH + 24, transform: "translateY(-50%)", width: 220, zIndex: 55, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center" }}>
             {event.type === "official" && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 12, background: `${event.color}20`, color: event.color, fontFamily: "'DM Mono', monospace" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 12, background: `${event.color}20`, color: event.color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
                 <LightningIcon size={11} /> Oficial
               </span>
             )}
@@ -744,14 +744,14 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             </div>
             <div
               onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
-              style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif", cursor: event.organizer_id ? "pointer" : "default" }}
+              style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: event.organizer_id ? "pointer" : "default" }}
             >
               {event.organizer}
             </div>
             {!isOwnEvent && event.organizer_id && onToggleFollowOrganizer && (
               <button
                 onClick={(e) => { e.stopPropagation(); onToggleFollowOrganizer(event.organizer_id); }}
-                style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 20, cursor: "pointer", background: isFollowingOrganizer ? "rgba(255,255,255,0.1)" : `${event.color}25`, border: `1px solid ${isFollowingOrganizer ? "rgba(255,255,255,0.2)" : event.color + "60"}`, color: isFollowingOrganizer ? "rgba(255,255,255,0.6)" : event.color, fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 20, cursor: "pointer", background: isFollowingOrganizer ? "rgba(255,255,255,0.1)" : `${event.color}25`, border: `1px solid ${isFollowingOrganizer ? "rgba(255,255,255,0.2)" : event.color + "60"}`, color: isFollowingOrganizer ? "rgba(255,255,255,0.6)" : event.color, fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
               >
                 {isFollowingOrganizer ? <><CheckCircleIcon size={12} /> Urmărești</> : "+ Urmărește"}
               </button>
@@ -764,31 +764,31 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           <div style={{ position: "fixed", top: "50%", left: `calc(50vw + ${DESKTOP_SIDEBAR_WIDTH / 2 + DESKTOP_CARD_WIDTH / 2 + 108}px)`, right: 24, transform: "translateY(-50%)", maxWidth: 360, maxHeight: "80vh", overflowY: "auto", zIndex: 55 }}>
             <div
               onClick={() => setShowDetails(true)}
-              style={{ fontSize: 24, fontWeight: 800, color: "#fff", lineHeight: 1.25, marginBottom: 10, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}
+              style={{ fontSize: 24, fontWeight: 800, color: "#fff", lineHeight: 1.25, marginBottom: 10, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
             >
               {event.title}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
               <span
                 onClick={() => onOpenLocation && onOpenLocation(event)}
-                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace", cursor: onOpenLocation ? "pointer" : "default" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: onOpenLocation ? "pointer" : "default" }}
               >
                 <PinIcon size={13} />
                 {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
               </span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace", marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 14 }}>
               <ClockIcon size={13} /> {event.date}
             </div>
             {event.description && (
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, margin: 0, marginBottom: 14 }}>{event.description}</p>
             )}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{formatPrice(event.price)}</span>
+              <span style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{formatPrice(event.price)}</span>
               {event.code && (
                 <span
                   onClick={() => { navigator.clipboard?.writeText(event.code); showToast("Cod copiat!", "#00C864"); }}
-                  style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
+                  style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", letterSpacing: "0.1em", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
                   title="Apasă pentru a copia codul"
                 >
                   <KeyIcon size={12} /> {event.code}
@@ -810,7 +810,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               {btn.icon}
             </div>
             {btn.label && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: btn.active ? event.color : "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace", transition: "color 0.2s" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: btn.active ? event.color : "rgba(255,255,255,0.55)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", transition: "color 0.2s" }}>
                 {btn.label}
               </span>
             )}
@@ -882,26 +882,26 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
-          <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", lineHeight: 1.25 }}>{event.title}</div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.25 }}>{event.title}</div>
           <button onClick={() => setShowDetails(false)} style={{ flexShrink: 0, background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: 2, marginTop: 2 }}>
             <CrossCircleIcon size={20} />
           </button>
         </div>
 
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 12, background: event.type === "official" ? `${event.color}25` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "50" : "rgba(255,255,255,0.15)"}`, color: event.type === "official" ? event.color : "rgba(255,255,255,0.75)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace", marginTop: 8, marginBottom: 16 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 12, background: event.type === "official" ? `${event.color}25` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "50" : "rgba(255,255,255,0.15)"}`, color: event.type === "official" ? event.color : "rgba(255,255,255,0.75)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 8, marginBottom: 16 }}>
           {event.type === "official" ? <LightningIcon size={11} /> : <HouseIcon size={11} />}
           {event.type === "official" ? "Oficial" : "Neoficial"}
         </span>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: event.description ? 16 : 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "'DM Sans', sans-serif" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             <PinIcon size={14} style={{ flexShrink: 0, color: "rgba(255,255,255,0.4)" }} />
             {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "'DM Sans', sans-serif" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             <ClockIcon size={14} style={{ flexShrink: 0, color: "rgba(255,255,255,0.4)" }} /> {event.date}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: event.color, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: event.color, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
             {formatPrice(event.price)}
           </div>
         </div>
@@ -913,7 +913,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         {event.tags?.length > 0 && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {event.tags.map(tag => (
-              <span key={tag} style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontFamily: "'DM Sans', sans-serif" }}>{tag}</span>
+              <span key={tag} style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{tag}</span>
             ))}
           </div>
         )}
@@ -931,19 +931,19 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           >
             <button
               onClick={(e) => { setShowActionsMenu(false); handleShare(e); }}
-              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", color: "#fff", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", color: "#fff", fontSize: 15, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
             >
               <ShareIcon /> Distribuie
             </button>
             <button
               onClick={() => { setShowActionsMenu(false); setShowReport(true); }}
-              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", borderTop: "1px solid rgba(255,255,255,0.06)", color: "#FF6B6B", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", borderTop: "1px solid rgba(255,255,255,0.06)", color: "#FF6B6B", fontSize: 15, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
             >
               <FlagIcon /> Raportează evenimentul
             </button>
             <button
               onClick={() => setShowActionsMenu(false)}
-              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", borderTop: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+              style={{ width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, background: "none", border: "none", borderTop: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: 500, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
             >
               Anulează
             </button>

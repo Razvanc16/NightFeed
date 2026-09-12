@@ -44,7 +44,7 @@ function Wheel({ items, value, onChange, format }) {
           style={{
             height: ITEM_H, display: "flex", alignItems: "center", justifyContent: "center",
             scrollSnapAlign: "center", fontSize: i === value ? 23 : 17, fontWeight: i === value ? 800 : 500,
-            color: i === value ? "#fff" : "rgba(255,255,255,0.28)", fontFamily: "'DM Mono', monospace",
+            color: i === value ? "#fff" : "rgba(255,255,255,0.28)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
             transition: "color 0.15s, font-size 0.15s", cursor: "pointer",
           }}
         >
@@ -96,23 +96,23 @@ export default function DateTimePickerSheet({ initialDate, initialHour, initialM
         `}</style>
         <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxHeight: "88vh", overflowY: "auto", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "18px 20px", paddingBottom: "calc(28px + env(safe-area-inset-bottom, 0px))", borderTop: "1px solid rgba(255,255,255,0.08)", animation: "slideUp 0.25s ease-out", pointerEvents: "auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-            <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>Anulează</button>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Dată și oră</div>
-            <button onClick={handleConfirm} disabled={!selectedDate} style={{ background: "none", border: "none", color: selectedDate ? "#FF3366" : "rgba(255,255,255,0.2)", fontSize: 14, fontWeight: 800, fontFamily: "'DM Mono', monospace", cursor: selectedDate ? "pointer" : "not-allowed" }}>Gata</button>
+            <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>Anulează</button>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Dată și oră</div>
+            <button onClick={handleConfirm} disabled={!selectedDate} style={{ background: "none", border: "none", color: selectedDate ? "#FF3366" : "rgba(255,255,255,0.2)", fontSize: 14, fontWeight: 800, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: selectedDate ? "pointer" : "not-allowed" }}>Gata</button>
           </div>
 
           {/* Calendar */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <button onClick={() => canGoPrev && setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))} disabled={!canGoPrev}
               style={{ width: 30, height: 30, borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: canGoPrev ? "#fff" : "rgba(255,255,255,0.15)", cursor: canGoPrev ? "pointer" : "default", fontSize: 14 }}>‹</button>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{capitalize(viewMonth.toLocaleDateString("ro-RO", { month: "long", year: "numeric" }))}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{capitalize(viewMonth.toLocaleDateString("ro-RO", { month: "long", year: "numeric" }))}</div>
             <button onClick={() => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
               style={{ width: 30, height: 30, borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer", fontSize: 14 }}>›</button>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 6 }}>
             {WEEKDAYS.map((w) => (
-              <div key={w} style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", padding: "4px 0" }}>{w}</div>
+              <div key={w} style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", padding: "4px 0" }}>{w}</div>
             ))}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 22 }}>
@@ -128,7 +128,7 @@ export default function DateTimePickerSheet({ initialDate, initialHour, initialM
                     border: selected ? "1px solid rgba(255,51,102,0.6)" : isToday ? "1px solid rgba(255,255,255,0.25)" : "1px solid transparent",
                     background: selected ? "linear-gradient(135deg, #FF3366, #B44FFF)" : "transparent",
                     color: disabled ? "rgba(255,255,255,0.15)" : selected ? "#fff" : "rgba(255,255,255,0.8)",
-                    fontSize: 13, fontWeight: selected ? 800 : 500, fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 13, fontWeight: selected ? 800 : 500, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                     cursor: disabled ? "default" : "pointer",
                   }}
                 >

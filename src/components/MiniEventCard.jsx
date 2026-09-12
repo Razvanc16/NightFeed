@@ -101,7 +101,7 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
 
       <button onClick={toggleLike} style={{ position: "absolute", top: 8, right: 8, background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, zIndex: 1 }}>
         <HeartMini filled={liked} color={event.color} />
-        {likeCount > 0 && <span style={{ fontSize: 9, color: "#fff", fontFamily: "'DM Mono', monospace", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }}>{likeCount}</span>}
+        {likeCount > 0 && <span style={{ fontSize: 9, color: "#fff", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }}>{likeCount}</span>}
       </button>
 
       {!isOwnEvent && (
@@ -111,13 +111,13 @@ export default function MiniEventCard({ event, user, onOpenComments }) {
       )}
 
       <div style={{ position: "relative", marginTop: "auto", padding: "8px 10px", zIndex: 1 }}>
-        <div style={{ fontSize: 9, fontWeight: 700, color: event.color, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>
+        <div style={{ fontSize: 9, fontWeight: 700, color: event.color, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 2 }}>
           {event.type === "official" ? "Oficial" : "Neoficial"}
         </div>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", lineHeight: 1.25, marginBottom: 3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.25, marginBottom: 3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
           {event.title}
         </div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>{formatPrice(event.price)}</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{formatPrice(event.price)}</div>
       </div>
 
       {isJoinable && (

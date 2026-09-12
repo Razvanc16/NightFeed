@@ -35,25 +35,25 @@ const CommentRow = ({ c, isReply, color, avatarUrl, likeCount, isLiked, onToggle
         width: isReply ? 26 : 32, height: isReply ? 26 : 32, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
         background: avatarUrl ? "transparent" : `${color}30`, border: `1px solid ${color}50`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: isReply ? 11 : 13, fontWeight: 700, color, fontFamily: "'DM Mono', monospace",
+        fontSize: isReply ? 11 : 13, fontWeight: 700, color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
         cursor: c.user_id ? "pointer" : "default",
       }}>
       {avatarUrl ? <img src={avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (c.username || "U")[0].toUpperCase()}
     </div>
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-        <span onClick={() => c.user_id && onViewProfile && onViewProfile(c.user_id)} style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans', sans-serif", cursor: c.user_id ? "pointer" : "default" }}>{c.username || "User"}</span>
-        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace" }}>{formatTime(c.created_at)}</span>
+        <span onClick={() => c.user_id && onViewProfile && onViewProfile(c.user_id)} style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: c.user_id ? "pointer" : "default" }}>{c.username || "User"}</span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{formatTime(c.created_at)}</span>
       </div>
-      <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>{c.text}</div>
+      <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.4 }}>{c.text}</div>
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 6 }}>
         <button onClick={onToggleLike} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
           <HeartIcon filled={isLiked} size={13} />
           {likeCount > 0 && (
-            <span style={{ fontSize: 11, color: isLiked ? "#FF3366" : "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{likeCount}</span>
+            <span style={{ fontSize: 11, color: isLiked ? "#FF3366" : "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{likeCount}</span>
           )}
         </button>
-        <button onClick={onReply} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>
+        <button onClick={onReply} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: 600 }}>
           Răspunde
         </button>
       </div>
@@ -339,14 +339,14 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
             lista de comentarii (mai jos) trebuie să rămână scrollabilă normal. */}
         <div style={{ padding: "10px 20px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", touchAction: "none" }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Comentarii</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace" }}>{displayEvent.title}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Comentarii</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{displayEvent.title}</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <button onClick={() => setPeopleSheet("likes")} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "6px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+            <button onClick={() => setPeopleSheet("likes")} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "6px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
               <HeartOutlineIcon size={12} /> Aprecieri
             </button>
-            <button onClick={() => setPeopleSheet("attend")} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "6px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+            <button onClick={() => setPeopleSheet("attend")} style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "6px 10px", color: "rgba(255,255,255,0.6)", fontSize: 11, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
               <ConfettiIcon size={12} /> Participă
             </button>
             <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "50%", width: 30, height: 30, color: "rgba(255,255,255,0.5)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
@@ -360,7 +360,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
           ) : comments.length === 0 ? (
             <div style={{ textAlign: "center", padding: "30px 0" }}>
               <div style={{ marginBottom: 8, display: "flex", justifyContent: "center", color: "rgba(255,255,255,0.3)" }}><SpeechBubbleIcon size={28} /></div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>Fii primul care comentează!</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Fii primul care comentează!</div>
             </div>
           ) : (
             topLevel.map(c => (
@@ -390,7 +390,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
         {/* Banner de răspuns */}
         {replyingTo && (
           <div style={{ padding: "6px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.04)", borderTop: "1px solid rgba(255,255,255,0.06)", touchAction: "none" }}>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace" }}>Răspunzi lui @{replyingTo.username}</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>Răspunzi lui @{replyingTo.username}</span>
             <button onClick={() => setReplyingTo(null)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: 15, lineHeight: 1, padding: 0 }}>×</button>
           </div>
         )}
@@ -409,7 +409,7 @@ export default function CommentsSheet({ event, user, open, onClose, onViewProfil
               background: "rgba(255,255,255,0.06)",
               border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: 20, color: "#fff", fontSize: 14,
-              fontFamily: "'DM Sans', sans-serif", outline: "none",
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none",
             }}
           />
           <button

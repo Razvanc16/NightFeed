@@ -89,16 +89,16 @@ export default function ReportSheet({ event, reportedUser, user, open, onClose }
         {sent ? (
           <div style={{ textAlign: "center", padding: "20px 0" }}>
             <div style={{ marginBottom: 12, color: "#00C864", display: "flex", justifyContent: "center" }}><CheckCircleIcon size={44} /></div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Raportare trimisă</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 8 }}>O verificăm cât mai curând.</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Raportare trimisă</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 8 }}>O verificăm cât mai curând.</div>
           </div>
         ) : (
           <>
             <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ color: "#FFB800" }}><WarningIcon size={18} /></span>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{isUserReport ? "Raportează utilizator" : "Raportează"}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>{isUserReport ? reportedUser.name : event.title}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{isUserReport ? "Raportează utilizator" : "Raportează"}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{isUserReport ? reportedUser.name : event.title}</div>
               </div>
             </div>
 
@@ -107,7 +107,7 @@ export default function ReportSheet({ event, reportedUser, user, open, onClose }
                 <button
                   key={r}
                   onClick={() => setReason(r)}
-                  style={{ textAlign: "left", padding: "12px 14px", borderRadius: 12, background: reason === r ? "rgba(255,184,0,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${reason === r ? "rgba(255,184,0,0.4)" : "rgba(255,255,255,0.1)"}`, color: reason === r ? "#FFB800" : "rgba(255,255,255,0.7)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: reason === r ? 700 : 400, cursor: "pointer" }}
+                  style={{ textAlign: "left", padding: "12px 14px", borderRadius: 12, background: reason === r ? "rgba(255,184,0,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${reason === r ? "rgba(255,184,0,0.4)" : "rgba(255,255,255,0.1)"}`, color: reason === r ? "#FFB800" : "rgba(255,255,255,0.7)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: reason === r ? 700 : 400, cursor: "pointer" }}
                 >
                   {r}
                 </button>
@@ -115,19 +115,19 @@ export default function ReportSheet({ event, reportedUser, user, open, onClose }
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Detalii (opțional)</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Detalii (opțional)</div>
               <textarea
                 placeholder="Orice detaliu care ne ajută să înțelegem situația..."
                 value={details}
                 onChange={e => setDetails(e.target.value)}
                 rows={3}
-                style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+                style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", resize: "none" }}
               />
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>Anulează</button>
-              <button onClick={handleSend} disabled={sending || !reason} style={{ flex: 2, padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: !reason ? "rgba(255,184,0,0.25)" : sending ? "rgba(255,184,0,0.4)" : "linear-gradient(135deg, #FFB800, #FF6B35)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: (sending || !reason) ? "not-allowed" : "pointer" }}>
+              <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>Anulează</button>
+              <button onClick={handleSend} disabled={sending || !reason} style={{ flex: 2, padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: !reason ? "rgba(255,184,0,0.25)" : sending ? "rgba(255,184,0,0.4)" : "linear-gradient(135deg, #FFB800, #FF6B35)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: (sending || !reason) ? "not-allowed" : "pointer" }}>
                 {sending ? "Se trimite..." : "Trimite raportarea"}
               </button>
             </div>

@@ -101,7 +101,7 @@ export default function SplashScreen({ onDone }) {
         {/* Name */}
         <div style={{
           fontSize: 36, fontWeight: 900,
-          fontFamily: "'Syne', sans-serif",
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           letterSpacing: "-0.03em",
           color: "#fff",
           animation: "slideUpFade 0.5s ease-out 0.5s both",
@@ -112,7 +112,7 @@ export default function SplashScreen({ onDone }) {
         {/* Tagline */}
         <div style={{
           fontSize: 13, color: "rgba(255,255,255,0.45)",
-          fontFamily: "'DM Mono', monospace",
+          fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
           letterSpacing: "0.15em",
           textTransform: "uppercase",
           animation: "slideUpFade 0.5s ease-out 0.7s both",

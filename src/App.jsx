@@ -777,7 +777,7 @@ export default function App() {
            indicatorul propriu — asta era "mizeria" care tot apărea pe un
            laptop cu ecran tactil, chiar după ce am dezactivat listenerii noștri. */
         html, body { overscroll-behavior: none; }
-        body { background: #000; overflow: hidden; font-family: 'DM Sans', sans-serif; }
+        body { background: #000; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         /* Fără plafon de lățime — se întinde pe tot ecranul, indiferent cât de
            lat e monitorul. transform:translateZ(0) rămâne util chiar și fără
            max-width: orice ancestor cu transform devine "containing block"
@@ -983,7 +983,7 @@ export default function App() {
                     padding: "7px 14px", borderRadius: 18, border: "none", cursor: "pointer",
                     background: feedMode === m.id ? "linear-gradient(120deg, #FF3366, #B44FFF)" : "transparent",
                     color: feedMode === m.id ? "#fff" : "rgba(255,255,255,0.6)",
-                    fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                     transition: "background 0.2s, color 0.2s", whiteSpace: "nowrap",
                   }}
                 >
@@ -1070,7 +1070,7 @@ export default function App() {
                   </div>
                 </div>
                 <div style={{
-                  fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace",
+                  fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
                   letterSpacing: "0.02em", textAlign: "center",
                 }}>
                   Asta e tot pentru acum
@@ -1098,10 +1098,10 @@ export default function App() {
                       background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.5)",
                     }}><MoonIcon size={36} /></div>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
                       Liniște deocamdată
                     </div>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
+                    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
                       {feedMode === "following"
                         ? "Nu urmărești pe nimeni care a postat încă. Descoperă evenimente la Pentru tine și urmărește organizatori."
                         : activeFilters.size > 0
@@ -1111,7 +1111,7 @@ export default function App() {
                     <button onClick={() => feedMode === "following" ? setFeedMode("foryou") : setShowPost(true)} style={{
                       padding: "14px 28px", borderRadius: 30, border: "none", cursor: "pointer",
                       background: "linear-gradient(120deg, #FF3366, #B44FFF)", color: "#fff",
-                      fontSize: 15, fontWeight: 700, fontFamily: "'Syne', sans-serif",
+                      fontSize: 15, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                       boxShadow: "0 8px 30px rgba(255,51,102,0.35)",
                     }}>
                       {feedMode === "following" ? "Vezi Pentru tine" : "+ Postează primul eveniment"}
@@ -1185,7 +1185,7 @@ export default function App() {
                   {notifToast.avatarUrl ? <img src={notifToast.avatarUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <BellIcon size={16} />}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{notifToast.title}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{notifToast.title}</div>
                   {notifToast.body && (
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{notifToast.body}</div>
                   )}

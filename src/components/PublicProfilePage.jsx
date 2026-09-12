@@ -142,22 +142,22 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
           {profile?.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : displayName.charAt(0).toUpperCase()}
         </div>
         {showPhoto && createPortal(<PhotoViewerModal src={profile.avatar_url} onClose={() => setShowPhoto(false)} />, document.body)}
-        <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{displayName}</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{displayName}</div>
         {profile?.hobby && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 8, maxWidth: 300 }}>{profile.hobby}</div>}
 
         {/* Statistici */}
         <div style={{ display: "flex", gap: 28, marginTop: 20, marginBottom: 20 }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{events.length}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Evenimente</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{events.length}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase" }}>Evenimente</div>
           </div>
           <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followers}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Urmăritori</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{followers}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase" }}>Urmăritori</div>
           </button>
           <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{following}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase" }}>Urmărește</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{following}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase" }}>Urmărește</div>
           </button>
         </div>
 
@@ -168,7 +168,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             border: isFollowing ? "1px solid rgba(255,255,255,0.2)" : "none",
             background: isFollowing ? "rgba(255,255,255,0.06)" : "linear-gradient(120deg, #FF3366, #B44FFF)",
-            color: "#fff", fontSize: 15, fontWeight: 700, fontFamily: "'Syne', sans-serif",
+            color: "#fff", fontSize: 15, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             boxShadow: isFollowing ? "none" : "0 6px 24px rgba(255,51,102,0.35)",
           }}>
             {isFollowing ? <><CheckCircleIcon size={15} /> Urmărești</> : (followsMe ? "Urmărește înapoi" : "+ Urmărește")}
@@ -178,7 +178,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
 
       {/* Evenimentele organizatorului */}
       <div style={{ padding: "30px 20px 0" }}>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>
           Evenimentele lui {profile?.prenume || displayName}
         </div>
         {events.length === 0 ? (
@@ -194,8 +194,8 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
                   {event.cover_url ? <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>
                     {event.location_visible ? event.venue : "Zonă aproximativă"} · {event.date}
                   </div>
                 </div>

@@ -11,7 +11,7 @@ export default function PasswordChecklist({ password }) {
           <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${strength.percent}%`, background: strength.color, transition: "width 0.25s, background 0.25s" }} />
           </div>
-          <div style={{ fontSize: 11, color: strength.color, fontFamily: "'DM Mono', monospace", marginTop: 4, fontWeight: 700 }}>
+          <div style={{ fontSize: 11, color: strength.color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 4, fontWeight: 700 }}>
             {strength.label && `Parolă ${strength.label.toLowerCase()}`}
           </div>
         </div>
@@ -24,7 +24,7 @@ export default function PasswordChecklist({ password }) {
               <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", color: ok ? "#00C864" : "rgba(255,255,255,0.3)", width: 14 }}>
                 {ok ? <CheckCircleIcon size={12} /> : <span style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid currentColor" }} />}
               </span>
-              <span style={{ fontSize: 11, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
+              <span style={{ fontSize: 11, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
                 {req.label}
               </span>
             </div>

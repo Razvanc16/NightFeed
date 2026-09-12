@@ -64,7 +64,7 @@ export default function ResetPasswordPage({ onDone }) {
             <path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm0 2a3 3 0 0 1 3 3v3H9V6a3 3 0 0 1 3-3z"/>
           </svg>
         </div>
-        <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", fontFamily: "'Syne', sans-serif" }}>
+        <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
           Setează o parolă nouă
         </div>
       </div>
@@ -72,23 +72,23 @@ export default function ResetPasswordPage({ onDone }) {
       {success ? (
         <div style={{ width: "100%", maxWidth: 340, textAlign: "center" }}>
           <div style={{ marginBottom: 16, color: "#00C864", display: "flex", justifyContent: "center" }}><CheckCircleIcon size={48} /></div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 8 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 8 }}>
             Parola a fost schimbată!
           </div>
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif" }}>
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             Te redirecționăm spre login...
           </div>
         </div>
       ) : (
         <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă nouă</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă nouă</div>
             <PasswordInput placeholder="parolă nouă" value={password} onChange={e => setPassword(e.target.value)} />
             <PasswordChecklist password={password} />
           </div>
 
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Confirmă parola</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Confirmă parola</div>
             <PasswordInput
               placeholder="repetă parola"
               value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
@@ -97,7 +97,7 @@ export default function ResetPasswordPage({ onDone }) {
           </div>
 
           {error && (
-            <div style={{ padding: "10px 14px", background: "rgba(255,51,102,0.15)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>
+            <div style={{ padding: "10px 14px", background: "rgba(255,51,102,0.15)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
               {error}
             </div>
           )}
@@ -110,7 +110,7 @@ export default function ResetPasswordPage({ onDone }) {
               background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
               border: "none", borderRadius: 14,
               color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "'Syne', sans-serif",
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               cursor: loading ? "not-allowed" : "pointer",
               boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
               marginTop: 4,
@@ -121,7 +121,7 @@ export default function ResetPasswordPage({ onDone }) {
 
           <button
             onClick={handleCancel}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", padding: "8px 0" }}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", padding: "8px 0" }}
           >
             Anulează și mergi la login
           </button>

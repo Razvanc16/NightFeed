@@ -110,7 +110,7 @@ const ActionMenu = ({ items }) => {
             <button
               key={i}
               onClick={(e) => { e.stopPropagation(); closeMenu(); it.onClick(); }}
-              style={{ width: "100%", padding: "11px 14px", display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none", color: it.color || "rgba(255,255,255,0.8)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", textAlign: "left" }}
+              style={{ width: "100%", padding: "11px 14px", display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none", color: it.color || "rgba(255,255,255,0.8)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", textAlign: "left" }}
             >
               {it.icon} {it.label}
             </button>
@@ -725,7 +725,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                   )}
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 10 }}>Apasă pentru poză</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 10 }}>Apasă pentru poză</div>
               </div>
             ),
           },
@@ -734,7 +734,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             required: true, valid: !!form.prenume,
             render: () => (
               <input autoFocus type="text" placeholder="ex: Ion" value={form.prenume} onChange={e => setForm(f => ({ ...f, prenume: e.target.value }))}
-                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
             ),
           },
           {
@@ -742,7 +742,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             required: true, valid: !!form.nume,
             render: () => (
               <input autoFocus type="text" placeholder="ex: Popescu" value={form.nume} onChange={e => setForm(f => ({ ...f, nume: e.target.value }))}
-                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
             ),
           },
           {
@@ -753,7 +753,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 <input
                   autoFocus type="date" max={todayISO} value={birthdate}
                   onChange={e => { setBirthdate(e.target.value); setForm(f => ({ ...f, varsta: calcAge(e.target.value) })); }}
-                  style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none", colorScheme: "dark" }}
+                  style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", colorScheme: "dark" }}
                 />
                 {birthdate && form.varsta < 16 && (
                   <div style={{ fontSize: 12, color: "#FF3366", marginTop: 8 }}>NightFeed e doar pentru 16+.</div>
@@ -767,7 +767,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             render: () => (
               <div style={{ display: "flex", gap: 10 }}>
                 {["Masculin", "Feminin"].map(g => (
-                  <button key={g} onClick={() => setForm(f => ({ ...f, gen: g }))} style={{ flex: 1, padding: "16px 0", borderRadius: 14, background: form.gen === g ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.gen === g ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.gen === g ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 15, fontFamily: "'DM Sans', sans-serif", fontWeight: form.gen === g ? 700 : 400, cursor: "pointer" }}>
+                  <button key={g} onClick={() => setForm(f => ({ ...f, gen: g }))} style={{ flex: 1, padding: "16px 0", borderRadius: 14, background: form.gen === g ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.gen === g ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.gen === g ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: form.gen === g ? 700 : 400, cursor: "pointer" }}>
                     {g}
                   </button>
                 ))}
@@ -781,7 +781,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               <textarea
                 autoFocus rows={4} placeholder="Câteva cuvinte despre tine" value={form.hobby}
                 onChange={e => setForm(f => ({ ...f, hobby: e.target.value }))}
-                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 16, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 16, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", resize: "none" }}
               />
             ),
           },
@@ -795,7 +795,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               <textarea
                 autoFocus rows={3} placeholder="ex: cunoscut oameni noi, dans, o bere relaxată..." value={form.prompt_answer}
                 onChange={e => setForm(f => ({ ...f, prompt_answer: e.target.value }))}
-                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 16, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 16, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", resize: "none" }}
               />
             ),
           },
@@ -804,7 +804,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             required: false,
             render: () => (
               <input autoFocus type="text" placeholder="ex: @nume.prenume" value={form.instagram} onChange={e => setForm(f => ({ ...f, instagram: e.target.value }))}
-                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+                style={{ width: "100%", padding: "16px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontSize: 18, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
             ),
           },
           {
@@ -814,13 +814,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
                   <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.5 }}>
                     Am citit și accept <span onClick={() => setShowLegal(true)} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>Termenii și Politica de Confidențialitate</span>
                   </span>
                 </label>
                 <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
                   <input type="checkbox" checked={confirmedAge} onChange={e => setConfirmedAge(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>Confirm că am cel puțin 16 ani</span>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.5 }}>Confirm că am cel puțin 16 ani</span>
                 </label>
               </div>
             ),
@@ -834,7 +834,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 răzgândit) rămânea complet blocat — Navbar-ul și orice altă
                 ieșire sunt ascunse intenționat cât timp nu există un profil. */}
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
-              <button onClick={() => { if (window.confirm("Te deloghezi? Poți relua crearea profilului oricând.")) onLogout && onLogout(); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer", padding: "4px 0" }}>
+              <button onClick={() => { if (window.confirm("Te deloghezi? Poți relua crearea profilului oricând.")) onLogout && onLogout(); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer", padding: "4px 0" }}>
                 Nu ești tu? Delogare
               </button>
             </div>
@@ -847,23 +847,23 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             </div>
 
             <div key={step.key} style={{ animation: "tabSlideFromRight 0.3s cubic-bezier(0.16,1,0.3,1)", flex: 1 }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: step.subtitle ? 6 : 24 }}>{step.title}</div>
-              {step.subtitle && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 24, lineHeight: 1.5 }}>{step.subtitle}</div>}
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: step.subtitle ? 6 : 24 }}>{step.title}</div>
+              {step.subtitle && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 24, lineHeight: 1.5 }}>{step.subtitle}</div>}
               {step.render()}
             </div>
 
             <div style={{ display: "flex", gap: 8, marginTop: 24 }}>
               {wizardStep > 0 && (
-                <button onClick={() => setWizardStep(s => s - 1)} style={{ flex: 1, padding: "14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                <button onClick={() => setWizardStep(s => s - 1)} style={{ flex: 1, padding: "14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                   Înapoi
                 </button>
               )}
               {step.isFinal ? (
-                <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: saving ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: saving ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
+                <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: saving ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: saving ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
                   {saving ? "Se salvează..." : <>Creează profilul <RocketIcon size={16} /></>}
                 </button>
               ) : (
-                <button onClick={() => canAdvance && setWizardStep(s => s + 1)} disabled={!canAdvance} style={{ flex: 2, padding: "14px", background: canAdvance ? "linear-gradient(135deg, #FF3366, #FF6B35)" : "rgba(255,255,255,0.06)", border: "none", borderRadius: 14, color: canAdvance ? "#fff" : "rgba(255,255,255,0.3)", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: canAdvance ? "pointer" : "not-allowed" }}>
+                <button onClick={() => canAdvance && setWizardStep(s => s + 1)} disabled={!canAdvance} style={{ flex: 2, padding: "14px", background: canAdvance ? "linear-gradient(135deg, #FF3366, #FF6B35)" : "rgba(255,255,255,0.06)", border: "none", borderRadius: 14, color: canAdvance ? "#fff" : "rgba(255,255,255,0.3)", fontSize: 16, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: canAdvance ? "pointer" : "not-allowed" }}>
                   Continuă
                 </button>
               )}
@@ -874,8 +874,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
       {editing && (
         <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", animation: "slideUp 0.3s ease-out" }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>Editează profilul</div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginBottom: 28 }}>Apare pe NightFeed</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4 }}>Editează profilul</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 28 }}>Apare pe NightFeed</div>
 
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 28 }}>
             <div style={{ position: "relative" }}>
@@ -893,7 +893,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               )}
             </div>
             <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 8 }}>Apasă pentru poză</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 8 }}>Apasă pentru poză</div>
           </div>
 
           {[
@@ -901,18 +901,18 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             { key: "nume", label: "Nume", placeholder: "ex: Popescu", type: "text" },
           ].map(field => (
             <div key={field.key} style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>{field.label}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>{field.label}</div>
               <input type={field.type} placeholder={field.placeholder} value={form[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
-                style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+                style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
             </div>
           ))}
 
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Data nașterii</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Data nașterii</div>
             <input
               type="date" max={todayISO} value={birthdate}
               onChange={e => { setBirthdate(e.target.value); setForm(f => ({ ...f, varsta: calcAge(e.target.value) })); }}
-              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", colorScheme: "dark" }}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", colorScheme: "dark" }}
             />
             {/* Nu știm data exactă din vârsta deja salvată — arătăm doar
                 vârsta curentă ca reper, cât timp nu alegi o dată nouă aici. */}
@@ -924,44 +924,44 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Bio</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Bio</div>
             <textarea
               rows={3} placeholder="Câteva cuvinte despre tine" value={form.hobby}
               onChange={e => setForm(f => ({ ...f, hobby: e.target.value }))}
-              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", resize: "none" }}
             />
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Ce cauți la o ieșire?</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Ce cauți la o ieșire?</div>
             <textarea
               rows={3} placeholder="ex: cunoscut oameni noi, dans, o bere relaxată..." value={form.prompt_answer}
               onChange={e => setForm(f => ({ ...f, prompt_answer: e.target.value }))}
-              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", resize: "none" }}
             />
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Instagram</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, letterSpacing: "0.08em", textTransform: "uppercase" }}>Instagram</div>
             <input type="text" placeholder="ex: @nume.prenume" value={form.instagram} onChange={e => setForm(f => ({ ...f, instagram: e.target.value }))}
-              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
           </div>
 
           <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>Gen</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>Gen</div>
             <div style={{ display: "flex", gap: 8 }}>
               {["Masculin", "Feminin"].map(g => (
-                <button key={g} onClick={() => setForm(f => ({ ...f, gen: g }))} style={{ flex: 1, padding: "10px 0", borderRadius: 12, background: form.gen === g ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.gen === g ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.gen === g ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: form.gen === g ? 700 : 400, cursor: "pointer" }}>
+                <button key={g} onClick={() => setForm(f => ({ ...f, gen: g }))} style={{ flex: 1, padding: "10px 0", borderRadius: 12, background: form.gen === g ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.gen === g ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.gen === g ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: form.gen === g ? 700 : 400, cursor: "pointer" }}>
                   {g}
                 </button>
               ))}
             </div>
           </div>
 
-          <button onClick={handleSave} disabled={saving} style={{ width: "100%", padding: "14px", background: saving ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: saving ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
+          <button onClick={handleSave} disabled={saving} style={{ width: "100%", padding: "14px", background: saving ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: saving ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
             {saving ? "Se salvează..." : "Salvează modificările"}
           </button>
-          <button onClick={() => { setEditing(false); setAvatarPreview(null); }} style={{ width: "100%", padding: "12px", background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.4)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", marginTop: 10 }}>Anulează</button>
+          <button onClick={() => { setEditing(false); setAvatarPreview(null); }} style={{ width: "100%", padding: "12px", background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.4)", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", marginTop: 10 }}>Anulează</button>
         </div>
       )}
 
@@ -989,22 +989,22 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               {profile.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MoonIcon size={26} style={{ color: "#fff" }} />}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{profile.prenume} {profile.nume}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{profile.prenume} {profile.nume}</div>
               <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
                 <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followerCount}</span>
-                  <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmăritori</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{followerCount}</span>
+                  <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>urmăritori</span>
                 </button>
                 <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "baseline", gap: 4 }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{followingCount}</span>
-                  <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>urmărește</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{followingCount}</span>
+                  <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>urmărește</span>
                 </button>
               </div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 6 }}>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 6 }}>
                 {profile.varsta ? `${profile.varsta} ani` : ""}{profile.gen ? ` · ${profile.gen}` : ""}
               </div>
               {profile.hobby && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}><TargetIcon size={12} /> {profile.hobby}</div>}
-              {user?.email && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}><EnvelopeIcon size={11} /> {user.email}</div>}
+              {user?.email && <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(255,255,255,0.25)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 4 }}><EnvelopeIcon size={11} /> {user.email}</div>}
             </div>
           </div>
 
@@ -1028,7 +1028,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                     background: isActive ? "rgba(255,51,102,0.9)" : "rgba(8,8,10,0.92)",
                     border: `1px solid ${isActive ? "#FF3366" : "rgba(255,255,255,0.25)"}`,
                     color: isActive ? "#fff" : "rgba(255,255,255,0.85)",
-                    fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+                    fontSize: 12, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
                     backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5,
                     transition: "all 0.2s", boxShadow: isActive ? "0 0 16px rgba(255,51,102,0.5)" : "none",
                   }}
@@ -1056,7 +1056,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                       background: postedView === v.id ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.03)",
                       border: `1px solid ${postedView === v.id ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.07)"}`,
                       color: postedView === v.id ? "#FF3366" : "rgba(255,255,255,0.5)",
-                      fontSize: 12, fontWeight: postedView === v.id ? 700 : 500, fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12, fontWeight: postedView === v.id ? 700 : 500, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                     }}
                   >
                     {v.label}
@@ -1069,7 +1069,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               myPostedEvents.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
                   <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}><OutboxIcon size={28} /></div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>Niciun eveniment postat</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 6 }}>Niciun eveniment postat</div>
                   <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Creează primul tău eveniment din butonul + de jos.</div>
                 </div>
               ) : myPostedEvents.map(event => (
@@ -1079,22 +1079,22 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                       {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {formatPrice(event.price) || "Gratuit"}</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{event.title}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{event.date} · {formatPrice(event.price) || "Gratuit"}</div>
                       <div style={{ marginTop: 4, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                         {/* verified privește doar evenimentele oficiale (au nevoie
                             de aprobare manuală înainte să apară în feed) — cele
                             neoficiale sunt deja live indiferent de acest flag, deci
                             "În așteptare" pe ele era doar confuz, fără nicio bază reală. */}
                         {event.type === "official" && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 8px", borderRadius: 10, background: event.verified ? "rgba(0,200,100,0.15)" : "rgba(255,184,0,0.15)", border: `1px solid ${event.verified ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, fontSize: 10, color: event.verified ? "#00C864" : "#FFB800", fontFamily: "'DM Mono', monospace" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 8px", borderRadius: 10, background: event.verified ? "rgba(0,200,100,0.15)" : "rgba(255,184,0,0.15)", border: `1px solid ${event.verified ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, fontSize: 10, color: event.verified ? "#00C864" : "#FFB800", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
                             {event.verified ? <><CheckCircleIcon size={11} /> Verificat</> : <><ClockIcon size={11} /> În așteptare</>}
                           </span>
                         )}
                         {event.code && (
                           <button
                             onClick={() => copyCode(event.code)}
-                            style={{ padding: "2px 8px", borderRadius: 10, background: copiedCode === event.code ? "rgba(0,200,100,0.15)" : "rgba(255,51,102,0.12)", border: `1px solid ${copiedCode === event.code ? "rgba(0,200,100,0.3)" : "rgba(255,51,102,0.25)"}`, fontSize: 10, color: copiedCode === event.code ? "#00C864" : "#FF3366", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                            style={{ padding: "2px 8px", borderRadius: 10, background: copiedCode === event.code ? "rgba(0,200,100,0.15)" : "rgba(255,51,102,0.12)", border: `1px solid ${copiedCode === event.code ? "rgba(0,200,100,0.3)" : "rgba(255,51,102,0.25)"}`, fontSize: 10, color: copiedCode === event.code ? "#00C864" : "#FF3366", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
                           >
                             {copiedCode === event.code ? <><CheckCircleIcon size={11} /> Copiat!</> : <><KeyIcon size={11} /> {event.code}</>}
                           </button>
@@ -1125,7 +1125,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 archivedEvents.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
                     <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}><OutboxIcon size={28} /></div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>Arhiva e goală</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 6 }}>Arhiva e goală</div>
                     <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>Evenimentele pe care le arhivezi apar aici.</div>
                   </div>
                 ) : archivedEvents.map(event => (
@@ -1135,8 +1135,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                         {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {formatPrice(event.price) || "Gratuit"}</div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{event.title}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{event.date} · {formatPrice(event.price) || "Gratuit"}</div>
                       </div>
                       <ActionMenu items={[
                         { label: "Info", icon: <InfoIcon size={14} />, onClick: () => setInfoEvent(event) },
@@ -1151,7 +1151,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
               (activeTab === "attending" ? attendingEvents : likedEvents).length === 0 ? (
                 <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
                   <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}>{activeTab === "attending" ? <ConfettiIcon size={28} /> : <HeartOutlineIcon size={28} />}</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.7)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 6 }}>
                     {activeTab === "attending" ? "Încă nu participi nicăieri" : "Nimic apreciat încă"}
                   </div>
                   <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
@@ -1173,8 +1173,8 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                       {event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{event.title}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{event.date} · {formatPrice(event.price)}</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{event.title}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{event.date} · {formatPrice(event.price)}</div>
                     </div>
                     {activeTab === "attending" && (
                       <ActionMenu items={[
@@ -1249,7 +1249,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <TicketQR token={ticketFor} />
             </div>
-            <button onClick={() => setTicketFor(null)} style={{ width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <button onClick={() => setTicketFor(null)} style={{ width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
               <CrossCircleIcon size={13} /> Închide
             </button>
           </div>
@@ -1261,25 +1261,25 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
         <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end", animation: "backdropIn 0.2s ease-out" }} onClick={() => !deletingAccount && setShowDeleteConfirm(false)}>
           <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxHeight: "85vh", overflowY: "auto", background: "#0f0f12", borderRadius: "24px 24px 0 0", padding: "22px 20px", paddingBottom: "calc(32px + env(safe-area-inset-bottom, 0px))", borderTop: "1px solid rgba(255,51,102,0.2)", animation: "slideUp 0.25s ease-out" }}>
             <div style={{ marginBottom: 12, color: "#FFB800" }}><WarningIcon size={36} /></div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 8 }}>Ștergi contul definitiv?</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 18, fontFamily: "'DM Sans', sans-serif" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 8 }}>Ștergi contul definitiv?</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 18, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
               Se șterg permanent profilul, evenimentele postate, like-urile, participările și urmăritorii tăi. Acțiunea nu poate fi anulată. Scrie <strong style={{ color: "#FF3366" }}>STERGE</strong> ca să confirmi.
             </div>
             <input
               value={deleteConfirmText}
               onChange={e => setDeleteConfirmText(e.target.value)}
               placeholder="STERGE"
-              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", outline: "none", marginBottom: 14, textTransform: "uppercase" }}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", letterSpacing: "0.1em", outline: "none", marginBottom: 14, textTransform: "uppercase" }}
             />
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }} disabled={deletingAccount} style={{ flex: 1, padding: "13px", borderRadius: 14, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>Anulează</button>
+              <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }} disabled={deletingAccount} style={{ flex: 1, padding: "13px", borderRadius: 14, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>Anulează</button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={!isDeleteConfirmMatch || deletingAccount}
                 style={{
                   flex: 1, padding: "13px", borderRadius: 14, border: "none",
                   background: isDeleteConfirmMatch ? "linear-gradient(135deg, #FF3366, #B44FFF)" : "rgba(255,51,102,0.25)",
-                  color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif",
+                  color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                   cursor: (isDeleteConfirmMatch && !deletingAccount) ? "pointer" : "not-allowed",
                 }}
               >

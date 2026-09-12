@@ -80,8 +80,8 @@ export default function NotificationsPage({ user, onViewProfile, onOpenEvent, on
     <div style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80 }}>
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 4px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
         <div>
-          <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>Notificări</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>
+          <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4 }}>Notificări</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
             {unreadCount > 0 ? `${unreadCount} necitite` : "Ești la zi"}
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function NotificationsPage({ user, onViewProfile, onOpenEvent, on
               background: filter === f.id ? "rgba(255,51,102,0.9)" : "rgba(255,255,255,0.06)",
               border: `1px solid ${filter === f.id ? "#FF3366" : "rgba(255,255,255,0.14)"}`,
               color: filter === f.id ? "#fff" : "rgba(255,255,255,0.6)",
-              fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+              fontSize: 12, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
               transition: "all 0.2s",
             }}
           >
@@ -124,7 +124,7 @@ export default function NotificationsPage({ user, onViewProfile, onOpenEvent, on
         ) : visible.length === 0 ? (
           <div style={{ textAlign: "center", padding: "50px 24px" }}>
             <div style={{ marginBottom: 12, color: "rgba(255,255,255,0.25)", display: "flex", justifyContent: "center" }}><BellOffIcon size={36} /></div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
               {filter === "unread" ? "Nicio notificare necitită" : "Nicio notificare încă"}
             </div>
           </div>
@@ -189,9 +189,9 @@ export default function NotificationsPage({ user, onViewProfile, onOpenEvent, on
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{n.title}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{n.title}</div>
                 {n.body && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 2, lineHeight: 1.4 }}>{n.body}</div>}
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>{timeAgo(n.created_at)}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 4 }}>{timeAgo(n.created_at)}</div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0 }}>
                 <button

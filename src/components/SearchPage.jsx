@@ -105,11 +105,11 @@ export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 24 }}>
           <div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>Caută</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>Găsește petreceri sau intră cu un cod</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4 }}>Caută</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>Găsește petreceri sau intră cu un cod</div>
           </div>
           {onClose && (
-            <button onClick={onClose} style={{ flexShrink: 0, marginTop: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+            <button onClick={onClose} style={{ flexShrink: 0, marginTop: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
               Închide
             </button>
           )}
@@ -117,7 +117,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
 
         {/* Acces direct cu cod */}
         <div style={{ background: "rgba(255,51,102,0.06)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 14, padding: "10px 12px", marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "#FF3366", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}><KeyIcon size={11} /> Acces direct cu cod</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "#FF3366", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}><KeyIcon size={11} /> Acces direct cu cod</div>
           <div style={{ display: "flex", gap: 6 }}>
             <input
               value={code}
@@ -125,11 +125,11 @@ export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
               onKeyDown={e => e.key === "Enter" && handleCodeSubmit()}
               placeholder=""
               maxLength={6}
-              style={{ flex: 1, padding: "9px 12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "#fff", fontSize: 15, fontFamily: "'DM Mono', monospace", letterSpacing: "0.18em", outline: "none", textTransform: "uppercase" }}
+              style={{ flex: 1, padding: "9px 12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "#fff", fontSize: 15, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", letterSpacing: "0.18em", outline: "none", textTransform: "uppercase" }}
             />
-            <button onClick={handleCodeSubmit} style={{ padding: "0 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #FF3366, #FF6B35)", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}>Intră</button>
+            <button onClick={handleCodeSubmit} style={{ padding: "0 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #FF3366, #FF6B35)", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>Intră</button>
           </div>
-          {codeError && <div style={{ fontSize: 11, color: "#FF3366", marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>{codeError}</div>}
+          {codeError && <div style={{ fontSize: 11, color: "#FF3366", marginTop: 6, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{codeError}</div>}
         </div>
 
         {/* Căutare text */}
@@ -139,7 +139,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={searchMode === "events" ? "Caută după nume, host, loc, tag..." : "Caută după nume..."}
-            style={{ width: "100%", padding: "13px 16px 13px 44px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+            style={{ width: "100%", padding: "13px 16px 13px 44px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 15, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }}
           />
         </div>
 
@@ -155,7 +155,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
                 background: searchMode === m.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)",
                 border: `1px solid ${searchMode === m.id ? "rgba(255,51,102,0.4)" : "rgba(255,255,255,0.08)"}`,
                 color: searchMode === m.id ? "#FF3366" : "rgba(255,255,255,0.5)",
-                fontSize: 13, fontWeight: searchMode === m.id ? 700 : 500, fontFamily: "'DM Sans', sans-serif",
+                fontSize: 13, fontWeight: searchMode === m.id ? 700 : 500, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               }}
             >
               <m.icon size={14} /> {m.label}
@@ -180,13 +180,13 @@ export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
                     {event.cover_url ? <img src={event.cover_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {event.location_visible ? event.venue : "Zonă aproximativă"} · {event.date}
                       {event.organizerName && ` · ${event.organizerName}`}
                     </div>
                   </div>
-                  <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: event.color, letterSpacing: "0.1em", padding: "3px 8px", borderRadius: 8, background: `${event.color}15`, flexShrink: 0 }}>
+                  <div style={{ fontSize: 11, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", color: event.color, letterSpacing: "0.1em", padding: "3px 8px", borderRadius: 8, background: `${event.color}15`, flexShrink: 0 }}>
                     {event.code || "—"}
                   </div>
                 </button>
@@ -209,7 +209,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
                     {p.avatar_url ? <img src={p.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (p.displayName || "?").charAt(0).toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName}</div>
                   </div>
                 </button>
               ))}

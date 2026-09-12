@@ -49,8 +49,8 @@ export default function FollowListSheet({ userId, mode, onClose, onViewProfile }
       {/* touchAction:none — header-ul e fix, fără scroll propriu; un swipe aici
           nu trebuie să scurgă panning-ul spre ancestorul scrollabil din spate. */}
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)", touchAction: "none" }}>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>← Înapoi</button>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{title}</div>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, cursor: "pointer", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>← Înapoi</button>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{title}</div>
       </div>
 
       <div style={{ height: "calc(100% - 76px)", overflowY: "auto", padding: "12px 16px 40px" }}>
@@ -79,7 +79,7 @@ export default function FollowListSheet({ userId, mode, onClose, onViewProfile }
                   {p.avatar_url ? <img src={p.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (p.displayName || "?").charAt(0).toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName || "Utilizator"}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.displayName || "Utilizator"}</div>
                 </div>
                 <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 16 }}>›</div>
               </button>

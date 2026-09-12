@@ -21,7 +21,7 @@ const Row = ({ icon, label, subtitle, onClick, color, disabled, danger }) => (
       width: "100%", padding: "13px 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 10,
       background: danger ? "rgba(255,51,102,0.08)" : "rgba(255,255,255,0.03)",
       border: `1px solid ${danger ? "rgba(255,51,102,0.3)" : "rgba(255,255,255,0.07)"}`,
-      color: color || "rgba(255,255,255,0.75)", fontSize: 14, fontFamily: "'DM Sans', sans-serif",
+      color: color || "rgba(255,255,255,0.75)", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1, textAlign: "left",
     }}
   >
@@ -35,7 +35,7 @@ const Row = ({ icon, label, subtitle, onClick, color, disabled, danger }) => (
 );
 
 const SectionLabel = ({ children }) => (
-  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", margin: "20px 4px 8px" }}>
+  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.08em", margin: "20px 4px 8px" }}>
     {children}
   </div>
 );
@@ -49,8 +49,8 @@ export default function SettingsPage({
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 10100, background: "#080808", overflowY: "auto", animation: "pageSlideInRight 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Setări</div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Setări</div>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
           Închide
         </button>
       </div>
@@ -75,7 +75,7 @@ export default function SettingsPage({
                 background: pushStatus === "subscribed" ? "rgba(0,200,100,0.08)" : "rgba(255,255,255,0.03)",
                 border: `1px solid ${pushStatus === "subscribed" ? "rgba(0,200,100,0.25)" : "rgba(255,255,255,0.07)"}`,
                 color: pushStatus === "subscribed" ? "#00C864" : "rgba(255,255,255,0.75)",
-                fontSize: 14, fontFamily: "'DM Sans', sans-serif",
+                fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                 cursor: (pushBusy || pushStatus === "denied" || pushStatus === "checking") ? "default" : "pointer",
                 opacity: pushStatus === "denied" ? 0.5 : 1,
               }}
@@ -94,7 +94,7 @@ export default function SettingsPage({
                     onClick={() => onToggleNotifPref(key)}
                     style={{ width: "100%", padding: "9px 4px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "none", border: "none", cursor: "pointer" }}
                   >
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{label}</span>
                     <div style={{ width: 34, height: 19, borderRadius: 10, background: on ? "#00C864" : "rgba(255,255,255,0.12)", position: "relative", transition: "background 0.2s" }}>
                       <div style={{ position: "absolute", top: 2, left: on ? 17 : 2, width: 15, height: 15, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
                     </div>

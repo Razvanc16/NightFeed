@@ -56,10 +56,10 @@ export default function MyTicketsPage({ user, onClose, onOpenEvent }) {
     <div style={{ position: "fixed", inset: 0, background: "#080808", zIndex: 300, overflowY: "auto", paddingBottom: 80, animation: "slideUp 0.3s ease-out" }}>
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Biletele mele</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 3 }}>Codul QR pentru intrarea la evenimente</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Biletele mele</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 3 }}>Codul QR pentru intrarea la evenimente</div>
         </div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
           Înapoi
         </button>
       </div>
@@ -70,7 +70,7 @@ export default function MyTicketsPage({ user, onClose, onOpenEvent }) {
         ) : tickets.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 20px" }}>
             <div style={{ marginBottom: 10, color: "rgba(255,255,255,0.25)", display: "flex", justifyContent: "center" }}><TicketIcon size={36} /></div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>Niciun bilet încă — participă la un eveniment ca să primești unul.</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Niciun bilet încă — participă la un eveniment ca să primești unul.</div>
           </div>
         ) : tickets.map(t => (
           <button
@@ -82,15 +82,15 @@ export default function MyTicketsPage({ user, onClose, onOpenEvent }) {
               {t.event?.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.event?.title || "Eveniment"}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{t.event?.date}</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.event?.title || "Eveniment"}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{t.event?.date}</div>
             </div>
             {t.checked_in ? (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 20, background: "rgba(0,200,100,0.15)", color: "#00C864", fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 20, background: "rgba(0,200,100,0.15)", color: "#00C864", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", fontWeight: 700 }}>
                 <CheckCircleIcon size={12} /> Verificat
               </span>
             ) : (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", fontWeight: 700 }}>
                 <ClockIcon size={12} /> Neintrat
               </span>
             )}
@@ -102,31 +102,31 @@ export default function MyTicketsPage({ user, onClose, onOpenEvent }) {
         <div onClick={() => setOpenTicket(null)} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 4 }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", textAlign: "left" }}>{openTicket.event?.title || "Eveniment"}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", textAlign: "left" }}>{openTicket.event?.title || "Eveniment"}</div>
               {onOpenEvent && (
                 <button
                   onClick={() => { const eid = openTicket.event_id; setOpenTicket(null); onClose(); onOpenEvent(eid); }}
-                  style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 3, background: "rgba(255,51,102,0.12)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 20, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                  style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 3, background: "rgba(255,51,102,0.12)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 20, padding: "5px 10px", color: "#FF3366", fontSize: 11, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
                 >
                   Postarea <ChevronRightIcon size={12} />
                 </button>
               )}
             </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 20 }}>Arată codul la intrare</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 20 }}>Arată codul la intrare</div>
 
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <TicketQR token={openTicket.token} />
             </div>
 
             {openTicket.checked_in ? (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, padding: "6px 14px", borderRadius: 20, background: "rgba(0,200,100,0.15)", color: "#00C864", fontFamily: "'DM Sans', sans-serif", fontWeight: 700 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, padding: "6px 14px", borderRadius: 20, background: "rgba(0,200,100,0.15)", color: "#00C864", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: 700 }}>
                 <CheckCircleIcon size={14} /> Ai intrat deja
               </div>
             ) : (
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif" }}>Nescanat încă</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Nescanat încă</div>
             )}
 
-            <button onClick={() => setOpenTicket(null)} style={{ marginTop: 20, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <button onClick={() => setOpenTicket(null)} style={{ marginTop: 20, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
               <CrossCircleIcon size={13} /> Închide
             </button>
           </div>

@@ -54,9 +54,9 @@ const StatCard = ({ label, value, sub, accent, i, onClick }) => (
     onClick={onClick}
     style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 18px", cursor: onClick ? "pointer" : "default", transition: "background 0.15s" }}
   >
-    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{label}</div>
-    <div style={{ fontSize: 26, fontWeight: 800, color: accent || "#fff", fontFamily: "'Syne', sans-serif" }}>{value}</div>
-    {sub && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", marginTop: 2 }}>{sub}</div>}
+    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{label}</div>
+    <div style={{ fontSize: 26, fontWeight: 800, color: accent || "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{value}</div>
+    {sub && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 2 }}>{sub}</div>}
   </div>
 );
 
@@ -73,7 +73,7 @@ const SearchBar = ({ value, onChange, placeholder }) => (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      style={{ width: "100%", padding: "11px 14px 11px 36px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
+      style={{ width: "100%", padding: "11px 14px 11px 36px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", boxSizing: "border-box" }}
     />
   </div>
 );
@@ -84,7 +84,7 @@ const FilterChips = ({ options, value, onChange }) => (
       <button
         key={opt.value}
         onClick={() => onChange(opt.value)}
-        style={{ padding: "7px 13px", borderRadius: 20, background: value === opt.value ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${value === opt.value ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.1)"}`, color: value === opt.value ? "#FF3366" : "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+        style={{ padding: "7px 13px", borderRadius: 20, background: value === opt.value ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${value === opt.value ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.1)"}`, color: value === opt.value ? "#FF3366" : "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
       >
         {opt.label}
       </button>
@@ -100,16 +100,16 @@ const MiniChart = ({ title, color, data, bucket, i }) => {
   const barWidth = bucket === "hour" ? 30 : bucket === "week" ? 32 : bucket === "month" ? 40 : 26;
   return (
     <div style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 16px 12px" }}>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>{title}</div>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>{title}</div>
       {data.length === 0 ? (
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", padding: "16px 0" }}>Nimic în perioada asta.</div>
       ) : (
         <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 104, overflowX: "auto", paddingBottom: 2 }}>
           {data.map((d) => (
             <div key={d.bucket} style={{ flexShrink: 0, width: barWidth, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>{d.count}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{d.count}</div>
               <div style={{ width: "100%", maxWidth: 18, height: Math.max(3, (d.count / maxCount) * 56), background: `linear-gradient(180deg, ${color}, ${color}80)`, borderRadius: 4 }} />
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>{bucketLabel(d.bucket, bucket)}</div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", whiteSpace: "nowrap" }}>{bucketLabel(d.bucket, bucket)}</div>
             </div>
           ))}
         </div>
@@ -137,7 +137,7 @@ function StatsTab({ onNavigate }) {
 
   useEffect(() => { load(); }, [load]);
 
-  if (error) return <div style={{ padding: 20, color: "#FF6B6B", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Eroare: {error}</div>;
+  if (error) return <div style={{ padding: 20, color: "#FF6B6B", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Eroare: {error}</div>;
   if (!stats) return <Spinner />;
 
   return (
@@ -152,11 +152,11 @@ function StatsTab({ onNavigate }) {
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>Evoluție</div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>Evoluție</div>
         <select
           value={preset}
           onChange={(e) => setPreset(e.target.value)}
-          style={{ padding: "7px 12px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 12, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+          style={{ padding: "7px 12px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
         >
           {PERIOD_PRESETS.map((p) => <option key={p.value} value={p.value} style={{ background: "#15151a" }}>{p.label}</option>)}
         </select>
@@ -224,7 +224,7 @@ function ReportsTab({ onViewUser, onViewEvent }) {
     <div>
       <button
         onClick={() => setUnresolvedOnly((v) => !v)}
-        style={{ marginBottom: 14, padding: "8px 14px", borderRadius: 20, background: unresolvedOnly ? "rgba(255,184,0,0.12)" : "rgba(255,255,255,0.06)", border: `1px solid ${unresolvedOnly ? "rgba(255,184,0,0.35)" : "rgba(255,255,255,0.1)"}`, color: unresolvedOnly ? "#FFB800" : "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, cursor: "pointer" }}
+        style={{ marginBottom: 14, padding: "8px 14px", borderRadius: 20, background: unresolvedOnly ? "rgba(255,184,0,0.12)" : "rgba(255,255,255,0.06)", border: `1px solid ${unresolvedOnly ? "rgba(255,184,0,0.35)" : "rgba(255,255,255,0.1)"}`, color: unresolvedOnly ? "#FFB800" : "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: 600, cursor: "pointer" }}
       >
         {unresolvedOnly ? "Doar nerezolvate" : "Toate raportările"}
       </button>
@@ -246,12 +246,12 @@ function ReportsTab({ onViewUser, onViewEvent }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#FFB800", fontFamily: "'DM Sans', sans-serif" }}>{r.reason}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#FFB800", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{r.reason}</div>
                   {r.reported_user_id && <span style={{ fontSize: 9, fontWeight: 700, color: "#B44FFF", background: "rgba(180,79,255,0.12)", padding: "2px 6px", borderRadius: 6 }}>CONT</span>}
                 </div>
                 <div
                   onClick={identityClickable ? goToIdentity : undefined}
-                  style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4, cursor: identityClickable ? "pointer" : "default", textDecoration: identityClickable ? "underline" : "none", textDecorationStyle: "dotted" }}
+                  style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 4, cursor: identityClickable ? "pointer" : "default", textDecoration: identityClickable ? "underline" : "none", textDecorationStyle: "dotted" }}
                 >
                   {r.reported_user_id
                     ? (r.reported_user_name || r.reported_user_email || "cont necunoscut / șters")
@@ -259,27 +259,27 @@ function ReportsTab({ onViewUser, onViewEvent }) {
                   {r.event_venue ? ` · ${r.event_venue}` : ""}
                 </div>
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>{fmtDateTime(r.created_at)}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", whiteSpace: "nowrap" }}>{fmtDateTime(r.created_at)}</div>
             </div>
-            {r.details && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 8, fontFamily: "'DM Sans', sans-serif" }}>{r.details}</div>}
+            {r.details && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{r.details}</div>}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 8, flexWrap: "wrap" }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace" }}>de la {r.reporter_email || "necunoscut"}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>de la {r.reporter_email || "necunoscut"}</div>
               {!r.resolved && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  <button onClick={() => dismiss(r.id)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                  <button onClick={() => dismiss(r.id)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                     <CheckCircleIcon size={13} /> OK
                   </button>
                   {r.reported_user_id ? (
                     <>
-                      <button onClick={() => banReportedUser(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.3)", borderRadius: 10, color: "#FFB800", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                      <button onClick={() => banReportedUser(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.3)", borderRadius: 10, color: "#FFB800", fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                         Blochează contul
                       </button>
-                      <button onClick={() => deleteReportedUser(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                      <button onClick={() => deleteReportedUser(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                         <TrashIcon size={12} /> Șterge contul
                       </button>
                     </>
                   ) : r.event_title && (
-                    <button onClick={() => deletePost(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                    <button onClick={() => deletePost(r)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                       <TrashIcon size={12} /> Șterge postarea
                     </button>
                   )}
@@ -347,10 +347,10 @@ function UsersTab({ initialFilter, onViewUser }) {
               : <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)", fontSize: 15, fontWeight: 700, flexShrink: 0 }}>{(u.prenume || u.email || "?")[0].toUpperCase()}</div>
             }
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", fontFamily: "'DM Sans', sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {[u.prenume, u.nume].filter(Boolean).join(" ") || "(fără profil)"}
               </div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
                 înscris {fmtDate(u.created_at)} · {u.events_count} evenimente
                 {u.reports_against_count > 0 && <span style={{ color: "#FFB800" }}> · {u.reports_against_count} raportări</span>}
@@ -361,14 +361,14 @@ function UsersTab({ initialFilter, onViewUser }) {
               <button
                 disabled={busyId === u.id}
                 onClick={(e) => { e.stopPropagation(); callAdminAction(isBanned(u) ? "unban_user" : "ban_user", u.id); }}
-                style={{ padding: "6px 10px", background: isBanned(u) ? "rgba(0,200,100,0.1)" : "rgba(255,184,0,0.1)", border: `1px solid ${isBanned(u) ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, borderRadius: 9, color: isBanned(u) ? "#00C864" : "#FFB800", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", whiteSpace: "nowrap" }}
+                style={{ padding: "6px 10px", background: isBanned(u) ? "rgba(0,200,100,0.1)" : "rgba(255,184,0,0.1)", border: `1px solid ${isBanned(u) ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.3)"}`, borderRadius: 9, color: isBanned(u) ? "#00C864" : "#FFB800", fontSize: 11, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", whiteSpace: "nowrap" }}
               >
                 {isBanned(u) ? "Deblochează" : "Blochează"}
               </button>
               <button
                 disabled={busyId === u.id}
                 onClick={(e) => { e.stopPropagation(); if (window.confirm(`Ștergi definitiv contul ${u.email}? Nu poate fi anulat.`)) callAdminAction("delete_user", u.id); }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
               >
                 <TrashIcon size={11} /> Șterge
               </button>
@@ -460,15 +460,15 @@ function EventsTab({ initialStatus, onViewEvent }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.title}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.title}</div>
                   {e.type === "official" && (e.verified
                     ? <span style={{ fontSize: 9, fontWeight: 700, color: "#00C864", background: "rgba(0,200,100,0.12)", padding: "2px 6px", borderRadius: 6, flexShrink: 0 }}>OFICIAL</span>
                     : <span style={{ fontSize: 9, fontWeight: 700, color: "#FFB800", background: "rgba(255,184,0,0.12)", padding: "2px 6px", borderRadius: 6, flexShrink: 0 }}>ÎN AȘTEPTARE</span>
                   )}
                   {e.archived && <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: 6, flexShrink: 0 }}>ARHIVAT</span>}
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans', sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>
                   {e.organizer_email || "organizator necunoscut"}
                   {e.reports_count > 0 && (
                     <span onClick={(ev) => { ev.stopPropagation(); toggleReporters(e.id); }} style={{ color: "#FFB800", cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted" }}>
@@ -477,7 +477,7 @@ function EventsTab({ initialStatus, onViewEvent }) {
                   )}
                 </div>
                 {e.type === "official" && !e.verified && (e.contact_name || e.contact_phone || e.contact_email || e.contact_social) && (
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 4 }}>
                     {[e.contact_name, e.contact_phone, e.contact_email, e.contact_social].filter(Boolean).join(" · ")}
                   </div>
                 )}
@@ -486,7 +486,7 @@ function EventsTab({ initialStatus, onViewEvent }) {
                     {loadingReporters === e.id ? (
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Se încarcă...</div>
                     ) : (reportersById[e.id] || []).map((r) => (
-                      <div key={r.id} style={{ fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}>
+                      <div key={r.id} style={{ fontSize: 11, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
                         <span style={{ color: "#fff", fontWeight: 600 }}>{r.reporter_email || "necunoscut"}</span>
                         <span style={{ color: "rgba(255,255,255,0.45)" }}> — {r.reason}</span>
                         <span style={{ color: "rgba(255,255,255,0.3)" }}> · {fmtDateTime(r.created_at)}</span>
@@ -501,7 +501,7 @@ function EventsTab({ initialStatus, onViewEvent }) {
                   <button
                     disabled={busyId === e.id}
                     onClick={(ev) => { ev.stopPropagation(); approveEvent(e.id); }}
-                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 9, color: "#00C864", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 9, color: "#00C864", fontSize: 11, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
                   >
                     <CheckCircleIcon size={11} /> Aprobă
                   </button>
@@ -509,7 +509,7 @@ function EventsTab({ initialStatus, onViewEvent }) {
                 <button
                   disabled={busyId === e.id}
                   onClick={(ev) => { ev.stopPropagation(); deleteEvent(e.id, e.title); }}
-                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
                 >
                   <TrashIcon size={11} /> Șterge
                 </button>
@@ -545,12 +545,12 @@ function AdminEventPreview({ eventId, onClose, onViewOrganizer }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 10250, background: "#080808", overflowY: "auto", animation: "pageSlideInRight 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <button onClick={onClose} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
           <ArrowLeftIcon size={14} /> Înapoi la Admin
         </button>
       </div>
 
-      {error && <div style={{ padding: 20, color: "#FF6B6B", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Eroare: {error}</div>}
+      {error && <div style={{ padding: 20, color: "#FF6B6B", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Eroare: {error}</div>}
       {!event && !error && <Spinner />}
 
       {event && (
@@ -569,14 +569,14 @@ function AdminEventPreview({ eventId, onClose, onViewOrganizer }) {
             {event.archived && <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 6 }}>ARHIVAT</span>}
           </div>
 
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 6 }}>{event.title}</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginBottom: 4 }}>{event.venue || "fără locație"}</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Mono', monospace", marginBottom: 18 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 6 }}>{event.title}</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4 }}>{event.venue || "fără locație"}</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 18 }}>
             {fmtDateTime(event.event_date)} · {formatPrice(event.price) || "Gratuit"}
           </div>
 
           {event.description && (
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5, marginBottom: 18, whiteSpace: "pre-wrap" }}>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.5, marginBottom: 18, whiteSpace: "pre-wrap" }}>
               {event.description}
             </div>
           )}
@@ -593,15 +593,15 @@ function AdminEventPreview({ eventId, onClose, onViewOrganizer }) {
 
           <button
             onClick={() => onViewOrganizer(event.organizer_id)}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", marginBottom: 18 }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", marginBottom: 18 }}
           >
             <PersonIcon size={14} /> Vezi profilul organizatorului ({event.organizer_email || "necunoscut"})
           </button>
 
           {event.type === "official" && (event.contact_name || event.contact_phone || event.contact_email || event.contact_social) && (
             <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Date de contact</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6 }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Date de contact</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.6 }}>
                 {[event.contact_name, event.contact_phone, event.contact_email, event.contact_social].filter(Boolean).join(" · ")}
               </div>
             </div>
@@ -650,7 +650,7 @@ function TrashTab() {
 
   return (
     <div>
-      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginBottom: 14, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 14, lineHeight: 1.5 }}>
         Evenimentele șterse din Raportări/Evenimente ajung aici și rămân recuperabile 7 zile, apoi se șterg definitiv automat.
       </div>
       {error && <div style={{ color: "#FF6B6B", fontSize: 13 }}>Eroare: {error}</div>}
@@ -662,10 +662,10 @@ function TrashTab() {
           <div key={e.id} style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{e.title}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans', sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{e.organizer_email || "organizator necunoscut"}</div>
-                <div style={{ fontSize: 11, color: "#FFB800", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{e.title}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{e.organizer_email || "organizator necunoscut"}</div>
+                <div style={{ fontSize: 11, color: "#FFB800", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 4 }}>
                   șters {fmtDateTime(e.admin_deleted_at)} · dispare definitiv în {daysLeft(e.admin_deleted_at)}z
                 </div>
               </div>
@@ -673,14 +673,14 @@ function TrashTab() {
                 <button
                   disabled={busyId === e.id}
                   onClick={() => restore(e.id)}
-                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 9, color: "#00C864", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 9, color: "#00C864", fontSize: 11, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
                 >
                   <CheckCircleIcon size={11} /> Restaurează
                 </button>
                 <button
                   disabled={busyId === e.id}
                   onClick={() => purge(e.id, e.title)}
-                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                  style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 9, color: "#FF3366", fontSize: 11, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
                 >
                   <TrashIcon size={11} /> Șterge definitiv
                 </button>
@@ -722,9 +722,9 @@ export default function AdminPage({ onClose, initialTab, initialNavState, curren
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <ShieldIcon size={18} style={{ color: "#FF3366" }} />
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Admin</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Admin</div>
         </div>
-        <button onClick={onClose} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, padding: "7px 12px", color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, padding: "7px 12px", color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
           Închide
         </button>
       </div>
@@ -732,7 +732,7 @@ export default function AdminPage({ onClose, initialTab, initialNavState, curren
       {denied ? (
         <div style={{ padding: 40, textAlign: "center" }}>
           <NoEntryIcon size={32} style={{ color: "#FF3366", marginBottom: 10 }} />
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Sans', sans-serif" }}>Nu ai acces la panoul de admin.</div>
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Nu ai acces la panoul de admin.</div>
         </div>
       ) : (
         <>
@@ -741,7 +741,7 @@ export default function AdminPage({ onClose, initialTab, initialNavState, curren
               <button
                 key={key}
                 onClick={() => { setNavState({}); setTab(key); }}
-                style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 20, background: tab === key ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${tab === key ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.08)"}`, color: tab === key ? "#FF3366" : "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 20, background: tab === key ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.04)", border: `1px solid ${tab === key ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.08)"}`, color: tab === key ? "#FF3366" : "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
               >
                 <Icon size={13} /> {label}
               </button>

@@ -160,7 +160,7 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
             >
               <tab.icon size={isPost ? (isDesktopNav ? 22 : 21) : isDesktopNav ? 18 : 19} />
               {!!badges[tab.id] && (
-                <span style={{ position: "absolute", top: -6, right: -9, minWidth: 17, height: 17, padding: "0 3px", borderRadius: 9, background: "#FF3366", border: "1.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 800, color: "#fff", lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>
+                <span style={{ position: "absolute", top: -6, right: -9, minWidth: 17, height: 17, padding: "0 3px", borderRadius: 9, background: "#FF3366", border: "1.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 800, color: "#fff", lineHeight: 1, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
                   {badges[tab.id] > 9 ? "9+" : badges[tab.id]}
                 </span>
               )}
@@ -175,7 +175,7 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
                   fontSize: 10,
                   color: isActive ? "#FF3366" : "rgba(255,255,255,0.55)",
                   fontWeight: isActive ? 700 : 500,
-                  fontFamily: "'DM Mono', monospace",
+                  fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
                   letterSpacing: "0.05em",
                   transition: "color 0.25s",
                 }}

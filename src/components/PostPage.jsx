@@ -474,8 +474,8 @@ export default function PostPage({ user, onClose, editEvent }) {
   if (success) return (
     <div style={{ width: "100%", height: "100%", background: "#080808", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
       <div style={{ color: "#00C864" }}>{isEdit ? <CheckCircleIcon size={56} /> : <ConfettiIcon size={56} />}</div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{isEdit ? "Eveniment actualizat!" : "Eveniment trimis!"}</div>
-      <div style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", textAlign: "center", padding: "0 32px" }}>
+      <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{isEdit ? "Eveniment actualizat!" : "Eveniment trimis!"}</div>
+      <div style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", textAlign: "center", padding: "0 32px" }}>
         {isEdit ? "Modificările au fost salvate." : "Va apărea în feed după verificare."}
       </div>
     </div>
@@ -486,10 +486,10 @@ export default function PostPage({ user, onClose, editEvent }) {
       {/* Header */}
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{isEdit ? "Editează eveniment" : "Adaugă eveniment"}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 3 }}>{isEdit ? "Modifică detaliile" : "Va fi verificat înainte de publicare"}</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{isEdit ? "Editează eveniment" : "Adaugă eveniment"}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 3 }}>{isEdit ? "Modifică detaliile" : "Va fi verificat înainte de publicare"}</div>
         </div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 12px", color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 12px", color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
           Închide
         </button>
       </div>
@@ -500,7 +500,7 @@ export default function PostPage({ user, onClose, editEvent }) {
           {coverUnverified ? (
             <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.06)", width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
               <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}><CameraIcon size={30} /></div>
-              <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace" }}>Videoclip selectat ({coverFile?.name})</div>
+              <div style={{ fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>Videoclip selectat ({coverFile?.name})</div>
             </div>
           ) : coverPreview ? (
             coverFile?.type.startsWith("video/")
@@ -509,38 +509,38 @@ export default function PostPage({ user, onClose, editEvent }) {
           ) : (
             <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)" }}>
               <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}><CameraIcon size={30} /></div>
-              <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace" }}>Adaugă poză sau video cover (max 15s)</div>
+              <div style={{ fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>Adaugă poză sau video cover (max 15s)</div>
             </div>
           )}
         </div>
         {coverError && (
-          <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 8, textAlign: "center" }}>{coverError}</div>
+          <div style={{ fontSize: 12, color: "#FF3366", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 8, textAlign: "center" }}>{coverError}</div>
         )}
         {coverUnverified && (
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", marginTop: 8, textAlign: "center" }}>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 8, textAlign: "center" }}>
             Nu am putut previzualiza clipul aici, dar se poate încă posta — verifică doar tu că e sub 15 secunde.
           </div>
         )}
         {!coverPreview && !coverUnverified && !coverError && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", marginTop: 8, marginBottom: 20, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: "#FF3366", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 8, marginBottom: 20, textAlign: "center" }}>
             <CameraIcon size={13} /> Evenimentele cu poză sau video ies mult mai bine în evidență în feed
           </div>
         )}
         <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleCover} style={{ display: "none" }} />
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif", marginTop: 8, marginBottom: 20, lineHeight: 1.5 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 8, marginBottom: 20, lineHeight: 1.5 }}>
           <LockIcon size={12} style={{ flexShrink: 0, marginTop: 1 }} /> Prin încărcare confirmi, pe propria răspundere, că ai acordul persoanelor care apar în imagine/video.
         </div>
 
         {/* Tip */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Tip eveniment</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Tip eveniment</div>
           <div style={{ display: "flex", gap: 8 }}>
             {[{ id: "official", label: "Oficial", icon: LightningIcon }, { id: "homemade", label: "Neoficial", icon: HouseIcon }].map(t => (
-              <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))} style={{ flex: 1, padding: "10px", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: form.type === t.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.type === t.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.type === t.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: form.type === t.id ? 700 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}><t.icon size={14} /> {t.label}</button>
+              <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))} style={{ flex: 1, padding: "10px", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: form.type === t.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.type === t.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.type === t.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: form.type === t.id ? 700 : 400, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}><t.icon size={14} /> {t.label}</button>
             ))}
           </div>
           {form.type === "official" && !isEdit && (
-            <div style={{ marginTop: 8, padding: "8px 12px", background: "rgba(255,51,102,0.08)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 10, fontSize: 11, color: "#FF3366", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "flex-start", gap: 6 }}>
+            <div style={{ marginTop: 8, padding: "8px 12px", background: "rgba(255,51,102,0.08)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 10, fontSize: 11, color: "#FF3366", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", display: "flex", alignItems: "flex-start", gap: 6 }}>
               <LockIcon size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Evenimentele oficiale sunt verificate manual înainte să apară în feed.
             </div>
           )}
@@ -551,16 +551,16 @@ export default function PostPage({ user, onClose, editEvent }) {
             unde nimeni nu validează manual). */}
         {form.type === "official" && (
           <div style={{ marginBottom: 16, padding: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12 }}>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>Date de contact (pentru verificare)</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>Date de contact (pentru verificare)</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <input type="text" placeholder="Nume persoană de contact" value={form.contact_name} onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))}
-                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
               <input type="tel" placeholder="Telefon" value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))}
-                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
               <input type="email" placeholder="Email de contact" value={form.contact_email} onChange={e => setForm(f => ({ ...f, contact_email: e.target.value }))}
-                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
               <input type="text" placeholder="Instagram / website local" value={form.contact_social} onChange={e => setForm(f => ({ ...f, contact_social: e.target.value }))}
-                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+                style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
             </div>
           </div>
         )}
@@ -568,14 +568,14 @@ export default function PostPage({ user, onClose, editEvent }) {
         {/* Vibe — apare ca iconiță pe hartă în loc de pinul generic, ca oricine
             să-și dea seama dintr-o privire ce fel de petrecere e (opțional) */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Vibe (opțional, apare pe hartă)</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Vibe (opțional, apare pe hartă)</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {VIBE_OPTIONS.map(v => (
               <button
                 key={v.id}
                 type="button"
                 onClick={() => setForm(f => ({ ...f, vibe: f.vibe === v.id ? null : v.id }))}
-                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: 20, background: form.vibe === v.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.vibe === v.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.vibe === v.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: form.vibe === v.id ? 700 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: 20, background: form.vibe === v.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.vibe === v.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.vibe === v.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: form.vibe === v.id ? 700 : 400, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
               >
                 <v.icon size={14} /> {v.label}
               </button>
@@ -585,14 +585,14 @@ export default function PostPage({ user, onClose, editEvent }) {
 
         {/* Titlu */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Titlu eveniment *</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Titlu eveniment *</div>
           <input type="text" placeholder="Titlul evenimentului" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }} />
+            style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }} />
         </div>
 
         {/* Locație cu search */}
         <div style={{ marginBottom: 14, position: "relative" }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Locație * {form.lat ? <span style={{ display: "inline-flex", alignItems: "center", gap: 3, color: "#00C864" }}><PinIcon size={12} /> Localizat</span> : ""}
           </div>
           <div ref={addressWrapRef} style={{ position: "relative" }}>
@@ -603,7 +603,7 @@ export default function PostPage({ user, onClose, editEvent }) {
               onChange={e => handleAddressChange(e.target.value)}
               onFocus={() => setAddressFocused(true)}
               onBlur={() => setTimeout(() => setAddressFocused(false), 150)}
-              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${form.lat ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+              style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${form.lat ? "rgba(0,200,100,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }}
             />
             {searchingAddress && (
               <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: "rgba(255,255,255,0.3)" }}>...</div>
@@ -620,8 +620,8 @@ export default function PostPage({ user, onClose, editEvent }) {
                     onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#fff", fontFamily: "'DM Sans', sans-serif", marginBottom: 2 }}><PinIcon size={12} /> {r.short}</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 2 }}><PinIcon size={12} /> {r.short}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</div>
                   </div>
                 ))}
               </div>
@@ -631,7 +631,7 @@ export default function PostPage({ user, onClose, editEvent }) {
           <button
             type="button"
             onClick={() => { setAddressFocused(false); setShowMapPicker(v => !v); }}
-            style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 5, background: showMapPicker ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.06)", border: `1px solid ${showMapPicker ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "7px 12px", color: showMapPicker ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+            style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 5, background: showMapPicker ? "rgba(255,51,102,0.12)" : "rgba(255,255,255,0.06)", border: `1px solid ${showMapPicker ? "rgba(255,51,102,0.35)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: "7px 12px", color: showMapPicker ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
           >
             <PinIcon size={12} /> {showMapPicker ? "Ascunde harta" : "Pune pin pe hartă"}
           </button>
@@ -656,7 +656,7 @@ export default function PostPage({ user, onClose, editEvent }) {
                   <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, 0)", width: 6, height: 6, borderRadius: "50%", background: "linear-gradient(135deg, #FF3366, #B44FFF)", zIndex: 400 }} />
                 )}
               </div>
-              <div style={{ padding: "6px 10px", fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", background: "rgba(255,255,255,0.03)" }}>
+              <div style={{ padding: "6px 10px", fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", background: "rgba(255,255,255,0.03)" }}>
                 Mișcă harta ca pinul să ajungă exact unde vrei.
               </div>
             </div>
@@ -674,7 +674,7 @@ export default function PostPage({ user, onClose, editEvent }) {
                 border: `1px solid ${form.location_visible ? "rgba(0,200,100,0.3)" : "rgba(255,184,0,0.2)"}`,
               }}
             >
-              <span style={{ display: "inline-flex", alignItems: "flex-start", gap: 6, fontSize: 11, color: form.location_visible ? "#00C864" : "#FFB800", fontFamily: "'DM Sans', sans-serif", textAlign: "left" }}>
+              <span style={{ display: "inline-flex", alignItems: "flex-start", gap: 6, fontSize: 11, color: form.location_visible ? "#00C864" : "#FFB800", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", textAlign: "left" }}>
                 <LockIcon size={13} style={{ flexShrink: 0, marginTop: 1 }} />
                 {form.location_visible
                   ? "Locație exactă vizibilă tuturor pe hartă"
@@ -691,7 +691,7 @@ export default function PostPage({ user, onClose, editEvent }) {
               filtru, de-asta au nevoie de un plafon separat. */}
           {form.type === "homemade" && (
             <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Număr maxim de participanți (opțional)</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Număr maxim de participanți (opțional)</div>
               <input
                 type="number" min="1" max={MAX_PARTICIPANTS} placeholder="fără limită"
                 value={form.max_participants}
@@ -700,7 +700,7 @@ export default function PostPage({ user, onClose, editEvent }) {
                   const val = raw === "" ? "" : String(Math.min(Number(raw) || 0, MAX_PARTICIPANTS));
                   setForm(f => ({ ...f, max_participants: val }));
                 }}
-                style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+                style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }}
               />
             </div>
           )}
@@ -709,14 +709,14 @@ export default function PostPage({ user, onClose, editEvent }) {
         {/* Dată și oră — pickere native (pe iPhone apar exact ca rotițele de la ceasul cu alarmă).
             Click oriunde pe câmp (nu doar pe iconiță) deschide picker-ul, prin showPicker(). */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Dată și oră *</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Dată și oră *</div>
           <div style={{ display: "flex", gap: 10 }}>
             <input
               type="date"
               value={form.eventDate}
               onChange={e => setForm(f => ({ ...f, eventDate: e.target.value }))}
               onClick={e => e.currentTarget.showPicker?.()}
-              style={{ flex: 1, colorScheme: "dark", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+              style={{ flex: 1, colorScheme: "dark", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }}
             />
             <input
               type="time"
@@ -725,14 +725,14 @@ export default function PostPage({ user, onClose, editEvent }) {
               value={form.eventTime}
               onChange={e => setForm(f => ({ ...f, eventTime: e.target.value }))}
               onClick={e => e.currentTarget.showPicker?.()}
-              style={{ flex: 1, colorScheme: "dark", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+              style={{ flex: 1, colorScheme: "dark", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }}
             />
           </div>
         </div>
 
         {/* Preț */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Preț</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Preț</div>
           <div style={{ display: "flex", gap: 8, marginBottom: priceMode === "paid" ? 8 : 0 }}>
             {[{ id: "free", label: "Gratuit" }, { id: "paid", label: "Cu preț" }].map(m => (
               <button
@@ -742,7 +742,7 @@ export default function PostPage({ user, onClose, editEvent }) {
                   setPriceMode(m.id);
                   setForm(f => ({ ...f, price: m.id === "free" ? "Gratuit" : (priceAmount ? `${priceAmount} RON` : "") }));
                 }}
-                style={{ flex: 1, padding: "10px", borderRadius: 12, background: priceMode === m.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${priceMode === m.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: priceMode === m.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: priceMode === m.id ? 700 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}
+                style={{ flex: 1, padding: "10px", borderRadius: 12, background: priceMode === m.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${priceMode === m.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: priceMode === m.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: priceMode === m.id ? 700 : 400, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
               >
                 {m.label}
               </button>
@@ -757,18 +757,18 @@ export default function PostPage({ user, onClose, editEvent }) {
                   setPriceAmount(val);
                   setForm(f => ({ ...f, price: val ? `${val} RON` : "" }));
                 }}
-                style={{ width: "100%", padding: "12px 50px 12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
+                style={{ width: "100%", padding: "12px 50px 12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none" }}
               />
-              <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>RON</span>
+              <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>RON</span>
             </div>
           )}
         </div>
 
         {/* Descriere */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Descriere</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Descriere</div>
           <textarea placeholder="Descrie evenimentul..." value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3}
-            style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none" }} />
+            style={{ width: "100%", padding: "12px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none", resize: "none" }} />
         </div>
 
         {!isEdit && (
@@ -779,7 +779,7 @@ export default function PostPage({ user, onClose, editEvent }) {
               onChange={e => setAcceptedTerms(e.target.checked)}
               style={{ marginTop: 2, width: 16, height: 16, accentColor: "#FF3366", flexShrink: 0, cursor: "pointer" }}
             />
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.5 }}>
               Am citit și accept{" "}
               <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowLegal(true); }} style={{ color: "#FF3366", textDecoration: "underline", cursor: "pointer" }}>
                 Termenii și Condițiile
@@ -789,7 +789,7 @@ export default function PostPage({ user, onClose, editEvent }) {
           </label>
         )}
 
-        <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
+        <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(255,51,102,0.3)" }}>
           {loading ? "Se salvează..." : isEdit ? <><CheckCircleIcon size={17} /> Salvează modificările</> : <><RocketIcon size={17} /> Trimite evenimentul</>}
         </button>
       </div>
@@ -804,17 +804,17 @@ export default function PostPage({ user, onClose, editEvent }) {
               ReportSheet/JoinRequestSheet). */}
           <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxHeight: "85vh", overflowY: "auto", zIndex: 501, background: "#0f0f12", borderTop: "2px solid rgba(255,51,102,0.3)", borderRadius: "24px 24px 0 0", padding: "22px 20px", paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))", animation: "slideUp 0.25s ease-out" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 6, color: "#FF3366" }}><CameraIcon size={36} /></div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", textAlign: "center", marginBottom: 8 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", textAlign: "center", marginBottom: 8 }}>
               Postezi fără poză?
             </div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", textAlign: "center", lineHeight: 1.5, marginBottom: 20 }}>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", textAlign: "center", lineHeight: 1.5, marginBottom: 20 }}>
               Evenimentele cu poză primesc mult mai multă atenție în feed. Poți oricând să adaugi una acum.
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <button onClick={() => { setShowNoPhotoConfirm(false); fileRef.current?.click(); }} style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "'Syne', sans-serif", cursor: "pointer" }}>
+              <button onClick={() => { setShowNoPhotoConfirm(false); fileRef.current?.click(); }} style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                 Adaugă o poză
               </button>
-              <button onClick={() => { setShowNoPhotoConfirm(false); doSubmit(); }} style={{ width: "100%", padding: "13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+              <button onClick={() => { setShowNoPhotoConfirm(false); doSubmit(); }} style={{ width: "100%", padding: "13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "rgba(255,255,255,0.6)", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                 Postează oricum
               </button>
             </div>

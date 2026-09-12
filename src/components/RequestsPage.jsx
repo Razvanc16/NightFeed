@@ -137,7 +137,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
     };
     const s = map[status] || map.pending;
     return (
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 20, background: s.bg, color: s.color, fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 20, background: s.bg, color: s.color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", fontWeight: 700 }}>
         <s.Icon size={12} /> {s.label}
       </span>
     );
@@ -161,15 +161,15 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
       {/* Header */}
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             Cereri participare
             {pendingCount > 0 && (
-              <span style={{ marginLeft: 8, background: "#FF3366", color: "#fff", fontSize: 11, borderRadius: 20, padding: "2px 8px", fontFamily: "'DM Mono', monospace" }}>{pendingCount}</span>
+              <span style={{ marginLeft: 8, background: "#FF3366", color: "#fff", fontSize: 11, borderRadius: 20, padding: "2px 8px", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{pendingCount}</span>
             )}
           </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Mono', monospace", marginTop: 3 }}>Gestionează accesul la evenimentele tale</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 3 }}>Gestionează accesul la evenimentele tale</div>
         </div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
           Înapoi
         </button>
       </div>
@@ -180,7 +180,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
           { id: "incoming", label: "Primite", count: pendingCount },
           { id: "outgoing", label: "Trimise", count: 0 },
         ].map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ flex: 1, padding: "10px", borderRadius: 12, border: `1px solid ${activeTab === tab.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.08)"}`, background: activeTab === tab.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)", cursor: "pointer", color: activeTab === tab.id ? "#FF3366" : "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 700, fontFamily: "'DM Mono', monospace", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ flex: 1, padding: "10px", borderRadius: 12, border: `1px solid ${activeTab === tab.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.08)"}`, background: activeTab === tab.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)", cursor: "pointer", color: activeTab === tab.id ? "#FF3366" : "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             {tab.label}
             {tab.count > 0 && <span style={{ background: "#FF3366", color: "#fff", fontSize: 10, borderRadius: 20, padding: "1px 6px" }}>{tab.count}</span>}
           </button>
@@ -205,7 +205,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
                 border: `1px solid ${statusFilter === f.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.08)"}`,
                 background: statusFilter === f.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)",
                 color: statusFilter === f.id ? "#FF3366" : "rgba(255,255,255,0.4)",
-                fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+                fontSize: 12, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
               }}
             >
               {f.label}
@@ -223,7 +223,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
             style={{
               width: "100%", padding: "10px 12px", borderRadius: 12, cursor: "pointer",
               border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)",
-              color: "#fff", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none",
+              color: "#fff", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", outline: "none",
             }}
           >
             <option value="all">Toate petrecerile</option>
@@ -241,7 +241,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
           filteredRequests.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 20px" }}>
               <div style={{ marginBottom: 10, color: "rgba(255,255,255,0.25)", display: "flex", justifyContent: "center" }}><InboxIcon size={36} /></div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
                 {statusFilter === "all" ? "Nicio cerere primită" : statusFilter === "accepted" ? "Niciun participant acceptat încă" : statusFilter === "pending" ? "Nicio cerere în așteptare" : "Nicio cerere refuzată"}
               </div>
             </div>
@@ -252,27 +252,27 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
                   {req.requester_profile?.avatar_url ? <img src={req.requester_profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <PersonIcon size={18} />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
                     {req.requester_username || "Utilizator"}
                     {req.requester_profile?.varsta && <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400 }}> · {req.requester_profile.varsta} ani</span>}
                   </div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>
                     vrea să participe la <span style={{ color: "#FF3366" }}>{req.posted_events?.title}</span>
                   </div>
                   {req.requester_profile?.hobby && (
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 4 }}>{req.requester_profile.hobby}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 4 }}>{req.requester_profile.hobby}</div>
                   )}
                   {req.requester_profile?.prompt_answer && (
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8, borderLeft: "2px solid rgba(255,184,0,0.4)" }}>
-                      <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace" }}>Caută</span><br />
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8, borderLeft: "2px solid rgba(255,184,0,0.4)" }}>
+                      <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>Caută</span><br />
                       {req.requester_profile.prompt_answer}
                     </div>
                   )}
                   {req.requester_profile?.instagram && (
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>@{req.requester_profile.instagram.replace(/^@/, "")}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 4 }}>@{req.requester_profile.instagram.replace(/^@/, "")}</div>
                   )}
                   {req.message && (
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8, borderLeft: "2px solid rgba(255,51,102,0.4)" }}>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8, borderLeft: "2px solid rgba(255,51,102,0.4)" }}>
                       "{req.message}"
                     </div>
                   )}
@@ -282,10 +282,10 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
 
               {req.status === "pending" && (
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => handleDecision(req.id, "accepted")} style={{ flex: 1, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(0,200,100,0.15)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                  <button onClick={() => handleDecision(req.id, "accepted")} style={{ flex: 1, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(0,200,100,0.15)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                     <CheckCircleIcon size={14} /> Acceptă
                   </button>
-                  <button onClick={() => handleDecision(req.id, "rejected")} style={{ flex: 1, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                  <button onClick={() => handleDecision(req.id, "rejected")} style={{ flex: 1, padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                     <CrossCircleIcon size={14} /> Refuză
                   </button>
                 </div>
@@ -295,7 +295,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
                   accepți, cât timp evenimentul n-a avut loc — nu mai are sens
                   o dată ce a trecut. */}
               {req.status === "rejected" && !isEventExpired(req.posted_events) && (
-                <button onClick={() => handleDecision(req.id, "accepted")} style={{ width: "100%", padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(0,200,100,0.15)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                <button onClick={() => handleDecision(req.id, "accepted")} style={{ width: "100%", padding: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(0,200,100,0.15)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                   <CheckCircleIcon size={14} /> Acceptă totuși
                 </button>
               )}
@@ -305,7 +305,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
           myRequests.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 20px" }}>
               <div style={{ marginBottom: 10, color: "rgba(255,255,255,0.25)", display: "flex", justifyContent: "center" }}><OutboxIcon size={36} /></div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>Nu ai trimis nicio cerere</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Nu ai trimis nicio cerere</div>
             </div>
           ) : myRequests.map(req => (
             <div key={req.id} style={{ borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", padding: "14px" }}>
@@ -314,24 +314,24 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
                   {req.posted_events?.type === "official" ? <LightningIcon size={18} /> : <HouseIcon size={18} />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>{req.posted_events?.title}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{req.posted_events?.date}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{req.posted_events?.title}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{req.posted_events?.date}</div>
                   <div style={{ marginTop: 6 }}>{statusBadge(req.status)}</div>
                 </div>
               </div>
 
               {req.status === "pending" && (
-                <button onClick={() => handleCancel(req.id)} style={{ marginTop: 10, width: "100%", padding: "9px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                <button onClick={() => handleCancel(req.id)} style={{ marginTop: 10, width: "100%", padding: "9px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                   <CrossCircleIcon size={13} /> Anulează cererea
                 </button>
               )}
 
               {req.status === "accepted" && req.posted_events?.venue && (
                 <div style={{ marginTop: 10, padding: "10px 14px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.2)", borderRadius: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00C864", fontFamily: "'DM Mono', monospace", marginBottom: 4, fontWeight: 700 }}><PinIcon size={12} /> ADRESĂ EXACTĂ</div>
-                  <div style={{ fontSize: 14, color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>{req.posted_events.venue}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00C864", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 4, fontWeight: 700 }}><PinIcon size={12} /> ADRESĂ EXACTĂ</div>
+                  <div style={{ fontSize: 14, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{req.posted_events.venue}</div>
                   {req.posted_events.lat && (
-                    <button onClick={() => { window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${req.posted_events.lat},${req.posted_events.lng}`; }} style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "rgba(0,200,100,0.2)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, padding: "6px 12px", color: "#00C864", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+                    <button onClick={() => { window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${req.posted_events.lat},${req.posted_events.lng}`; }} style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "rgba(0,200,100,0.2)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, padding: "6px 12px", color: "#00C864", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
                       <MapIcon size={13} /> Navighez
                     </button>
                   )}
@@ -339,7 +339,7 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
               )}
 
               {req.status === "accepted" && req.checkin && (
-                <button onClick={() => setOpenTicket(req)} style={{ marginTop: 10, width: "100%", padding: "9px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.25)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                <button onClick={() => setOpenTicket(req)} style={{ marginTop: 10, width: "100%", padding: "9px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.25)", borderRadius: 10, color: "#FF3366", fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                   <TicketIcon size={13} /> {req.checkin.checked_in ? "Ai intrat — vezi biletul" : "Vezi biletul"}
                 </button>
               )}
@@ -351,22 +351,22 @@ export default function RequestsPage({ user, onClose, initialEventId }) {
       {openTicket && (
         <div onClick={() => setOpenTicket(null)} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>{openTicket.posted_events?.title}</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", marginBottom: 20 }}>Arată codul la intrare</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4 }}>{openTicket.posted_events?.title}</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 20 }}>Arată codul la intrare</div>
 
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <TicketQR token={openTicket.checkin.token} />
             </div>
 
             {openTicket.checkin.checked_in ? (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, padding: "6px 14px", borderRadius: 20, background: "rgba(0,200,100,0.15)", color: "#00C864", fontFamily: "'DM Sans', sans-serif", fontWeight: 700 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, padding: "6px 14px", borderRadius: 20, background: "rgba(0,200,100,0.15)", color: "#00C864", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: 700 }}>
                 <CheckCircleIcon size={14} /> Ai intrat deja
               </div>
             ) : (
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif" }}>Nescanat încă</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Nescanat încă</div>
             )}
 
-            <button onClick={() => setOpenTicket(null)} style={{ marginTop: 20, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <button onClick={() => setOpenTicket(null)} style={{ marginTop: 20, width: "100%", padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
               <CrossCircleIcon size={13} /> Închide
             </button>
           </div>
