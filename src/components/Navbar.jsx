@@ -41,14 +41,16 @@ export default function Navbar({ active, onChange, badges = {} }) {
         transform: "translateX(-50%)",
         display: "flex",
         alignItems: "center",
-        gap: 4,
-        padding: 8,
+        gap: 10,
+        padding: "8px 12px",
         borderRadius: 999,
-        background: "rgba(20,18,22,0.6)",
+        // Mai transparentă (0.4 în loc de 0.6) — fundalul din spate se
+        // vede mai clar prin blur, ca în poza de referință.
+        background: "rgba(20,18,22,0.4)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
         border: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
         zIndex: 100,
       }}
     >
@@ -91,10 +93,13 @@ export default function Navbar({ active, onChange, badges = {} }) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 58,
-              height: 58,
-              borderRadius: 29,
+              // Butoanele normale sunt late și scunde (ovale), nu pătrate —
+              // Post rămâne cerc, puțin ridicat deasupra rândului, ca un FAB.
+              width: isPost ? 58 : 60,
+              height: isPost ? 58 : 46,
+              borderRadius: isPost ? 29 : 23,
               boxShadow: isPost ? "0 4px 16px rgba(255,51,102,0.4)" : "none",
+              transform: isPost ? "translateY(-6px)" : "none",
               transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             }}
           >

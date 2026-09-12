@@ -176,7 +176,10 @@ export default function App() {
   const isWideDesktop = useIsWideDesktop();
   const showSidebar = isDesktopNav && hasProfile !== false;
   const showSidePanels = showSidebar && isWideDesktop;
-  const tabWrapStyle = { top: 0, right: 0, bottom: 0, left: showSidebar ? DESKTOP_SIDEBAR_WIDTH : 0, height: showSidebar ? "100dvh" : "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))" };
+  // Bara de jos e acum o pilulă plutitoare, semi-transparentă, peste conținut
+  // (nu mai împinge paginile în sus) — height 100dvh peste tot, ca paginile
+  // să meargă chiar până la marginea ecranului, pe sub ea.
+  const tabWrapStyle = { top: 0, right: 0, bottom: 0, left: showSidebar ? DESKTOP_SIDEBAR_WIDTH : 0, height: "100dvh" };
   // Direcția din care alunecă tab-ul nou, după poziția lui în VALID_TABS
   // față de tab-ul curent — calculată sincron (nu într-un efect) ca să fie
   // deja corectă chiar la primul render în care tab-ul devine vizibil.
@@ -1025,7 +1028,7 @@ export default function App() {
               </div>
             )}
             <div ref={feedRef} style={{
-              width: "100%", height: showSidebar ? "100dvh" : "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", overflowY: "scroll", overscrollBehavior: "none", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
+              width: "100%", height: "100dvh", overflowY: "scroll", overscrollBehavior: "none", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch",
               // transform: "none" cât timp nu tragem în niciun sens — orice valoare
               // de transform (chiar translateY(0px)) creează un nou "containing
               // block" pentru copiii cu position:fixed din interior (ex: sheet-ul
@@ -1067,7 +1070,7 @@ export default function App() {
                 </div>
               ) : (
                 slides.map((slide, i) => (
-                  <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: showSidebar ? "100dvh" : "calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
+                  <div key={slide.type === "single" ? slide.event.id : `grid-${i}`} style={{ width: "100%", height: "100dvh", scrollSnapAlign: "start", scrollSnapStop: "always", flexShrink: 0 }}>
                     {slide.type === "single" ? (
                       <EventCard event={slide.event} isActive={i === currentIndex && activeTab === "feed" && !showPost && !viewingProfile} user={user} onComment={() => setCommentsEvent(slide.event)} onViewProfile={(uid) => setViewingProfile(uid)} isFollowingOrganizer={!!(slide.event.organizer_id && followingIds?.has(slide.event.organizer_id))} onToggleFollowOrganizer={toggleFollowOrganizer} onOpenLocation={openEventLocation} desktopSidebar={showSidebar} desktopWide={showSidePanels} />
                     ) : (
