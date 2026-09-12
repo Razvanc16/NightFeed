@@ -998,9 +998,11 @@ export default function App() {
               style={{
                 position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", right: 16,
                 zIndex: 50, width: 38, height: 38, borderRadius: "50%", cursor: "pointer",
-                background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
-                backdropFilter: "blur(14px)", boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
-                color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
+                // Gradientul de brand NightFeed (același ca la Pentru tine/Urmăriți) —
+                // înainte era un cerc gri generic, care nu semăna cu restul aplicației.
+                background: "linear-gradient(120deg, #FF3366, #B44FFF)", border: "none",
+                boxShadow: "0 4px 16px rgba(255,51,102,0.35)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
               <SearchIcon size={16} />
