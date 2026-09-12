@@ -456,10 +456,19 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const uploadAvatar = async (profileId) => {
     if (!avatarFile) return form.avatar_url;
     const ext = avatarFile.name.split(".").pop();
-    const path = `${profileId}.${ext}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, avatarFile, { upsert: true });
-    if (error) return form.avatar_url;
+    // Fără upsert:true — la fel ca la bucket-ul "covers" (vezi PostPage.jsx),
+    // upsert pe o cale existentă declanșa constant "new row violates
+    // row-level security policy" la Storage, eșuând silențios upload-ul
+    // (eroarea era doar înghițită mai jos) — de-aici plângerile că poza de
+    // profil pur și simplu nu se schimbă. Un path unic + insert simplu
+    // ocolește problema complet.
+    const path = `${profileId}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, avatarFile);
+    if (error) throw error;
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    // Best-effort: ștergem poza veche, ca să nu rămână fișiere orfane în bucket.
+    const oldPath = extractStoragePath(form.avatar_url, "avatars");
+    if (oldPath) supabase.storage.from("avatars").remove([oldPath]).catch(() => {});
     return data.publicUrl;
   };
 
