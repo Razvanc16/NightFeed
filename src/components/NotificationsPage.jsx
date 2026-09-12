@@ -86,11 +86,15 @@ export default function NotificationsPage({ user, onViewProfile, onOpenEvent, on
           </div>
         </div>
         {unreadCount > 0 && (
+          // Doar iconiță (fără text) — un buton cu text aici împingea titlul
+          // "Notificări" spre stânga, înghesuindu-l pe ecrane mai înguste.
           <button
             onClick={handleMarkAllRead}
-            style={{ flexShrink: 0, marginTop: 4, display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.75)", fontSize: 11.5, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", whiteSpace: "nowrap" }}
+            title="Marchează tot citit"
+            aria-label="Marchează tot citit"
+            style={{ flexShrink: 0, marginTop: 4, width: 34, height: 34, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.75)", cursor: "pointer" }}
           >
-            <CheckCircleIcon size={13} /> Marchează tot citit
+            <CheckCircleIcon size={16} />
           </button>
         )}
       </div>

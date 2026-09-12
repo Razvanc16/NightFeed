@@ -414,7 +414,15 @@ function EventsTab({ initialStatus, onViewEvent }) {
     setBusyId(id);
     const { error } = await supabase.rpc("admin_approve_event", { target_event_id: id });
     if (error) alert("Eroare: " + error.message);
-    else setEvents((prev) => prev.map((e) => e.id === id ? { ...e, verified: true } : e));
+    else if (status === "pending") {
+      // Filtrul "Neaprobate" arată doar oficiale nevalidate — după aprobare
+      // evenimentul nu mai aparține aici. Fără asta rămânea vizibil în listă
+      // cu doar un badge schimbat ("ÎN AȘTEPTARE" → "OFICIAL"), ușor de ratat,
+      // deci apăsarea "Aprobă" părea că nu face nimic.
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+    } else {
+      setEvents((prev) => prev.map((e) => e.id === id ? { ...e, verified: true } : e));
+    }
     setBusyId(null);
   };
 
