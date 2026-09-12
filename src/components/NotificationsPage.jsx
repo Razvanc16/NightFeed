@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
-import { HeartOutlineIcon, SpeechBubbleIcon, EnvelopeIcon, PersonIcon, BellOffIcon, LightningIcon } from "./Icons";
+import { HeartOutlineIcon, SpeechBubbleIcon, EnvelopeIcon, PersonIcon, BellOffIcon, LightningIcon, CheckCircleIcon } from "./Icons";
 
 const ICONS = { like: HeartOutlineIcon, comment: SpeechBubbleIcon, request: EnvelopeIcon, follower: PersonIcon, official_request: LightningIcon };
 const COLORS = { like: "#FF3366", comment: "#4FC3F7", request: "#FFB800", follower: "#B44FFF", official_request: "#FF3366" };
@@ -17,12 +17,17 @@ const timeAgo = (iso) => {
   return new Date(iso).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 };
 
-// embedded=true — randată ca tab în Profil (fără propriul overlay/header full-screen,
-// doar lista), în loc de propria pagină modală peste tot.
-export default function NotificationsPage({ user, onClose, onViewProfile, onOpenEvent, onOpenLikes, onOpenAttending, onOpenRequests, onOpenAdminApproval, embedded, refreshKey }) {
+// Tab propriu în bara de jos (vezi Navbar.jsx / App.jsx) — nu mai e o filă
+// ascunsă în Profil, deci are propriul header (ca la Căutare/Hartă) în loc
+// de un ecran modal cu buton "Înapoi".
+export default function NotificationsPage({ user, onViewProfile, onOpenEvent, onOpenLikes, onOpenAttending, onOpenRequests, onOpenAdminApproval }) {
   const [notifications, setNotifications] = useState([]);
   const [avatars, setAvatars] = useState({});
   const [loading, setLoading] = useState(true);
+  // "Necitite" filtrează pe starea locală, "înghețată" la momentul încărcării
+  // (vezi load()) — nu pe cea din bază, care se marchează citită imediat ce
+  // le vezi. Așa poți totuși distinge, în vizita curentă, ce era nou.
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     if (!user) return;
@@ -37,18 +42,6 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
     return () => supabase.removeChannel(channel);
   }, [user]);
 
-  // Pull-to-refresh din Profil (embedded) nu retrage automat lista — doar
-  // schimbă acest prop, ca să folosim aceeași sursă de adevăr (load()) fără
-  // să duplicăm logica de fetch în ProfilePage. Skip la primul render — deja
-  // se încarcă mai sus, în efectul legat de `user`.
-  const skipFirstRefresh = useRef(true);
-  useEffect(() => {
-    if (skipFirstRefresh.current) { skipFirstRefresh.current = false; return; }
-    if (!user) return;
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey]);
-
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
@@ -61,7 +54,7 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
       setAvatars(Object.fromEntries((profiles || []).map(p => [p.user_id, p.avatar_url])));
     }
 
-    // Le marcăm ca citite după ce le-ai văzut — badge-ul de pe Profil se
+    // Le marcăm ca citite după ce le-ai văzut — badge-ul din bara de jos se
     // resetează data viitoare când deschizi lista.
     const unreadIds = (data || []).filter(n => !n.read).map(n => n.id);
     if (unreadIds.length) await supabase.from("notifications").update({ read: true }).in("id", unreadIds);
@@ -73,16 +66,65 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
     await supabase.from("notifications").delete().eq("id", id);
   };
 
-  const list = (
-      <div style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+  const unreadCount = notifications.filter(n => !n.read).length;
+  const handleMarkAllRead = async () => {
+    const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+    if (!unreadIds.length) return;
+    setNotifications(prev => prev.map(n => n.read ? n : { ...n, read: true }));
+    await supabase.from("notifications").update({ read: true }).in("id", unreadIds);
+  };
+
+  const visible = filter === "unread" ? notifications.filter(n => !n.read) : notifications;
+
+  return (
+    <div style={{ width: "100%", height: "100%", background: "#080808", overflowY: "auto", paddingBottom: 80 }}>
+      <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 4px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+        <div>
+          <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif", marginBottom: 4 }}>Notificări</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace" }}>
+            {unreadCount > 0 ? `${unreadCount} necitite` : "Ești la zi"}
+          </div>
+        </div>
+        {unreadCount > 0 && (
+          <button
+            onClick={handleMarkAllRead}
+            style={{ flexShrink: 0, marginTop: 4, display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", borderRadius: 12, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.75)", fontSize: 11.5, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", whiteSpace: "nowrap" }}
+          >
+            <CheckCircleIcon size={13} /> Marchează tot citit
+          </button>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, padding: "14px 20px" }}>
+        {[{ id: "all", label: "Toate" }, { id: "unread", label: `Necitite${unreadCount ? ` (${unreadCount})` : ""}` }].map(f => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            style={{
+              padding: "6px 14px", borderRadius: 20, cursor: "pointer",
+              background: filter === f.id ? "rgba(255,51,102,0.9)" : "rgba(255,255,255,0.06)",
+              border: `1px solid ${filter === f.id ? "#FF3366" : "rgba(255,255,255,0.14)"}`,
+              color: filter === f.id ? "#fff" : "rgba(255,255,255,0.6)",
+              fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+              transition: "all 0.2s",
+            }}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: "0 16px 8px", display: "flex", flexDirection: "column", gap: 8 }}>
         {loading ? (
           <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", padding: "40px 0" }}>Se încarcă...</div>
-        ) : notifications.length === 0 ? (
+        ) : visible.length === 0 ? (
           <div style={{ textAlign: "center", padding: "50px 24px" }}>
             <div style={{ marginBottom: 12, color: "rgba(255,255,255,0.25)", display: "flex", justifyContent: "center" }}><BellOffIcon size={36} /></div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>Nicio notificare încă</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>
+              {filter === "unread" ? "Nicio notificare necitită" : "Nicio notificare încă"}
+            </div>
           </div>
-        ) : notifications.map(n => {
+        ) : visible.map(n => {
           const Icon = ICONS[n.type] || EnvelopeIcon;
           const color = COLORS[n.type] || "#FF3366";
           const avatarUrl = n.actor_id ? avatars[n.actor_id] : null;
@@ -117,10 +159,10 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
             // lăsăm deschisă dedesubt, ca "Înapoi"/"Închide" să te aducă
             // înapoi la notificări, nu să te scoată de tot din ele.
             if (rowGoesToLikes) { onOpenLikes(n.event_id); }
-            else if (rowGoesToAttending) { onOpenAttending(); onClose(); }
-            else if (rowGoesToRequests) { onOpenRequests(n.event_id.replace("posted_", "")); onClose(); }
-            else if (rowGoesToAdmin) { onOpenAdminApproval(); onClose(); }
-            else if (rowGoesToEvent) { onOpenEvent(n.event_id, n.comment_id); onClose(); }
+            else if (rowGoesToAttending) { onOpenAttending(); }
+            else if (rowGoesToRequests) { onOpenRequests(n.event_id.replace("posted_", "")); }
+            else if (rowGoesToAdmin) { onOpenAdminApproval(); }
+            else if (rowGoesToEvent) { onOpenEvent(n.event_id, n.comment_id); }
             else if (rowGoesToProfile) { onViewProfile(n.actor_id); }
           };
           return (
@@ -161,19 +203,6 @@ export default function NotificationsPage({ user, onClose, onViewProfile, onOpen
           );
         })}
       </div>
-  );
-
-  if (embedded) return list;
-
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "#080808", zIndex: 300, overflowY: "auto", paddingBottom: 40, animation: "slideUp 0.3s ease-out" }}>
-      <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "'Syne', sans-serif" }}>Notificări</div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
-          Înapoi
-        </button>
-      </div>
-      {list}
     </div>
   );
 }

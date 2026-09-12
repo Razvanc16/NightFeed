@@ -1,15 +1,15 @@
-import { SearchIcon, PersonIcon, MapIcon, PlayIcon, PlusIcon } from "./Icons";
+import { PersonIcon, MapIcon, PlayIcon, PlusIcon, BellIcon } from "./Icons";
 import { useIsDesktopNav, DESKTOP_SIDEBAR_WIDTH } from "../utils/desktopLayout";
 
 const tabs = [
   { id: "feed", icon: PlayIcon, label: "Feed" },
-  { id: "search", icon: SearchIcon, label: "Caută" },
-  { id: "post", icon: PlusIcon, label: "Post" },
   { id: "map", icon: MapIcon, label: "Hartă" },
+  { id: "post", icon: PlusIcon, label: "Post" },
+  { id: "notifications", icon: BellIcon, label: "Notificări" },
   { id: "profile", icon: PersonIcon, label: "Profil" },
 ];
 
-export default function Navbar({ active, onChange }) {
+export default function Navbar({ active, onChange, badges = {} }) {
   // Pe desktop (mouse + fereastră lată) bara devine sidebar în stânga, nu
   // bară jos — ca pe TikTok/Instagram web, unde spațiul lat orizontal nu are
   // rost irosit sub un feed vertical îngust.
@@ -100,6 +100,11 @@ export default function Navbar({ active, onChange }) {
               }}
             >
               <tab.icon size={18} />
+              {!!badges[tab.id] && (
+                <span style={{ position: "absolute", top: -5, right: -8, minWidth: 15, height: 15, padding: "0 3px", borderRadius: 8, background: "#FF3366", border: "1.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8.5, fontWeight: 800, color: "#fff", lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>
+                  {badges[tab.id] > 9 ? "9+" : badges[tab.id]}
+                </span>
+              )}
             </span>
             {!isPost && (
               <span

@@ -9,7 +9,7 @@ import MapPage from "./components/MapPage";
 import SplashScreen from "./components/SplashScreen";
 import AuthPage from "./components/AuthPage";
 import LandingPage from "./components/LandingPage";
-import SearchPage from "./components/SearchPage";
+import NotificationsPage from "./components/NotificationsPage";
 import PublicProfilePage from "./components/PublicProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import PostPage from "./components/PostPage";
@@ -22,6 +22,7 @@ import { playNotificationSound, primeNotificationAudio } from "./utils/notificat
 import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
 import { useIsDesktopNav, useIsWideDesktop, DESKTOP_SIDEBAR_WIDTH } from "./utils/desktopLayout";
+import { ADMIN_EMAILS } from "./utils/admin";
 import { MoonIcon, BellIcon } from "./components/Icons";
 
 const filterFn = (event, filter) => {
@@ -136,7 +137,7 @@ export default function App() {
   // Reținem ultimul tab vizitat (localStorage) — altfel, de fiecare dată când
   // PWA-ul e repornit din fundal (iOS descarcă des tab-uri/PWA-uri din memorie),
   // reveneai mereu pe Feed în loc de unde erai înainte să minimizezi aplicația.
-  const VALID_TABS = ["feed", "search", "map", "profile"];
+  const VALID_TABS = ["feed", "map", "notifications", "profile"];
   const [activeTab, setActiveTab] = useState(() => {
     try {
       const saved = localStorage.getItem("nf_active_tab");
@@ -203,6 +204,15 @@ export default function App() {
   const [postedEvents, setPostedEvents] = useState([]);
   const [notifToast, setNotifToast] = useState(null); // { title, body } — rămâne montat în timpul ieșirii
   const [notifToastShow, setNotifToastShow] = useState(false); // controlează animația de intrare/ieșire
+  // Badge-ul de necitite de pe iconița "Notificări" din bara de jos.
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  // Acțiune de continuat în Profil, cerută din tab-ul Notificări (acum
+  // separat, nu mai trăiește în Profil) — ex: "cerere acceptată" trebuie să
+  // deschidă tab-ul Particip din Profil, "cerere nouă" trebuie să deschidă
+  // sheet-ul de Cereri pentru evenimentul respectiv. { type, eventId?, ts }
+  // — ts schimbă identitatea ca să poți reapăsa aceeași notificare de mai
+  // multe ori la rând.
+  const [pendingProfileAction, setPendingProfileAction] = useState(null);
   const feedRef = useRef(null);
   const recoveryModeRef = useRef(false);
   const notifToastTimer = useRef(null);
@@ -450,6 +460,24 @@ export default function App() {
           showNotifToast({ title: payload.new.title, body: payload.new.body, avatarUrl });
         }
       )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [user]);
+
+  // Numărul de necitite pentru badge-ul de pe iconița "Notificări" din bara
+  // de jos — separat de toast-ul de mai sus (acela reacționează doar la
+  // notificări noi; ăsta trebuie să scadă și când le citești/ștergi).
+  const loadUnreadNotifCount = async () => {
+    if (!user) { setUnreadNotifCount(0); return; }
+    const { count } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("read", false);
+    setUnreadNotifCount(count || 0);
+  };
+  useEffect(() => {
+    if (!user) { setUnreadNotifCount(0); return; }
+    loadUnreadNotifCount();
+    const channel = supabase
+      .channel(`unread_notifications:${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => loadUnreadNotifCount())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
@@ -742,7 +770,7 @@ export default function App() {
         @keyframes modalPop { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
         @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
         @keyframes tabEnter { from{opacity:0;transform:translateY(12px) scale(0.99)} to{opacity:1;transform:translateY(0) scale(1)} }
-        /* Comutare între tab-urile din bara de jos (Feed/Caută/Hartă/Profil) —
+        /* Comutare între tab-urile din bara de jos (Feed/Hartă/Notificări/Profil) —
            direcția (din care parte alunecă) e aleasă în JS după ordinea lor în
            bară, nu doar fade+scale ca tabEnter. Feed/Hartă rămân montate
            permanent (vezi comentariul de la MAP PAGE mai jos), deci nu pot primi
@@ -834,13 +862,6 @@ export default function App() {
             </div>
           )}
 
-          {/* SEARCH PAGE */}
-          {activeTab === "search" && (
-            <div style={{ position: "fixed", ...tabWrapStyle, zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
-              <SearchPage onOpenEvent={openSpecificEvent} onViewProfile={(uid) => setViewingProfile(uid)} />
-            </div>
-          )}
-
           {/* MAP PAGE — rămâne montată (doar ascunsă), nu demontată la schimbarea
               tab-ului: altfel, la fiecare vizită se distrugea și recrea de la zero
               harta Leaflet (re-cerea locația GPS, redescărca toate tile-urile de pe
@@ -850,11 +871,32 @@ export default function App() {
             <MapPage user={user} isActive={activeTab === "map"} focusTarget={mapFocus} onViewProfile={(uid) => setViewingProfile(uid)} />
           </div>
 
+          {/* NOTIFICATIONS PAGE */}
+          {activeTab === "notifications" && (
+            <div style={{ position: "fixed", ...tabWrapStyle, zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
+              {user
+                ? <NotificationsPage
+                    user={user}
+                    onViewProfile={(uid) => setViewingProfile(uid)}
+                    onOpenEvent={openEventFromNotification}
+                    onOpenLikes={(eventId) => setLikesSheetEventId(eventId)}
+                    // "Particip"/"Cereri"/Admin trăiesc încă în Profil (stare
+                    // locală acolo) — navigăm la tab-ul Profil și îi transmitem
+                    // ce să deschidă imediat ce se montează.
+                    onOpenAttending={() => { navigateTab("profile"); setPendingProfileAction({ type: "attending", ts: Date.now() }); }}
+                    onOpenRequests={(eventId) => { navigateTab("profile"); setPendingProfileAction({ type: "posted", eventId, ts: Date.now() }); }}
+                    onOpenAdminApproval={ADMIN_EMAILS.includes(user?.email) ? () => { navigateTab("profile"); setPendingProfileAction({ type: "admin", ts: Date.now() }); } : undefined}
+                  />
+                : <AuthPage onAuth={(u) => setUser(u)} />
+              }
+            </div>
+          )}
+
           {/* PROFILE PAGE */}
           {activeTab === "profile" && (
             <div style={{ position: "fixed", ...tabWrapStyle, zIndex: 10, animation: `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` }}>
               {user
-                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} onOpenLikes={(eventId) => setLikesSheetEventId(eventId)} onProfileSaved={() => setHasProfile(true)} />
+                ? <ProfilePage user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onViewProfile={(uid) => setViewingProfile(uid)} onOpenEvent={openEventFromNotification} onProfileSaved={() => setHasProfile(true)} pendingAction={pendingProfileAction} onPendingActionHandled={() => setPendingProfileAction(null)} />
                 : <AuthPage onAuth={(u) => setUser(u)} />
               }
             </div>
@@ -1030,9 +1072,9 @@ export default function App() {
             />
           )}
           {/* Ascunsă complet (nu doar blocată) cât timp userul n-are încă profil —
-              nu are sens să vadă Feed/Caută/Hartă dacă oricum nu poate ajunge
-              acolo, doar creează impresia falsă că ar putea. */}
-          {hasProfile !== false && <Navbar active={activeTab} onChange={handleTabChange} />}
+              nu are sens să vadă Feed/Hartă/Notificări dacă oricum nu poate
+              ajunge acolo, doar creează impresia falsă că ar putea. */}
+          {hasProfile !== false && <Navbar active={activeTab} onChange={handleTabChange} badges={{ notifications: unreadNotifCount }} />}
 
           {notifToast && (
             <div

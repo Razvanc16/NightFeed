@@ -9,7 +9,6 @@ import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
 import AdminPage from "./AdminPage";
 import { ADMIN_EMAILS } from "../utils/admin";
-import NotificationsPage from "./NotificationsPage";
 import AvatarCropSheet from "./AvatarCropSheet";
 import PhotoViewerModal from "./PhotoViewerModal";
 import MyTicketsPage, { TicketQR } from "./MyTicketsPage";
@@ -21,7 +20,7 @@ import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pu
 import {
   CheckCircleIcon, HeartOutlineIcon, OutboxIcon, MoonIcon, CameraIcon, RocketIcon,
   TargetIcon, EnvelopeIcon, ClockIcon, KeyIcon, ConfettiIcon, LightningIcon, HouseIcon,
-  WarningIcon, GearIcon, BellIcon, PencilIcon, ScanIcon, InfoIcon, QrCodeIcon, CrossCircleIcon, MoreIcon, RefreshIcon,
+  WarningIcon, GearIcon, PencilIcon, ScanIcon, InfoIcon, QrCodeIcon, CrossCircleIcon, MoreIcon, RefreshIcon,
 } from "./Icons";
 
 // Acceptă "ȘTERGE"/"ŞTERGE" scris cu sau fără diacritice, orice combinație de
@@ -121,14 +120,14 @@ const ActionMenu = ({ items }) => {
   );
 };
 
-export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent, onOpenLikes, onProfileSaved }) {
+export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent, onProfileSaved, pendingAction, onPendingActionHandled }) {
   const [view, setView] = useState("loading");
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
-  // Notificări e tab-ul implicit la deschiderea Profilului — restul (Postate/Particip)
-  // rămân alegerea userului, per cerere explicită.
-  const [activeTab, setActiveTab] = useState("notifications");
+  // Notificările au acum tab propriu în bara de jos (vezi App.jsx) — Profilul
+  // se deschide implicit pe Postate.
+  const [activeTab, setActiveTab] = useState("posted");
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [likedEvents, setLikedEvents] = useState([]);
   const [myCheckins, setMyCheckins] = useState({}); // { [eventId]: { token, checked_in } }
@@ -156,7 +155,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   // Pull-to-refresh — aceeași mecanică (fizică + indicator) ca pe Feed.
   const scrollRef = useRef(null);
   const [pullDistance, setPullDistance] = useState(0);
-  const [notifRefreshKey, setNotifRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const pullStartY = useRef(null);
   const pullDistanceRef = useRef(0);
@@ -182,13 +180,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     if (!user) return;
     const { count } = await supabase.from("attendance_requests").select("*", { count: "exact", head: true }).eq("host_id", user.id).eq("status", "pending");
     setPendingRequestsCount(count || 0);
-  };
-
-  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
-  const loadUnreadNotifCount = async () => {
-    if (!user) return;
-    const { count } = await supabase.from("notifications").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("read", false);
-    setUnreadNotifCount(count || 0);
   };
 
   const [showRequests, setShowRequests] = useState(false); // false | true (toate) | event_id (scopat la o singură petrecere)
@@ -262,18 +253,28 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     loadMyPostedEvents();
     loadFollowCounts();
     loadPendingRequestsCount();
-    loadUnreadNotifCount();
 
-    // Realtime: actualizează numărul de urmăritori/urmăriri, cereri și
-    // notificări necitite instant
+    // Realtime: actualizează numărul de urmăritori/urmăriri și cereri instant
     const channel = supabase
       .channel(`my_follows_${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "follows" }, () => loadFollowCounts())
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance_requests", filter: `host_id=eq.${user.id}` }, () => loadPendingRequestsCount())
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => loadUnreadNotifCount())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
+
+  // Acțiune cerută din tab-ul Notificări (din bara de jos, nu mai trăiește
+  // aici) — deschide direct sub-tab-ul/sheet-ul relevant din Profil odată ce
+  // acesta se montează. Rulează și la montare (pendingAction ajunge deja
+  // populat ca prop), nu doar la schimbări ulterioare.
+  useEffect(() => {
+    if (!pendingAction) return;
+    if (pendingAction.type === "attending") setActiveTab("attending");
+    else if (pendingAction.type === "posted") { setActiveTab("posted"); setShowRequests(pendingAction.eventId); }
+    else if (pendingAction.type === "admin") { setAdminInitial({ tab: "events", navState: { status: "pending" } }); setShowAdmin(true); }
+    onPendingActionHandled && onPendingActionHandled();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAction]);
 
   useEffect(() => { refreshingRef.current = refreshing; }, [refreshing]);
 
@@ -282,14 +283,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   const doRefresh = async () => {
     setRefreshing(true);
     const start = Date.now();
-    setNotifRefreshKey(k => k + 1);
     await Promise.all([
       loadProfileByUserId(),
       loadAttendingAndLiked(),
       loadMyPostedEvents(),
       loadFollowCounts(),
       loadPendingRequestsCount(),
-      loadUnreadNotifCount(),
       postedView === "archived" ? loadArchivedEvents() : Promise.resolve(),
     ]);
     const elapsed = Date.now() - start;
@@ -968,13 +967,13 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             </div>
           </div>
 
-          {/* 3 secțiuni ale Profilului — Notificări (implicit la deschidere),
-              Postate (unde acum trăiește și accesul la Cereri, per eveniment —
-              vezi meniul ⋮ din fiecare card) și Particip. Chip-uri, în același
-              stil cu filtrele de pe Hartă (Toate/Oficial/Neoficial/...). */}
+          {/* 2 secțiuni ale Profilului — Postate (implicit la deschidere, unde
+              trăiește și accesul la Cereri, per eveniment — vezi meniul ⋮ din
+              fiecare card) și Particip. Notificările au acum tab propriu în
+              bara de jos (vezi App.jsx). Chip-uri, în același stil cu
+              filtrele de pe Hartă (Toate/Oficial/Neoficial/...). */}
           <div style={{ display: "flex", justifyContent: "center", padding: "16px 20px", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>
             {[
-              { id: "notifications", label: "Notificări", Icon: BellIcon, badge: unreadNotifCount },
               { id: "posted", label: "Postate", Icon: OutboxIcon, badge: pendingRequestsCount },
               { id: "attending", label: "Particip", Icon: CheckCircleIcon },
             ].map(tab => {
@@ -1004,21 +1003,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             })}
           </div>
 
-          <div key={activeTab + postedView} style={{ padding: activeTab === "notifications" ? 0 : "8px 16px", display: "flex", flexDirection: "column", gap: 10, animation: "fadeIn 0.2s ease-out" }}>
-            {activeTab === "notifications" && (
-              <NotificationsPage
-                embedded
-                user={user}
-                onClose={() => {}}
-                onViewProfile={onViewProfile}
-                onOpenEvent={onOpenEvent}
-                onOpenLikes={onOpenLikes}
-                onOpenAttending={() => setActiveTab("attending")}
-                onOpenRequests={(eventId) => { setActiveTab("posted"); setShowRequests(eventId); }}
-                onOpenAdminApproval={ADMIN_EMAILS.includes(user?.email) ? () => { setAdminInitial({ tab: "events", navState: { status: "pending" } }); setShowAdmin(true); } : undefined}
-                refreshKey={notifRefreshKey}
-              />
-            )}
+          <div key={activeTab + postedView} style={{ padding: "8px 16px", display: "flex", flexDirection: "column", gap: 10, animation: "fadeIn 0.2s ease-out" }}>
             {activeTab === "posted" && (
               <div style={{ display: "flex", gap: 8, marginBottom: 2 }}>
                 {[{ id: "active", label: "Active" }, { id: "archived", label: `Arhivă${archivedEvents.length ? ` (${archivedEvents.length})` : ""}` }].map(v => (
@@ -1038,7 +1023,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                 ))}
               </div>
             )}
-            {activeTab !== "notifications" && (activeTab === "posted" ? (
+            {activeTab === "posted" ? (
               postedView === "active" ? (
               myPostedEvents.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "50px 24px", color: "rgba(255,255,255,0.4)" }}>
@@ -1159,7 +1144,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                   </div>
                 </div>
               ))
-            ))}
+            )}
           </div>
 
         </div>
