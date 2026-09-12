@@ -32,23 +32,24 @@ export default function Navbar({ active, onChange, badges = {} }) {
         gap: 28,
         zIndex: 100,
       } : {
+        // Bară "plutitoare", gen pilulă (ca la App Store) — nu mai ocupă toată
+        // lățimea ecranului, doar cât are nevoie pentru cele 5 iconițe,
+        // centrată și ridicată puțin de la marginea de jos.
         position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        // minHeight, nu height — cu box-sizing:border-box global, un height fix
-        // ar face ca padding-bottom (safe-area-inset-bottom, ~34px pe telefoane cu
-        // home indicator, activ doar ca PWA standalone) să "mănânce" din cele 64px
-        // spațiu pentru iconițe+etichete, comprimându-le până se suprapuneau.
-        minHeight: 64,
-        background: "rgba(0,0,0,0.85)",
-        backdropFilter: "blur(20px)",
-        borderTop: "1px solid rgba(255,255,255,0.07)",
+        left: "50%",
+        bottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
+        transform: "translateX(-50%)",
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-around",
+        gap: 2,
+        padding: 6,
+        borderRadius: 999,
+        background: "rgba(20,18,22,0.6)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
         zIndex: 100,
-        padding: "0 4px env(safe-area-inset-bottom, 0)",
       }}
     >
       {tabs.map((tab) => {
@@ -58,11 +59,11 @@ export default function Navbar({ active, onChange, badges = {} }) {
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            style={{
+            title={tab.label}
+            aria-label={tab.label}
+            style={isDesktopNav ? {
               position: "relative",
-              background: isPost
-                ? "linear-gradient(135deg, #FF3366, #FF6B35)"
-                : "none",
+              background: isPost ? "linear-gradient(135deg, #FF3366, #FF6B35)" : "none",
               border: "none",
               cursor: "pointer",
               display: "flex",
@@ -72,18 +73,28 @@ export default function Navbar({ active, onChange, badges = {} }) {
               padding: isPost ? 0 : "6px 14px",
               borderRadius: isPost ? "50%" : 14,
               width: isPost ? 44 : "auto",
-              // Lățime egală pentru cele 4 butoane din bara de jos (nu și pe
-              // sidebar-ul de desktop, unde ar strica gruparea verticală
-              // centrată) — altfel "Notificări" (cuvânt mult mai lung decât
-              // "Feed"/"Hartă"/"Profil") lua mai mult spațiu decât restul, iar
-              // butonul central "Post" nu mai ieșea la mijlocul real al barei.
-              flex: !isPost && !isDesktopNav ? 1 : "none",
               height: isPost ? 44 : "auto",
               justifyContent: "center",
               boxShadow: isPost ? "0 4px 20px rgba(255,51,102,0.4)" : "none",
-              // Ridicarea deasupra rândului n-are sens într-un sidebar vertical
-              // (nu mai există "rând" din care să iasă în evidență).
-              transform: isPost && !isDesktopNav ? "translateY(-8px)" : "none",
+              transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+            } : {
+              // Fără etichetă text pe bara de jos — doar iconița, cu un fundal
+              // rotunjit ("pilulă") pe tab-ul activ, gen App Store.
+              position: "relative",
+              background: isPost
+                ? "linear-gradient(135deg, #FF3366, #FF6B35)"
+                : isActive
+                ? "rgba(255,255,255,0.14)"
+                : "transparent",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 46,
+              height: 46,
+              borderRadius: 23,
+              boxShadow: isPost ? "0 4px 16px rgba(255,51,102,0.4)" : "none",
               transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             }}
           >
@@ -94,14 +105,14 @@ export default function Navbar({ active, onChange, badges = {} }) {
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: isPost ? 22 : 18,
+                fontSize: isPost ? (isDesktopNav ? 22 : 20) : 18,
                 color: isPost
                   ? "#fff"
                   : isActive
                   ? "#FF3366"
                   : "rgba(255,255,255,0.65)",
                 transition: "color 0.25s, transform 0.25s cubic-bezier(0.16,1,0.3,1)",
-                transform: isActive && !isPost ? "translateY(-1px) scale(1.1)" : "none",
+                transform: isActive && !isPost ? "scale(1.1)" : "none",
                 lineHeight: 1,
               }}
             >
@@ -112,7 +123,9 @@ export default function Navbar({ active, onChange, badges = {} }) {
                 </span>
               )}
             </span>
-            {!isPost && (
+            {/* Eticheta rămâne doar pe sidebar-ul de desktop (spațiu vertical
+                din belșug) — pe bara de jos, acum "pilulă" cu doar iconițe. */}
+            {!isPost && isDesktopNav && (
               <span
                 style={{
                   position: "relative",
