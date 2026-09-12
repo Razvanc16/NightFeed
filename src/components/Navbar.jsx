@@ -82,9 +82,14 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
       {!isDesktopNav && (
         <div style={{
           position: "absolute", top: 6, bottom: 6, left: indicator.left, width: indicator.width,
-          borderRadius: 19, background: "rgba(255,255,255,0.14)",
+          borderRadius: 19, background: "rgba(255,51,102,0.22)", border: "1px solid rgba(255,51,102,0.4)",
           opacity: indicator.ready ? 1 : 0,
-          transition: "left 0.35s cubic-bezier(0.34,1.56,0.64,1), width 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s",
+          // cubic-bezier "ease-out" simplu, fără elastic/overshoot — cel de
+          // dinainte (1.56 pe Y) depășea ținta pentru o clipă, iar la o
+          // tranziție lungă (ex: Feed -> Profil, sare peste tot rândul)
+          // pilula ieșea vizual din marginea barei. Fluidă (0.45s) și clar
+          // vizibilă (fundal + contur colorat, nu doar un alb difuz).
+          transition: "left 0.45s cubic-bezier(0.22, 1, 0.36, 1), width 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s",
           pointerEvents: "none",
         }} />
       )}
