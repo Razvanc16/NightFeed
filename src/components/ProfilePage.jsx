@@ -184,6 +184,11 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   };
 
   const [showRequests, setShowRequests] = useState(false); // false | true (toate) | event_id (scopat la o singură petrecere)
+  // Deschis din Setări ("Cererile mele trimise") sare direct pe "Trimise" —
+  // altfel RequestsPage se deschidea mereu pe "Primite" (perspectiva de host),
+  // fără niciun loc din aplicație din care un simplu participant (nu neapărat
+  // host) să-și vadă cererile trimise și starea lor.
+  const [requestsInitialTab, setRequestsInitialTab] = useState("incoming");
   const [followSheet, setFollowSheet] = useState(null); // "followers" | "following" | null
   const [showLegal, setShowLegal] = useState(false);
   // Necesare doar la prima creare de profil — cine s-a înregistrat cu Google
@@ -288,7 +293,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   useEffect(() => {
     if (!pendingAction) return;
     if (pendingAction.type === "attending") setActiveTab("attending");
-    else if (pendingAction.type === "posted") { setActiveTab("posted"); setShowRequests(pendingAction.eventId); }
+    else if (pendingAction.type === "posted") { setActiveTab("posted"); setRequestsInitialTab("incoming"); setShowRequests(pendingAction.eventId); }
     else if (pendingAction.type === "admin") { setAdminInitial({ tab: "events", navState: { status: "pending" } }); setShowAdmin(true); }
     onPendingActionHandled && onPendingActionHandled();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1110,7 +1115,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
                       // Înainte apăreau la orice eveniment postat, indiferent
                       // de tip, deși cealaltă jumătate nu făcea nimic real.
                       ...(event.type === "homemade" && !event.location_visible
-                        ? [{ label: "Cereri", icon: <EnvelopeIcon size={14} />, onClick: () => setShowRequests(event.id) }]
+                        ? [{ label: "Cereri", icon: <EnvelopeIcon size={14} />, onClick: () => { setRequestsInitialTab("incoming"); setShowRequests(event.id); } }]
                         : []),
                       ...(event.type === "official"
                         ? [{ label: "Scanează", icon: <ScanIcon size={14} />, onClick: () => setScannerEvent(event), color: "#00C864" }]
@@ -1199,6 +1204,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
           onShowLegal={() => setShowLegal(true)}
           onShowTickets={() => { setShowSettings(false); setShowTickets(true); }}
           onShowHistory={() => { setShowSettings(false); setShowHistory(true); }}
+          onShowMyRequests={() => { setShowSettings(false); setRequestsInitialTab("outgoing"); setShowRequests(true); }}
           onDeleteAccount={() => setShowDeleteConfirm(true)}
           onLogout={onLogout}
           profile={profile}
@@ -1292,7 +1298,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       )}
 
       {showRequests && createPortal(
-        <RequestsPage user={user} onClose={() => setShowRequests(false)} initialEventId={typeof showRequests === "string" ? showRequests : undefined} />,
+        <RequestsPage user={user} onClose={() => setShowRequests(false)} initialEventId={typeof showRequests === "string" ? showRequests : undefined} initialTab={requestsInitialTab} />,
         document.body
       )}
 

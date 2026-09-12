@@ -7,11 +7,11 @@ import { isEventExpired } from "../utils/eventTime";
 
 // initialEventId — deschis dintr-un eveniment anume (din "Postate", meniul
 // petrecerii) sare direct la cererile lui, fără să mai umbli prin meniul de filtrare.
-export default function RequestsPage({ user, onClose, initialEventId }) {
+export default function RequestsPage({ user, onClose, initialEventId, initialTab }) {
   const [requests, setRequests] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("incoming");
+  const [activeTab, setActiveTab] = useState(initialTab || "incoming");
   const [statusFilter, setStatusFilter] = useState("all"); // all | pending | accepted | rejected
   const [eventFilter, setEventFilter] = useState(initialEventId || "all"); // "all" sau event_id — relevant doar când hostul are cereri la mai multe petreceri deodată
   const [openTicket, setOpenTicket] = useState(null);

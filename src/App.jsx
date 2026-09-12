@@ -997,15 +997,16 @@ export default function App() {
               title="Caută"
               style={{
                 position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", right: 16,
-                zIndex: 50, width: 38, height: 38, borderRadius: "50%", cursor: "pointer",
-                // Gradientul de brand NightFeed (același ca la Pentru tine/Urmăriți) —
-                // înainte era un cerc gri generic, care nu semăna cu restul aplicației.
-                background: "linear-gradient(120deg, #FF3366, #B44FFF)", border: "none",
-                boxShadow: "0 4px 16px rgba(255,51,102,0.35)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                zIndex: 50, width: 38, height: 38, cursor: "pointer",
+                // Doar iconița, fără cerc/contur în jur — un buton rotund
+                // (chiar și în culorile de brand) tot arăta ca un "chip" în
+                // plus lângă comutatorul Pentru tine/Urmăriți.
+                background: "none", border: "none", boxShadow: "none",
+                color: "#FF3366", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
+                display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              <SearchIcon size={16} />
+              <SearchIcon size={22} />
             </button>
 
 {(pullDistance > 0 || refreshing) && (

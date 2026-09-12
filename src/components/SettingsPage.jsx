@@ -42,7 +42,7 @@ const SectionLabel = ({ children }) => (
 
 export default function SettingsPage({
   onClose, onEditProfile, onShowLegal, onShowLiked, onDeleteAccount, onLogout,
-  onShowTickets, onShowHistory,
+  onShowTickets, onShowHistory, onShowMyRequests,
   profile, pushStatus, pushBusy, onTogglePush, onToggleNotifPref,
   isAdmin, onShowAdmin,
 }) {
@@ -62,6 +62,7 @@ export default function SettingsPage({
           <Row icon={<HeartOutlineIcon size={16} />} label="Evenimente apreciate" onClick={onShowLiked} />
           <Row icon={<TicketIcon size={16} />} label="Biletele mele" onClick={onShowTickets} />
           <Row icon={<ClockIcon size={16} />} label="Istoricul meu" onClick={onShowHistory} />
+          <Row icon={<EnvelopeIcon size={16} />} label="Cererile mele trimise" onClick={onShowMyRequests} />
         </div>
 
         <SectionLabel>Notificări</SectionLabel>
