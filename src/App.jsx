@@ -820,6 +820,21 @@ export default function App() {
         @keyframes ptrPop { 0%{transform:scale(1)} 50%{transform:scale(1.22)} 100%{transform:scale(1)} }
         @keyframes toastGlow { 0%,100%{box-shadow:0 10px 34px rgba(255,51,102,0.22), 0 0 0 1px rgba(255,51,102,0.18) inset} 50%{box-shadow:0 10px 34px rgba(180,79,255,0.3), 0 0 0 1px rgba(180,79,255,0.25) inset} }
         @keyframes toastIconPop { 0%{transform:scale(0.3) rotate(-25deg);opacity:0} 55%{transform:scale(1.15) rotate(6deg);opacity:1} 100%{transform:scale(1) rotate(0deg)} }
+
+        /* Reduced motion (setare de accesibilitate a sistemului) — aplicația
+           întreagă folosește doar animation/transition inline (nicio clasă
+           CSS), deci singurul loc dintr-un stylesheet care le poate opri pe
+           toate deodată e o regulă globală cu !important (bate stilul inline,
+           care nu are !important implicit). Nu ascunde nimic, doar elimină
+           mișcarea — sheet-urile tot apar/dispar, doar instant, nu animat. */
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.001ms !important;
+            scroll-behavior: auto !important;
+          }
+        }
       `}</style>
 
       {recoveryMode ? (
