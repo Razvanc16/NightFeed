@@ -37,12 +37,12 @@ export default function Navbar({ active, onChange, badges = {} }) {
         // centrată și ridicată puțin de la marginea de jos.
         position: "fixed",
         left: "50%",
-        bottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
+        bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
         transform: "translateX(-50%)",
         display: "flex",
         alignItems: "center",
-        gap: 2,
-        padding: 6,
+        gap: 4,
+        padding: 8,
         borderRadius: 999,
         background: "rgba(20,18,22,0.6)",
         backdropFilter: "blur(24px)",
@@ -91,9 +91,9 @@ export default function Navbar({ active, onChange, badges = {} }) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 46,
-              height: 46,
-              borderRadius: 23,
+              width: 58,
+              height: 58,
+              borderRadius: 29,
               boxShadow: isPost ? "0 4px 16px rgba(255,51,102,0.4)" : "none",
               transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
             }}
@@ -116,9 +116,9 @@ export default function Navbar({ active, onChange, badges = {} }) {
                 lineHeight: 1,
               }}
             >
-              <tab.icon size={18} />
+              <tab.icon size={isPost ? (isDesktopNav ? 22 : 24) : isDesktopNav ? 18 : 22} />
               {!!badges[tab.id] && (
-                <span style={{ position: "absolute", top: -5, right: -8, minWidth: 15, height: 15, padding: "0 3px", borderRadius: 8, background: "#FF3366", border: "1.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8.5, fontWeight: 800, color: "#fff", lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>
+                <span style={{ position: "absolute", top: -6, right: -9, minWidth: 17, height: 17, padding: "0 3px", borderRadius: 9, background: "#FF3366", border: "1.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 800, color: "#fff", lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>
                   {badges[tab.id] > 9 ? "9+" : badges[tab.id]}
                 </span>
               )}
