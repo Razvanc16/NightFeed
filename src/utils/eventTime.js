@@ -20,6 +20,21 @@ export const isEventExpired = (event) => {
 
 export const filterActiveEvents = (events) => (events || []).filter((e) => !isEventExpired(e));
 
+// Variantă pentru interval-ele de curățare live (fiecare ecran cu evenimente
+// verifică din 3 în 3 secunde dacă ceva a expirat între timp) — .filter()
+// întoarce mereu un array NOU, chiar și când n-a expirat nimic, ceea ce
+// declanșa un re-render (și orice efect dependent de acea listă) la fiecare
+// tick, degeaba. Găsit live pe Hartă: efectul de focus venit din Feed (tap pe
+// locația unui eveniment) depinde de lista de evenimente ca să găsească ținta
+// — la fiecare re-render "gol" din tick-ul ăsta, se re-executa și readucea
+// harta peste evenimentul focalizat, anulând orice zoom/pan manual făcut
+// între timp. Întoarcem explicit array-ul vechi (aceeași referință) când
+// nimic n-a fost efectiv scos.
+export const dropExpiredEvents = (prev) => {
+  const next = filterActiveEvents(prev);
+  return next.length === (prev || []).length ? prev : next;
+};
+
 // "Sâmbătă, 22/08, 22:00" generat dintr-un timestamp ISO real.
 export const formatEventDateTime = (iso) => {
   if (!iso) return "";

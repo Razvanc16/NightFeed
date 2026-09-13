@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
-import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
+import { filterActiveEvents, dropExpiredEvents, formatEventDateTime } from "../utils/eventTime";
 import { KeyIcon, SearchIcon, MoonIcon, LightningIcon, HouseIcon, PersonIcon } from "./Icons";
 
 const convertPostedEvent = (e, organizerMap = {}) => {
@@ -71,7 +71,7 @@ export default function SearchPage({ onOpenEvent, onViewProfile, onClose }) {
   // Scoate live evenimentele care expiră cât timp userul stă pe ecranul de căutare.
   useEffect(() => {
     const interval = setInterval(() => {
-      setAllEvents(prev => filterActiveEvents(prev));
+      setAllEvents(dropExpiredEvents);
     }, 3000);
     return () => clearInterval(interval);
   }, []);

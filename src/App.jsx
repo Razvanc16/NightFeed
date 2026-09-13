@@ -18,7 +18,7 @@ import CommentsSheet from "./components/CommentsSheet";
 import EventPeopleSheet from "./components/EventPeopleSheet";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
-import { filterActiveEvents, formatEventDateTime } from "./utils/eventTime";
+import { filterActiveEvents, dropExpiredEvents, formatEventDateTime } from "./utils/eventTime";
 import { playNotificationSound, primeNotificationAudio } from "./utils/notificationSound";
 import { setAppVisible } from "./utils/appVisibility";
 import { notifyUser } from "./utils/pushNotifications";
@@ -656,7 +656,7 @@ export default function App() {
   // feed decât la un reload. Verificăm din nou periodic și o scoatem live.
   useEffect(() => {
     const interval = setInterval(() => {
-      setPostedEvents(prev => filterActiveEvents(prev));
+      setPostedEvents(dropExpiredEvents);
     }, 3000);
     return () => clearInterval(interval);
   }, []);

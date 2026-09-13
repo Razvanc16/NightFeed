@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
-import { filterActiveEvents, formatEventDateTime, formatPrice } from "../utils/eventTime";
+import { filterActiveEvents, dropExpiredEvents, formatEventDateTime, formatPrice } from "../utils/eventTime";
 import { loadGoogleMaps, DARK_MAP_STYLE, buildPinIconUrl, buildHouseOverlayUrl, userLocationIconUrl } from "../utils/googleMapsLoader";
 import {
   SparkleIcon, LightningIcon, HouseIcon, FireIcon, TagIcon, PinIcon, LockIcon,
@@ -187,7 +187,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile, on
   // Scoate live de pe hartă evenimentele care expiră cât timp userul are ecranul deschis.
   useEffect(() => {
     const interval = setInterval(() => {
-      setPostedEvents(prev => filterActiveEvents(prev));
+      setPostedEvents(dropExpiredEvents);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
@@ -416,10 +416,21 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile, on
 
   // Focus venit din feed (tap pe locația unui eveniment) — sare peste filtrele
   // active (userul a cerut explicit locația asta) și deschide fișa de jos.
+  // allMapEvents rămâne dependență (target-ul poate să nu fie încă încărcat
+  // la primul tick, efectul trebuie să reîncerce) — dar handledFocusRef
+  // garantează că recentrarea propriu-zisă (panTo+setZoom) se întâmplă o
+  // SINGURĂ dată per focusTarget.ts, nu de fiecare dată când allMapEvents se
+  // recalculează din alt motiv (un eveniment nou postat, unul expirat scos).
+  // Fără ea, harta revenea peste evenimentul focalizat la fiecare astfel de
+  // recalculare, anulând orice zoom/pan manual de după — userul simțea că
+  // "la zoom out mă tot bagă înapoi pe eveniment".
+  const handledFocusRef = useRef(null);
   useEffect(() => {
     if (!focusTarget?.id || !mapsLoaded || !mapInstanceRef.current) return;
+    if (handledFocusRef.current === focusTarget.ts) return;
     const target = allMapEvents.find(e => String(e.id) === focusTarget.id);
     if (!target) return;
+    handledFocusRef.current = focusTarget.ts;
     setActiveFilters(new Set());
     mapInstanceRef.current.panTo({ lat: target.coords[0], lng: target.coords[1] });
     mapInstanceRef.current.setZoom(16);

@@ -4,7 +4,7 @@ import { supabase } from "../supabase";
 import FollowListSheet from "./FollowListSheet";
 import PhotoViewerModal from "./PhotoViewerModal";
 import ReportSheet from "./ReportSheet";
-import { filterActiveEvents, formatEventDateTime } from "../utils/eventTime";
+import { filterActiveEvents, dropExpiredEvents, formatEventDateTime } from "../utils/eventTime";
 import { MoonIcon, LightningIcon, HouseIcon, CheckCircleIcon, WarningIcon } from "./Icons";
 import { notifyUser } from "../utils/pushNotifications";
 import { useSwipeBack } from "../utils/useSwipeBack";
@@ -54,7 +54,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
   // Scoate live evenimentele care expiră cât timp userul stă pe profil.
   useEffect(() => {
     const interval = setInterval(() => {
-      setEvents(prev => filterActiveEvents(prev));
+      setEvents(dropExpiredEvents);
     }, 3000);
     return () => clearInterval(interval);
   }, []);

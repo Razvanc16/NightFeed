@@ -15,7 +15,7 @@ import MyTicketsPage, { TicketQR } from "./MyTicketsPage";
 import CheckinScannerSheet from "./CheckinScannerSheet";
 import EventInsightsModal from "./EventInsightsModal";
 import MyHistoryPage from "./MyHistoryPage";
-import { filterActiveEvents, cleanupOwnExpiredEvents, formatPrice } from "../utils/eventTime";
+import { filterActiveEvents, dropExpiredEvents, cleanupOwnExpiredEvents, formatPrice } from "../utils/eventTime";
 import { rubberband } from "../utils/rubberband";
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from "../utils/pushNotifications";
 import {
@@ -389,9 +389,9 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
   // Apreciate / Evenimentele mele).
   useEffect(() => {
     const interval = setInterval(() => {
-      setAttendingEvents(prev => filterActiveEvents(prev));
-      setLikedEvents(prev => filterActiveEvents(prev));
-      setMyPostedEvents(prev => filterActiveEvents(prev));
+      setAttendingEvents(dropExpiredEvents);
+      setLikedEvents(dropExpiredEvents);
+      setMyPostedEvents(dropExpiredEvents);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
