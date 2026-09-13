@@ -277,11 +277,20 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     loadFollowCounts();
     loadPendingRequestsCount();
 
-    // Realtime: actualizează numărul de urmăritori/urmăriri și cereri instant
+    // Realtime: actualizează numărul de urmăritori/urmăriri, cereri și lista
+    // "Postate" instant. Ultima e necesară fiindcă butonul "+" de postare
+    // trăiește la nivel de App (nu în Profil) — dacă postai stând deja pe
+    // tab-ul Profil, Profilul rămânea montat tot timpul (nu se remonta la
+    // navigare), deci loadMyPostedEvents() de mai sus (rulează o singură
+    // dată, la montare) nu mai apuca niciodată evenimentul nou creat; doar
+    // Feed-ul din App.jsx se reîmprospăta după închiderea formularului de
+    // postare. Evenimentul chiar se salva în bază, dar Profilul tău arăta
+    // "nu apare nicăieri" până navigai afară și înapoi (remontare).
     const channel = supabase
       .channel(`my_follows_${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "follows" }, () => loadFollowCounts())
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance_requests", filter: `host_id=eq.${user.id}` }, () => loadPendingRequestsCount())
+      .on("postgres_changes", { event: "*", schema: "public", table: "posted_events", filter: `user_id=eq.${user.id}` }, () => loadMyPostedEvents())
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [user]);
