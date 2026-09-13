@@ -408,7 +408,11 @@ export default function PostPage({ user, onClose, editEvent }) {
       const { eventDate, eventTime, venue, lat, lng, ...rest } = form;
       const event_date = new Date(`${eventDate}T${eventTime}`).toISOString();
       const max_participants = rest.type === "official" || rest.max_participants === "" ? null : Number(rest.max_participants) || null;
-      const payload = { ...rest, max_participants, date: formatEventDateTime(event_date), event_date, cover_url, user_id: user.id };
+      // Preț doar la oficiale — plasă de siguranță la submit (nu doar la
+      // comutarea tipului în UI), ca un eveniment neoficial mai vechi cu un
+      // preț setat dinainte să nu-l păstreze neschimbat la o simplă editare.
+      const price = rest.type === "official" ? rest.price : "Gratuit";
+      const payload = { ...rest, price, max_participants, date: formatEventDateTime(event_date), event_date, cover_url, user_id: user.id };
 
       let eventId = editEvent?.id;
       if (isEdit) {
@@ -476,7 +480,7 @@ export default function PostPage({ user, onClose, editEvent }) {
       <div style={{ color: "#00C864" }}>{isEdit ? <CheckCircleIcon size={56} /> : <ConfettiIcon size={56} />}</div>
       <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{isEdit ? "Eveniment actualizat!" : "Eveniment trimis!"}</div>
       <div style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", textAlign: "center", padding: "0 32px" }}>
-        {isEdit ? "Modificările au fost salvate." : "Va apărea în feed după verificare."}
+        {isEdit ? "Modificările au fost salvate." : form.type === "official" ? "Va apărea în feed după verificare." : "Apare deja în feed!"}
       </div>
     </div>
   );
@@ -487,7 +491,7 @@ export default function PostPage({ user, onClose, editEvent }) {
       <div style={{ padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{isEdit ? "Editează eveniment" : "Adaugă eveniment"}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 3 }}>{isEdit ? "Modifică detaliile" : "Va fi verificat înainte de publicare"}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 3 }}>{isEdit ? "Modifică detaliile" : form.type === "official" ? "Va fi verificat înainte de publicare" : "Apare imediat în feed"}</div>
         </div>
         <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 12px", color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
           Închide
@@ -536,7 +540,17 @@ export default function PostPage({ user, onClose, editEvent }) {
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Tip eveniment</div>
           <div style={{ display: "flex", gap: 8 }}>
             {[{ id: "official", label: "Oficial", icon: LightningIcon }, { id: "homemade", label: "Neoficial", icon: HouseIcon }].map(t => (
-              <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))} style={{ flex: 1, padding: "10px", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: form.type === t.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.type === t.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.type === t.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: form.type === t.id ? 700 : 400, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}><t.icon size={14} /> {t.label}</button>
+              <button
+                key={t.id}
+                onClick={() => {
+                  // Neoficial n-are câmp de preț (mai jos) — la comutare,
+                  // resetăm orice preț introdus cât timp era pe Oficial, ca
+                  // să nu rămână "agățat" un preț invizibil în formular.
+                  if (t.id !== "official") { setPriceMode("free"); setPriceAmount(""); }
+                  setForm(f => ({ ...f, type: t.id, price: t.id === "official" ? f.price : "Gratuit" }));
+                }}
+                style={{ flex: 1, padding: "10px", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: form.type === t.id ? "rgba(255,51,102,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${form.type === t.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.1)"}`, color: form.type === t.id ? "#FF3366" : "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: form.type === t.id ? 700 : 400, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}
+              ><t.icon size={14} /> {t.label}</button>
             ))}
           </div>
           {form.type === "official" && !isEdit && (
@@ -730,7 +744,9 @@ export default function PostPage({ user, onClose, editEvent }) {
           </div>
         </div>
 
-        {/* Preț */}
+        {/* Preț — doar la oficiale; cele neoficiale sunt mereu gratuite
+            (vezi reset-ul de la comutarea tipului, mai sus). */}
+        {form.type === "official" && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Preț</div>
           <div style={{ display: "flex", gap: 8, marginBottom: priceMode === "paid" ? 8 : 0 }}>
@@ -763,6 +779,7 @@ export default function PostPage({ user, onClose, editEvent }) {
             </div>
           )}
         </div>
+        )}
 
         {/* Descriere */}
         <div style={{ marginBottom: 24 }}>
