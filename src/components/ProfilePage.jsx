@@ -269,6 +269,15 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
     if (postedView === "archived") loadArchivedEvents();
   }, [postedView]);
 
+  // Postate/Particip/Apreciate trăiesc în ACELAȘI container scrollabil
+  // (schimbat doar intern) — fără resetul ăsta, comutarea unui sub-tab te
+  // lăsa exact la scroll-ul unde rămăsesei pe cel anterior (chiar dacă noul
+  // conținut e mult mai scurt), ceea ce și lăsa bara de jos plutitoare din
+  // App.jsx "agățată" ascunsă dacă scrolaseși jos pe sub-tab-ul precedent.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
+  }, [activeTab, postedView]);
+
   useEffect(() => {
     if (!user) return;
     loadProfileByUserId();

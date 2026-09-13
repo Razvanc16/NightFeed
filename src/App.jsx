@@ -203,6 +203,16 @@ export default function App() {
     setNavHidden(false);
     if (!["map", "notifications", "profile"].includes(activeTab)) return;
     let lastTop = 0;
+    // Plasă de siguranță: Profilul are mai multe sub-taburi (Postate/Particip/
+    // Arhivă) în ACELAȘI container scrollabil, comutate intern (fără să
+    // schimbe tab-ul de aici, deci fără să retrigger-eze efectul ăsta). Dacă
+    // ascundeai bara pe o listă lungă (scroll jos), apoi treceai pe un
+    // sub-tab scurt, fără scroll posibil — niciun eveniment "scroll" nu mai
+    // venea ca s-o readucă, rămânea ascunsă permanent (bara de jos dispărea
+    // de tot, fără nicio cale să navighezi înapoi din ecranul ăla). Un timer
+    // care o readuce la 900ms după ultimul scroll o repară indiferent de
+    // conținut, chiar și fără vreun eveniment nou de scroll.
+    let settleTimer = null;
     const onScrollCapture = (e) => {
       const top = e.target?.scrollTop;
       if (typeof top !== "number") return;
@@ -211,9 +221,14 @@ export default function App() {
       else if (delta > 6) setNavHidden(true);
       else if (delta < -6) setNavHidden(false);
       lastTop = top;
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => setNavHidden(false), 900);
     };
     document.addEventListener("scroll", onScrollCapture, { capture: true, passive: true });
-    return () => document.removeEventListener("scroll", onScrollCapture, { capture: true });
+    return () => {
+      document.removeEventListener("scroll", onScrollCapture, { capture: true });
+      clearTimeout(settleTimer);
+    };
   }, [activeTab]);
 
   // Filtrele din feed au fost scoase (buton + drawer) — se suprapuneau vizual
