@@ -98,7 +98,9 @@ const BurstParticle = ({ x, y, color, angle }) => (
 
 const Toast = ({ message, show, color }) => (
   <div style={{
-    position: "fixed", bottom: 90, left: "50%",
+    // safe-area-aware — altfel, pe telefoane cu home indicator, ajungea
+    // suprapus peste bara de jos plutitoare.
+    position: "fixed", bottom: "calc(90px + env(safe-area-inset-bottom, 0px))", left: "50%",
     transform: `translateX(-50%) translateY(${show ? "0" : "20px"})`,
     opacity: show ? 1 : 0,
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",

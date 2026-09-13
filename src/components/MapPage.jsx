@@ -585,7 +585,11 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile, on
           onPointerUp={handlePopupPointerUp}
           onPointerLeave={handlePopupPointerUp}
           style={{
-            position: "absolute", bottom: 80, left: 16, right: 16, background: "rgba(10,10,12,0.98)", border: `1px solid ${selectedEvent.color}60`, borderRadius: 20, padding: "16px", backdropFilter: "blur(20px)", zIndex: 600, boxShadow: `0 8px 40px rgba(0,0,0,0.6), 0 0 30px ${selectedEvent.color}20`,
+            // bottom fix (80px) nu ținea cont de safe-area-inset-bottom (home
+            // indicator) — bara plutitoare de jos e safe-area-aware, deci pe
+            // telefoane cu safe-area mare ajungea vizibil mai sus, suprapusă
+            // peste butoanele Particip/Navighez din popup.
+            position: "absolute", bottom: "calc(86px + env(safe-area-inset-bottom, 0px))", left: 16, right: 16, background: "rgba(10,10,12,0.98)", border: `1px solid ${selectedEvent.color}60`, borderRadius: 20, padding: "16px", backdropFilter: "blur(20px)", zIndex: 600, boxShadow: `0 8px 40px rgba(0,0,0,0.6), 0 0 30px ${selectedEvent.color}20`,
             touchAction: "none",
             transform: `translateY(${popupClosing || popupEntering ? 400 : popupDragY}px)`,
             opacity: popupClosing ? 0 : 1,
@@ -674,7 +678,7 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile, on
       )}
 
       {toast && (
-        <div style={{ position: "absolute", bottom: 90, left: "50%", transform: "translateX(-50%)", background: "rgba(15,15,18,0.97)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, padding: "10px 20px", zIndex: 700, color: "#fff", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", backdropFilter: "blur(20px)", whiteSpace: "nowrap", boxShadow: "0 4px 24px rgba(0,0,0,0.5)" }}>
+        <div style={{ position: "absolute", bottom: "calc(90px + env(safe-area-inset-bottom, 0px))", left: "50%", transform: "translateX(-50%)", background: "rgba(15,15,18,0.97)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, padding: "10px 20px", zIndex: 700, color: "#fff", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", backdropFilter: "blur(20px)", whiteSpace: "nowrap", boxShadow: "0 4px 24px rgba(0,0,0,0.5)" }}>
           {toast}
         </div>
       )}
