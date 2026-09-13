@@ -654,12 +654,9 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           de dedesubt, blocând tap-ul/long-press-ul. */}
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 30%, ${event.color}40 0%, transparent 70%)`, pointerEvents: "none" }} />
       {!event.cover_url && (
-        <>
-          <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: 220, height: 220, borderRadius: "50%", background: `radial-gradient(circle, ${event.color}30 0%, transparent 70%)`, filter: "blur(40px)", animation: isActive ? "pulse 3s ease-in-out infinite" : "none" }} />
-          <div style={{ position: "absolute", top: "18%", left: "50%", transform: "translateX(-50%)", width: 120, height: 120, borderRadius: 28, background: `${event.color}20`, border: `1.5px solid ${event.color}50`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", color: event.color }}>
-            {event.type === "official" ? <LightningIcon size={52} /> : <HouseIcon size={52} />}
-          </div>
-        </>
+        <div style={{ position: "absolute", top: "18%", left: "50%", transform: "translateX(-50%)", width: 120, height: 120, borderRadius: 28, background: `${event.color}20`, border: `1.5px solid ${event.color}50`, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", color: event.color }}>
+          {event.type === "official" ? <LightningIcon size={52} /> : <HouseIcon size={52} />}
+        </div>
       )}
       {/* Pe wide-desktop, titlul/descrierea/organizatorul se mută în panourile
           laterale (mai jos, pe portal) — nu mai are rost voalul de întunecare

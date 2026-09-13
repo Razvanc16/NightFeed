@@ -237,7 +237,9 @@ export default function App() {
   // de mai jos nu mai are ce filtra, dar rămâne neschimbată — mai puțin cod
   // de umblat decât să rescriem toată logica de slides pe fără filtrare deloc.
   const [activeFilters] = useState(new Set());
-  const [feedMode, setFeedMode] = useState("foryou"); // "foryou" | "following"
+  // followingIds tot ține evidența pe cine urmărești (afișează "Urmărești" /
+  // "+ Urmărește" pe carduri) — doar modul de filtrare a Feed-ului după el
+  // (comutatorul Pentru tine/Urmăriți) a fost scos.
   const [followingIds, setFollowingIds] = useState(null); // null = încă neîncărcat
   const [showPost, setShowPost] = useState(false);
   // Căutarea nu mai are tab propriu în bara de jos (înlocuit de Hartă/Notificări)
@@ -268,7 +270,6 @@ export default function App() {
   const recoveryModeRef = useRef(false);
   const notifToastTimer = useRef(null);
   const notifToastHideTimer = useRef(null);
-  const pendingNavRef = useRef(null); // { matchFn, commentId } — eveniment de deschis odată ce filtrele resetate recalculează slide-urile
 
 
   // Pull-to-refresh pe feed: trage în jos cât ești pe primul eveniment (scrollTop 0)
@@ -290,12 +291,7 @@ export default function App() {
 
   // Combine static + posted events
   const allEvents = [...staticEvents, ...postedEvents];
-  const byFilter = allEvents.filter(e => matchesFilters(e, activeFilters));
-  // Tab-ul "Urmăriți" arată doar evenimente postate de conturi pe care le urmărești —
-  // evenimentele statice/oficiale (fără organizer_id real) nu apar niciodată acolo.
-  const filtered = feedMode === "following"
-    ? byFilter.filter(e => e.organizer_id && followingIds?.has(e.organizer_id))
-    : byFilter;
+  const filtered = allEvents.filter(e => matchesFilters(e, activeFilters));
 
   // Evenimentele fără poză de copertă arată sărac ocupând fiecare câte un
   // slide întreg (doar un gradient) — le grupăm câte 4 pe un singur "slide"
@@ -472,11 +468,9 @@ export default function App() {
     }
   };
 
-  // Reîncărcăm lista de urmăriri la login și de fiecare dată când intri pe
-  // tab-ul "Urmăriți" — dacă tocmai ai urmărit pe cineva din alt ecran
-  // (profil public), să prindă imediat schimbarea.
+  // Reîncărcăm lista de urmăriri la login — folosită pentru "Urmărești" /
+  // "+ Urmărește" pe cardurile din Feed.
   useEffect(() => { loadFollowingIds(); }, [user]);
-  useEffect(() => { if (feedMode === "following") loadFollowingIds(); }, [feedMode]);
 
   // Backfill, o singură dată per sesiune: userii care și-au completat deja
   // profilul înainte ca prenume/nume să înceapă să se sincronizeze automat în
@@ -677,7 +671,7 @@ export default function App() {
       feedRef.current.scrollTo({ top: 0, behavior: "instant" });
       setCurrentIndex(0);
     }
-  }, [activeFilters, feedMode]);
+  }, [activeFilters]);
 
   const handleTabChange = (tab) => {
     if (tab === "post") {
@@ -698,21 +692,15 @@ export default function App() {
     const matchFn = (e) => e.id === event.id || e.rawId === event.rawId;
     const idx = slides.findIndex(s => s.type === "single" ? matchFn(s.event) : s.events.some(matchFn));
     navigateTab("feed");
-    if (idx >= 0) {
-      setTimeout(() => {
-        if (feedRef.current) {
-          feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
-          setCurrentIndex(idx);
-        }
-      }, 50);
-      return;
-    }
-    // Evenimentul nu e printre slide-urile curente — probabil ascuns de
-    // tabul "Urmăriți". Fără reset, comutam pe feed și nu se întâmpla nimic
-    // vizibil (eșec silențios). Resetăm și reîncercăm în efectul de mai jos,
-    // odată ce slide-urile se recalculează.
-    pendingNavRef.current = { matchFn, commentId: null };
-    setFeedMode("foryou");
+    // Fără modul "Urmăriți" (scos), singurul motiv pentru care evenimentul
+    // n-ar fi printre slide-uri e că a fost șters între timp.
+    if (idx < 0) { alert("Evenimentul nu mai există sau a fost șters."); return; }
+    setTimeout(() => {
+      if (feedRef.current) {
+        feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
+        setCurrentIndex(idx);
+      }
+    }, 50);
   };
 
   // Deschide harta centrată pe locația unui eveniment, la tap pe locație în feed.
@@ -727,40 +715,6 @@ export default function App() {
     const matchFn = (e) => e.id === eventId;
     const idx = slides.findIndex(s => s.type === "single" ? matchFn(s.event) : s.events.some(matchFn));
     navigateTab("feed");
-    if (idx >= 0) {
-      setTimeout(() => {
-        if (feedRef.current) {
-          feedRef.current.scrollTo({ top: idx * feedRef.current.clientHeight, behavior: "instant" });
-          setCurrentIndex(idx);
-        }
-        if (commentId) {
-          const slide = slides[idx];
-          const foundEvent = slide.type === "single" ? slide.event : slide.events.find(matchFn);
-          if (foundEvent) {
-            setCommentsHighlightId(commentId);
-            setCommentsEvent(foundEvent);
-          }
-        }
-      }, 50);
-      return;
-    }
-    // La fel ca la openSpecificEvent: tabul "Urmăriți" poate ascunde exact
-    // evenimentul din notificare — fără reset, tab-ul comuta pe feed fără să
-    // ducă nicăieri.
-    pendingNavRef.current = { matchFn, commentId };
-    setFeedMode("foryou");
-  };
-
-  // Finalizează openSpecificEvent/openEventFromNotification când evenimentul
-  // țintă a fost ascuns de filtrele active — rulează după ce resetul lor de
-  // mai sus recalculează slide-urile. Dacă tot nu se găsește (eveniment
-  // șters), anunțăm explicit în loc să rămânem tăcuți pe tabul feed.
-  useEffect(() => {
-    const pending = pendingNavRef.current;
-    if (!pending) return;
-    pendingNavRef.current = null;
-    const { matchFn, commentId } = pending;
-    const idx = slides.findIndex(s => s.type === "single" ? matchFn(s.event) : s.events.some(matchFn));
     if (idx < 0) { alert("Evenimentul nu mai există sau a fost șters."); return; }
     setTimeout(() => {
       if (feedRef.current) {
@@ -776,7 +730,7 @@ export default function App() {
         }
       }
     }, 50);
-  }, [activeFilters, feedMode]);
+  };
 
   return (
     <>
@@ -985,28 +939,9 @@ export default function App() {
 
           {/* FEED */}
           <div style={{ display: activeTab === "feed" && !showPost ? "block" : "none", position: "relative", marginLeft: showSidebar ? DESKTOP_SIDEBAR_WIDTH : 0, width: showSidebar ? `calc(100% - ${DESKTOP_SIDEBAR_WIDTH}px)` : "100%", animation: (activeTab === "feed" && !showPost) ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
-            <div style={{
-              position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", left: showSidebar ? `calc(50% + ${DESKTOP_SIDEBAR_WIDTH / 2}px)` : "50%", transform: "translateX(-50%)",
-              zIndex: 50, display: "flex", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
-              borderRadius: 22, padding: 3, backdropFilter: "blur(14px)", boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
-            }}>
-              {[{ id: "foryou", label: "Pentru tine" }, { id: "following", label: "Urmăriți" }].map(m => (
-                <button
-                  key={m.id}
-                  onClick={() => setFeedMode(m.id)}
-                  style={{
-                    padding: "7px 14px", borderRadius: 18, border: "none", cursor: "pointer",
-                    background: feedMode === m.id ? "linear-gradient(120deg, #FF3366, #B44FFF)" : "transparent",
-                    color: feedMode === m.id ? "#fff" : "rgba(255,255,255,0.6)",
-                    fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                    transition: "background 0.2s, color 0.2s", whiteSpace: "nowrap",
-                  }}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-
+            {/* Comutatorul Pentru tine/Urmăriți a fost scos — Feed-ul arată
+                mereu toate evenimentele; singurul lucru din header rămâne
+                iconița de căutare, mai jos. */}
             <button
               onClick={() => setShowSearch(true)}
               title="Caută"
@@ -1120,19 +1055,17 @@ export default function App() {
                       Liniște deocamdată
                     </div>
                     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 320, marginBottom: 28 }}>
-                      {feedMode === "following"
-                        ? "Nu urmărești pe nimeni care a postat încă. Descoperă evenimente la Pentru tine și urmărește organizatori."
-                        : activeFilters.size > 0
+                      {activeFilters.size > 0
                         ? "Niciun eveniment pentru acest filtru. Încearcă altul sau postează tu ceva."
                         : "Niciun eveniment încă. Fii primul care aprinde noaptea — postează un eveniment."}
                     </div>
-                    <button onClick={() => feedMode === "following" ? setFeedMode("foryou") : setShowPost(true)} style={{
+                    <button onClick={() => setShowPost(true)} style={{
                       padding: "14px 28px", borderRadius: 30, border: "none", cursor: "pointer",
                       background: "linear-gradient(120deg, #FF3366, #B44FFF)", color: "#fff",
                       fontSize: 15, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                       boxShadow: "0 8px 30px rgba(255,51,102,0.35)",
                     }}>
-                      {feedMode === "following" ? "Vezi Pentru tine" : "+ Postează primul eveniment"}
+                      + Postează primul eveniment
                     </button>
                   </div>
                 </div>
