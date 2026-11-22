@@ -1,50 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
-import PasswordChecklist from "./PasswordChecklist";
-import PasswordInput from "./PasswordInput";
+import { suggestEmail, isValidEmail, mailProviderFor, getLastAuth, setLastAuth } from "../utils/authHelpers";
 import LegalPage from "./LegalPage";
-import BrandBackdrop from "./BrandBackdrop";
-import { EnvelopeIcon, KeyIcon, RocketIcon, ArrowLeftIcon, ArrowRightIcon } from "./Icons";
+import { ArrowLeftIcon, ArrowRightIcon } from "./Icons";
+import {
+  EASE, fadeUp, Collapse, TextField, PasswordField, PasswordRules,
+  PrimaryButton, OutlineButton, TextButton, LastUsedTag, ErrorNote, Checkbox, OtpInput,
+} from "./AuthUI";
 
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
-};
-
-function Field({ label, children }) {
-  return (
-    <motion.div variants={item}>
-      <div className="mb-1.5 font-sans text-[11px] uppercase tracking-[0.08em] text-white/40">{label}</div>
-      {children}
-    </motion.div>
-  );
-}
-
-const inputClass =
-  "w-full rounded-xl border border-white/10 bg-white/[0.06] px-4 py-[13px] font-sans text-[15px] text-white outline-none placeholder:text-white/30 focus:border-[#FF3366]/50 focus:ring-2 focus:ring-[#FF3366]/15";
-
-function ErrorBox({ children }) {
-  if (!children) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-[10px] border border-[#FF3366]/30 bg-[#FF3366]/15 px-3.5 py-2.5 font-sans text-[13px] text-[#FF3366]"
-    >
-      {children}
-    </motion.div>
-  );
-}
+const OTP_LENGTH = 6;
+const RESEND_SECONDS = 60;
 
 const GoogleLogo = () => (
-  <svg width="18" height="18" viewBox="0 0 48 48">
+  <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
     <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z" />
     <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.6 8.3 6.3 14.7z" />
     <path fill="#4CAF50" d="M24 44c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5c-2 1.5-4.6 2.5-7.6 2.5-5.2 0-9.6-3.3-11.3-8l-6.5 5c3.3 6.4 9.9 10.5 17.8 10.5z" />
@@ -52,151 +22,274 @@ const GoogleLogo = () => (
   </svg>
 );
 
-function SecondaryButton({ children, disabled, ...props }) {
-  return (
-    <motion.button
-      {...props}
-      disabled={disabled}
-      whileHover={disabled ? {} : { scale: 1.015, backgroundColor: "rgba(255,255,255,0.09)" }}
-      whileTap={disabled ? {} : { scale: 0.97 }}
-      className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-[15px] font-sans text-[15px] font-bold text-white backdrop-blur-md disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      {children}
-    </motion.button>
-  );
-}
-
-function PrimaryButton({ children, disabled, ...props }) {
-  return (
-    <motion.button
-      {...props}
-      disabled={disabled}
-      whileHover={disabled ? {} : { scale: 1.015, boxShadow: "0 10px 34px rgba(255,51,102,0.5)" }}
-      whileTap={disabled ? {} : { scale: 0.97 }}
-      className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-gradient-to-r from-[#FF3366] to-[#B44FFF] px-6 py-[15px] font-sans text-[15px] font-bold text-white shadow-[0_8px_34px_rgba(255,51,102,0.4)] disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      {children}
-    </motion.button>
-  );
-}
-
-// Card comun pentru toate modurile — AnimatePresence face tranziția între
-// ecrane (login/register/forgot/verify) o alunecare orizontală (aceeași
-// convenție ca la Landing→Auth): mergi "mai departe" → intri din dreapta,
-// te întorci → intri din stânga.
-const slideVariants = {
-  enter: (dir) => ({ opacity: 0, x: dir > 0 ? 40 : -40 }),
-  center: { opacity: 1, x: 0 },
-  exit: (dir) => ({ opacity: 0, x: dir > 0 ? -40 : 40, transition: { duration: 0.2 } }),
+// Tranziția între ecrane: înainte → intră din dreapta, înapoi → din stânga
+// (aceeași convenție ca Landing→Auth din App.jsx).
+const screenVariants = {
+  enter: (dir) => ({ opacity: 0, x: dir > 0 ? 24 : -24 }),
+  center: { opacity: 1, x: 0, transition: { duration: 0.35, ease: EASE, staggerChildren: 0.045, delayChildren: 0.05 } },
+  exit: (dir) => ({ opacity: 0, x: dir > 0 ? -24 : 24, transition: { duration: 0.18, ease: "easeIn" } }),
 };
 
-function Card({ modeKey, dir, children }) {
+function Screen({ id, dir, children }) {
   return (
-    <AnimatePresence custom={dir}>
-      <motion.div
-        key={modeKey}
-        custom={dir}
-        variants={slideVariants}
-        initial="enter"
-        animate="center"
-        exit="exit"
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-20 flex w-full max-w-[360px] flex-col gap-3 rounded-[32px] border border-white/10 bg-white/[0.03] px-7 py-9 text-center shadow-[0_30px_100px_rgba(0,0,0,0.55)] backdrop-blur-xl md:max-w-md md:px-10"
-      >
-        <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-3">
-          {children}
-        </motion.div>
+    <motion.div key={id} custom={dir} variants={screenVariants} initial="enter" animate="center" exit="exit" className="flex flex-col">
+      {children}
+    </motion.div>
+  );
+}
+
+const Item = ({ children, className = "" }) => (
+  <motion.div variants={fadeUp} className={className}>{children}</motion.div>
+);
+
+function Heading({ title, sub }) {
+  return (
+    <Item className="mb-7">
+      <h1 className="m-0 font-syne text-[28px] font-extrabold leading-[1.1] tracking-[-0.02em] text-white">{title}</h1>
+      {sub && <p className="m-0 mt-2 font-sans text-[15px] leading-relaxed text-white/50">{sub}</p>}
+    </Item>
+  );
+}
+
+// Comutator Intră / Cont nou — pastila albă glisează între cele două opțiuni.
+function ModeTabs({ mode, onChange }) {
+  const tabs = [{ id: "login", label: "Intră în cont" }, { id: "register", label: "Cont nou" }];
+  return (
+    <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-8">
+      <div role="tablist" className="relative grid grid-cols-2 rounded-[14px] border border-solid border-white/[0.08] bg-white/[0.03] p-1">
+        {tabs.map((t) => {
+          const active = mode === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => onChange(t.id)}
+              className={`relative z-10 h-10 cursor-pointer rounded-[10px] border-0 bg-transparent font-sans text-[14px] font-semibold transition-colors duration-200 ${active ? "text-black" : "text-white/50 hover:text-white/80"}`}
+            >
+              {active && (
+                <motion.span
+                  layoutId="auth-tab-pill"
+                  className="absolute inset-0 -z-10 rounded-[10px] bg-white"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                />
+              )}
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+function Divider() {
+  return (
+    <Item className="my-5 flex items-center gap-3">
+      <div className="h-px flex-1 bg-white/[0.08]" />
+      <span className="font-sans text-[12px] text-white/30">sau cu email</span>
+      <div className="h-px flex-1 bg-white/[0.08]" />
+    </Item>
+  );
+}
+
+// Iconiță mare (plic) pentru ecranele de "verifică emailul", cu un punct
+// care pulsează — semn că așteptăm o acțiune din inbox.
+function MailBadge() {
+  return (
+    <Item className="mb-6">
+      <div className="relative flex h-14 w-14 items-center justify-center rounded-[16px] border border-solid border-white/10 bg-white/[0.04] text-white">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m3.5 7 8.5 6 8.5-6" />
+        </svg>
+        <span className="absolute -right-1 -top-1 flex h-3 w-3">
+          <motion.span
+            className="absolute inline-flex h-full w-full rounded-full bg-[#FF3366]"
+            animate={{ scale: [1, 2.2], opacity: [0.6, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
+          />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-[#FF3366]" />
+        </span>
+      </div>
+    </Item>
+  );
+}
+
+function OpenMailButton({ email }) {
+  const provider = mailProviderFor(email);
+  if (!provider) return null;
+  return (
+    <Item className="mb-3">
+      <OutlineButton type="button" onClick={() => window.open(provider.url, "_blank", "noopener")}>
+        Deschide {provider.name} <ArrowRightIcon size={15} />
+      </OutlineButton>
+    </Item>
+  );
+}
+
+// Panoul din stânga, doar pe desktop — tipografie mare + ce găsești în app.
+function BrandPanel() {
+  const points = [
+    ["01", "Petreceri homemade, cluburi și evenimente din orașul tău, într-un singur feed."],
+    ["02", "Ceri să participi direct de la organizator — fără grupuri de WhatsApp."],
+    ["03", "Intri pe bază de cod QR. Simplu, la ușă."],
+  ];
+  const tags = ["Techno", "House", "Hip-hop", "Rooftop", "Homemade", "Afterparty", "Live", "Open air"];
+
+  return (
+    <aside className="relative hidden w-[46%] max-w-[640px] flex-col justify-between overflow-hidden border-0 border-r border-solid border-white/[0.06] bg-[#0c0c0f] p-12 lg:flex xl:p-16">
+      <div
+        className="pointer-events-none absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full opacity-60 blur-[110px]"
+        style={{ background: "radial-gradient(circle, rgba(255,51,102,0.28), transparent 70%)" }}
+      />
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} className="relative flex items-center gap-2.5">
+        <img src="/icon-512.png" alt="" className="h-8 w-8 rounded-[9px]" />
+        <span className="font-syne text-[18px] font-extrabold tracking-tight text-white">NightFeed</span>
       </motion.div>
-    </AnimatePresence>
+
+      <div className="relative">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE, delay: 0.1 }}
+          className="m-0 font-syne text-[40px] font-extrabold leading-[1] tracking-[-0.035em] text-white xl:text-[54px] 2xl:text-[64px]"
+        >
+          Orașul nu doarme.<br />
+          <span className="text-white/35">Nici feed-ul tău.</span>
+        </motion.h2>
+
+        <div className="mt-12 flex flex-col gap-5">
+          {points.map(([n, text], i) => (
+            <motion.div
+              key={n}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE, delay: 0.3 + i * 0.08 }}
+              className="flex max-w-[420px] gap-5 border-0 border-t border-solid border-white/[0.07] pt-5"
+            >
+              <span className="font-mono text-[12px] text-[#FF3366]">{n}</span>
+              <span className="font-sans text-[15px] leading-relaxed text-white/60">{text}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <div className="relative -mx-12 overflow-hidden xl:-mx-16" style={{ maskImage: "linear-gradient(90deg, transparent, black 15%, black 85%, transparent)" }}>
+        <motion.div
+          className="flex w-max gap-3"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+        >
+          {[...tags, ...tags].map((t, i) => (
+            <span key={i} className="whitespace-nowrap rounded-full border border-solid border-white/[0.08] px-4 py-2 font-sans text-[13px] text-white/45">
+              {t}
+            </span>
+          ))}
+        </motion.div>
+      </div>
+    </aside>
   );
 }
 
 export default function AuthPage({ onAuth, initialMode, onBack }) {
-  const [mode, setMode] = useState(initialMode || "login"); // login | register | verify | forgot | forgot-sent
-  const [dir, setDir] = useState(1); // 1 = mergi mai departe, -1 = te întorci
-  const goTo = (nextMode, direction) => { setDir(direction); setMode(nextMode); };
-  const [email, setEmail] = useState("");
+  const lastAuth = useRef(getLastAuth()).current;
+
+  // login | register | code | verify | forgot | forgot-sent
+  const [mode, setMode] = useState(initialMode || "login");
+  const [dir, setDir] = useState(1);
+  const goTo = (next, direction = 1) => { setError(""); setDir(direction); setMode(next); };
+
+  const [email, setEmail] = useState(lastAuth?.email && (initialMode || "login") === "login" ? lastAuth.email : "");
   const [password, setPassword] = useState("");
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Protecție client-side împotriva încercărilor repetate de login/reset — NU
-  // înlocuiește rate limiting-ul real (care trebuie configurat în Supabase
-  // Dashboard → Authentication → Rate Limits), dar previne spam-ul accidental
-  // sau bot-ii simpli care nu execută JavaScript-ul paginii.
-  const [loginFails, setLoginFails] = useState(0);
-  const [loginCooldown, setLoginCooldown] = useState(0); // secunde rămase
-  const [resetCooldown, setResetCooldown] = useState(0); // secunde rămase
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
 
+  // Login cu cod pe email
+  const [codeSent, setCodeSent] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeInvalid, setCodeInvalid] = useState(false);
+
+  // Protecție client-side la încercări repetate — NU înlocuiește rate limiting-ul
+  // real din Supabase (Authentication → Rate Limits), doar previne spam-ul din UI.
+  const [loginFails, setLoginFails] = useState(0);
+  const [loginCooldown, setLoginCooldown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0); // confirmare cont / cod / reset
+
   useEffect(() => {
     const t = setInterval(() => {
-      setLoginCooldown(c => (c > 0 ? c - 1 : 0));
-      setResetCooldown(c => (c > 0 ? c - 1 : 0));
+      setLoginCooldown((c) => (c > 0 ? c - 1 : 0));
+      setResendCooldown((c) => (c > 0 ? c - 1 : 0));
     }, 1000);
     return () => clearInterval(t);
   }, []);
 
-  const handleSubmit = async () => {
+  const emailSuggestion = suggestEmail(email);
+  const emailInvalid = emailTouched && email.length > 0 && !isValidEmail(email);
+  const trimmedEmail = email.trim().toLowerCase();
+
+  // --- Email + parolă ------------------------------------------------------
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
     setError("");
     if (mode === "login" && loginCooldown > 0) return;
-    if (!email || !password) { setError("Completează email și parola!"); return; }
-    if (mode === "register" && !acceptedTerms) { setError("Trebuie să accepți Termenii și Politica de Confidențialitate!"); return; }
-    if (mode === "register" && !confirmedAge) { setError("Trebuie să confirmi că ai cel puțin 16 ani!"); return; }
-    if (mode === "register" && !validatePassword(password)) {
-      setError("Parola nu îndeplinește toate condițiile de mai jos!");
-      return;
+    if (!isValidEmail(email)) { setEmailTouched(true); setError("Introdu o adresă de email validă."); return; }
+    if (!password) { setError("Introdu parola."); return; }
+    if (mode === "register") {
+      if (!validatePassword(password)) { setPasswordFocused(true); setError("Parola nu îndeplinește toate condițiile."); return; }
+      if (!acceptedTerms || !confirmedAge) { setError("Bifează ambele confirmări ca să continui."); return; }
     }
 
     setLoading(true);
     try {
       if (mode === "login") {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
         if (error) {
-          // Mesaj identic pentru "email neconfirmat" și "credențiale greșite" —
-          // altfel, un atacator putea deduce dacă un email există în bază
-          // (răspunsuri diferite = "enumerare de useri"). Cine chiar are emailul
-          // neconfirmat oricum știe deja din ecranul "Verifică emailul!" de la
-          // înregistrare, sau poate folosi "Am uitat parola?" ca alternativă.
+          // Mesaj identic pentru "email neconfirmat" și "credențiale greșite" — altfel
+          // un atacator ar putea deduce ce email-uri există în bază (enumerare).
           if (error.message.includes("Email not confirmed") || error.message.includes("Invalid login credentials")) {
-            setError("Email sau parolă incorectă!");
+            setError("Email sau parolă incorectă.");
           } else {
             setError(error.message);
           }
-          setLoading(false);
-          // După 3 eșecuri la rând, blocăm butonul temporar — durata crește la fiecare
-          // eșec suplimentar (10s, 20s, 40s, plafonat la 60s).
+          // După 3 eșecuri la rând blocăm temporar: 10s, 20s, 40s, max 60s.
           const next = loginFails + 1;
           setLoginFails(next);
           if (next >= 3) setLoginCooldown(Math.min(60, 10 * Math.pow(2, next - 3)));
+          setLoading(false);
           return;
         }
         setLoginFails(0);
-        setLoginCooldown(0);
+        setLastAuth("password", trimmedEmail);
         onAuth(data.user);
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
         if (error) {
-          if (error.message.includes("already registered")) {
-            setError("Există deja un cont cu acest email!");
-          } else {
-            setError(error.message);
-          }
+          setError(error.message.includes("already registered") ? "Există deja un cont cu acest email." : error.message);
           setLoading(false);
           return;
         }
-        // Cu email confirmations activate, Supabase NU întoarce error pentru un
-        // email deja înregistrat (ca să nu poată cineva "ghici" ce email-uri
-        // există în bază) — în schimb întoarce un user fals, cu identities: [].
-        // E singurul mod de a detecta cazul ăsta din client.
+        // Cu confirmarea pe email activă, Supabase nu dă eroare pentru un email deja
+        // folosit — întoarce un user fals cu identities: []. Singurul semnal din client.
         if (data.user && data.user.identities?.length === 0) {
-          setError("Există deja un cont cu acest email!");
+          setError("Există deja un cont cu acest email.");
           setLoading(false);
           return;
         }
-
+        setLastAuth("password", trimmedEmail);
+        setResendCooldown(RESEND_SECONDS);
         goTo("verify", 1);
       }
     } catch (err) {
@@ -205,14 +298,13 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     setLoading(false);
   };
 
-  const [googleLoading, setGoogleLoading] = useState(false);
+  // --- Google ----------------------------------------------------------------
   const handleGoogleSignIn = async () => {
     setError("");
     setGoogleLoading(true);
-    // Redirecționează la Google — la revenire, Supabase preia sesiunea automat
-    // din URL (detectSessionInUrl:true, vezi supabase.js) și declanșează SIGNED_IN,
-    // ascultat deja în App.jsx. Nu mai apucăm să resetăm googleLoading aici,
-    // fiindcă pagina se schimbă efectiv de tot cât timp userul e pe Google.
+    setLastAuth("google", null);
+    // Redirect la Google — la întoarcere Supabase preia sesiunea din URL
+    // (detectSessionInUrl) și declanșează SIGNED_IN, ascultat în App.jsx.
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },
@@ -220,219 +312,356 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     if (error) { setError(error.message); setGoogleLoading(false); }
   };
 
-  const handleForgotSubmit = async () => {
+  // --- Login cu cod pe email (fără parolă) -----------------------------------
+  const sendCode = async (e) => {
+    e?.preventDefault();
     setError("");
-    if (resetCooldown > 0) return;
-    if (!email) { setError("Completează adresa de email!"); return; }
+    if (!isValidEmail(email)) { setEmailTouched(true); setError("Introdu o adresă de email validă."); return; }
+    if (resendCooldown > 0 && codeSent) return;
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
+    const { error } = await supabase.auth.signInWithOtp({
+      email: trimmedEmail,
+      options: { shouldCreateUser: false, emailRedirectTo: window.location.origin },
+    });
+    setLoading(false);
+    // Pentru un email fără cont Supabase răspunde cu eroare ("Signups not allowed
+    // for otp") — o ignorăm și mergem mai departe la fel, ca să nu dezvăluim
+    // dacă adresa are sau nu cont.
+    if (error && !/signups not allowed|user not found/i.test(error.message)) {
+      setError(/rate|too many|security purposes/i.test(error.message)
+        ? "Prea multe cereri. Mai așteaptă puțin și încearcă din nou."
+        : error.message);
+      return;
+    }
+    setCode("");
+    setCodeInvalid(false);
+    setCodeSent(true);
+    setResendCooldown(RESEND_SECONDS);
+  };
+
+  const verifyCode = async (token) => {
+    if (token.length !== OTP_LENGTH || loading) return;
+    setError("");
+    setCodeInvalid(false);
+    setLoading(true);
+    const { data, error } = await supabase.auth.verifyOtp({ email: trimmedEmail, token, type: "email" });
+    setLoading(false);
+    if (error) {
+      setCodeInvalid(true);
+      setError("Cod greșit sau expirat. Verifică emailul sau cere unul nou.");
+      setCode("");
+      return;
+    }
+    setLastAuth("code", trimmedEmail);
+    onAuth(data.user);
+  };
+
+  // --- Retrimitere email de confirmare ----------------------------------------
+  const resendConfirmation = async () => {
+    if (resendCooldown > 0) return;
+    setError("");
+    setLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: trimmedEmail,
+      options: { emailRedirectTo: window.location.origin },
     });
     setLoading(false);
     if (error) { setError(error.message); return; }
-    // Blocăm retrimiterea 45s — Supabase oricum limitează emailurile de auth la
-    // 2/oră, dar asta previne spam-ul accidental din interfață.
-    setResetCooldown(45);
-    goTo("forgot-sent", 1);
+    setResendCooldown(RESEND_SECONDS);
   };
 
-  return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-[#09090b] px-6 py-10 md:px-10">
-      <BrandBackdrop />
+  // --- Resetare parolă -----------------------------------------------------
+  const handleForgotSubmit = async (e) => {
+    e?.preventDefault();
+    setError("");
+    if (resendCooldown > 0) return;
+    if (!isValidEmail(email)) { setEmailTouched(true); setError("Introdu o adresă de email validă."); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, { redirectTo: window.location.origin });
+    setLoading(false);
+    if (error) { setError(error.message); return; }
+    setResendCooldown(RESEND_SECONDS);
+    if (mode !== "forgot-sent") goTo("forgot-sent", 1);
+  };
 
-      {onBack && (
-        <button
-          onClick={onBack}
-          className="absolute left-6 top-[calc(env(safe-area-inset-top,0px)+20px)] z-30 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 font-sans text-[13px] font-semibold text-white/70 backdrop-blur-md md:left-10"
-        >
-          <ArrowLeftIcon size={14} /> Înapoi
-        </button>
-      )}
-
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-20 mb-7 flex flex-col items-center"
-      >
-        <div className="relative mb-3 flex h-14 w-14 items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-[#FF3366] opacity-40 blur-xl" />
-          <img src="/icon-512.png" alt="NightFeed" className="relative h-full w-full rounded-2xl object-cover shadow-[0_0_40px_rgba(255,51,102,0.4)]" />
-        </div>
-        <div className="font-syne text-2xl font-[900] tracking-tight text-white">
-          Night<span className="text-[#FF3366]">Feed</span>
-        </div>
-      </motion.div>
-
-      {mode === "verify" && (
-        <Card modeKey="verify" dir={dir}>
-          <motion.div variants={item} className="mx-auto flex text-white/60"><EnvelopeIcon size={48} /></motion.div>
-          <motion.div variants={item} className="font-syne text-xl font-extrabold text-white">Verifică emailul!</motion.div>
-          <motion.div variants={item} className="mb-2 font-sans text-[14px] leading-relaxed text-white/50">
-            Am trimis un link de confirmare la <span className="text-[#FF3366]">{email}</span>. Dă click pe link și revino aici să te loghezi.
-          </motion.div>
-          <motion.div variants={item}>
-            <PrimaryButton onClick={() => goTo("login", -1)}>
-              Mergi la login <ArrowRightIcon size={16} />
-            </PrimaryButton>
-          </motion.div>
-        </Card>
-      )}
-
-      {mode === "forgot" && (
-        <Card modeKey="forgot" dir={dir}>
-          <motion.div variants={item} className="mb-1 flex flex-col items-center gap-1.5">
-            <div className="flex items-center gap-2 font-syne text-base font-bold text-white">
-              Resetează parola <KeyIcon size={16} />
-            </div>
-            <div className="font-sans text-xs text-white/40">Îți trimitem un link de resetare pe email.</div>
-          </motion.div>
-
-          <Field label="Email">
-            <input
-              type="email" placeholder="email@exemplu.com"
-              value={email} onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleForgotSubmit()}
-              className={inputClass}
-            />
-          </Field>
-
-          <motion.div variants={item}><ErrorBox>{error}</ErrorBox></motion.div>
-
-          <motion.div variants={item}>
-            <PrimaryButton onClick={handleForgotSubmit} disabled={loading || resetCooldown > 0}>
-              {loading ? "Se trimite..." : resetCooldown > 0 ? `Mai poți retrimite în ${resetCooldown}s` : "Trimite link de resetare"}
-            </PrimaryButton>
-          </motion.div>
-
-          <motion.button
-            variants={item}
-            onClick={() => { goTo("login", -1); setError(""); }}
-            className="border-0 bg-transparent font-sans text-[13px] text-white/35"
+  // --- Bucăți reutilizate ------------------------------------------------------
+  const emailField = (autoFocus = false) => (
+    <Item>
+      <TextField
+        id="auth-email"
+        label="Email"
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        autoCapitalize="none"
+        spellCheck={false}
+        autoFocus={autoFocus}
+        value={email}
+        invalid={emailInvalid}
+        onChange={(e) => { setEmail(e.target.value); setError(""); }}
+        onBlur={() => setEmailTouched(true)}
+      />
+      <Collapse show={!!emailSuggestion}>
+        <div className="pl-1 pt-2 font-sans text-[12.5px] text-white/50">
+          Ai vrut să scrii{" "}
+          <button
+            type="button"
+            onClick={() => setEmail(emailSuggestion)}
+            className="cursor-pointer border-0 bg-transparent p-0 font-sans text-[12.5px] font-semibold text-white underline decoration-[#FF3366] underline-offset-4"
           >
-            ← Înapoi la login
-          </motion.button>
-        </Card>
-      )}
+            {emailSuggestion}
+          </button>
+          ?
+        </div>
+      </Collapse>
+    </Item>
+  );
 
-      {mode === "forgot-sent" && (
-        <Card modeKey="forgot-sent" dir={dir}>
-          <motion.div variants={item} className="mx-auto flex text-white/60"><EnvelopeIcon size={48} /></motion.div>
-          <motion.div variants={item} className="font-syne text-xl font-extrabold text-white">Verifică emailul!</motion.div>
-          <motion.div variants={item} className="mb-2 font-sans text-[14px] leading-relaxed text-white/50">
-            Ți-am trimis un link de resetare la <span className="text-[#FF3366]">{email}</span>. Dă click pe el și vei putea seta o parolă nouă.
-          </motion.div>
-          <motion.div variants={item}>
-            <PrimaryButton onClick={() => goTo("login", -1)}>
-              Mergi la login <ArrowRightIcon size={16} />
-            </PrimaryButton>
-          </motion.div>
-        </Card>
-      )}
+  const resendLabel = (idle) => (resendCooldown > 0 ? `Retrimite în ${resendCooldown}s` : idle);
 
-      {(mode === "login" || mode === "register") && (
-        <Card modeKey={mode} dir={dir}>
-          <motion.div variants={item} className="mb-1 flex items-center justify-center gap-2 font-syne text-base font-bold text-white">
-            {mode === "login" ? "Bine ai revenit" : <>Cont nou <RocketIcon size={15} /></>}
-          </motion.div>
+  const isAuthTab = mode === "login" || mode === "register";
 
-          <motion.div variants={item}>
-            <SecondaryButton onClick={handleGoogleSignIn} disabled={googleLoading}>
-              <GoogleLogo /> {googleLoading ? "Se redirecționează..." : "Continuă cu Google"}
-            </SecondaryButton>
-          </motion.div>
+  return (
+    <div className="flex h-full w-full bg-[#09090b]">
+      <BrandPanel />
 
-          <motion.div variants={item} className="flex items-center gap-3 py-1">
-            <div className="h-px flex-1 bg-white/10" />
-            <span className="font-sans text-[11px] uppercase tracking-[0.08em] text-white/30">sau</span>
-            <div className="h-px flex-1 bg-white/10" />
-          </motion.div>
+      <main className="relative flex min-w-0 flex-1 flex-col overflow-y-auto">
+        {/* Glow discret doar pe mobil, unde nu avem panoul din stânga */}
+        <div
+          className="pointer-events-none absolute -top-48 left-1/2 h-[380px] w-[380px] -translate-x-1/2 rounded-full opacity-50 blur-[100px] lg:hidden"
+          style={{ background: "radial-gradient(circle, rgba(255,51,102,0.3), transparent 70%)" }}
+        />
 
-          <Field label="Email">
-            <input
-              type="email" placeholder="email@exemplu.com"
-              value={email} onChange={e => setEmail(e.target.value)}
-              className={inputClass}
-            />
-          </Field>
-
-          <Field label="Parolă">
-            <PasswordInput
-              placeholder={mode === "register" ? "creează o parolă puternică" : "parola ta"}
-              value={password} onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleSubmit()}
-            />
-            {mode === "register" && <PasswordChecklist password={password} />}
-          </Field>
-
-          {mode === "login" && (
+        <header className="relative z-10 flex items-center justify-between px-5 pb-2 pt-[calc(env(safe-area-inset-top,0px)+18px)] md:px-8">
+          {onBack ? (
             <motion.button
-              variants={item}
-              onClick={() => { goTo("forgot", 1); setError(""); }}
-              className="self-end border-0 bg-transparent font-sans text-xs text-[#FF3366]"
+              type="button"
+              onClick={onBack}
+              whileTap={{ scale: 0.92 }}
+              aria-label="Înapoi"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-solid border-white/10 bg-transparent text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white"
             >
-              Am uitat parola?
+              <ArrowLeftIcon size={16} />
             </motion.button>
-          )}
+          ) : <span />}
+          <div className="flex items-center gap-2 lg:hidden">
+            <img src="/icon-512.png" alt="" className="h-7 w-7 rounded-[8px]" />
+            <span className="font-syne text-[16px] font-extrabold tracking-tight text-white">NightFeed</span>
+          </div>
+          <span className="h-10 w-10" />
+        </header>
 
-          {mode === "register" && (
-            <>
-              <motion.label variants={item} className="flex items-start gap-2.5 text-left">
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={e => setAcceptedTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#FF3366]"
-                />
-                <span className="font-sans text-[12px] leading-relaxed text-white/50">
-                  Am citit și accept{" "}
-                  <span onClick={(e) => { e.preventDefault(); setShowLegal(true); }} className="cursor-pointer text-[#FF3366] underline">
-                    Termenii și Politica de Confidențialitate
-                  </span>
-                </span>
-              </motion.label>
-              <motion.label variants={item} className="flex items-start gap-2.5 text-left">
-                <input
-                  type="checkbox"
-                  checked={confirmedAge}
-                  onChange={e => setConfirmedAge(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#FF3366]"
-                />
-                <span className="font-sans text-[12px] leading-relaxed text-white/50">
-                  Confirm că am cel puțin 16 ani
-                </span>
-              </motion.label>
-            </>
-          )}
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-8 md:px-10">
+          <div className="w-full max-w-[380px]">
+            {isAuthTab && <ModeTabs mode={mode} onChange={(m) => m !== mode && goTo(m, m === "register" ? 1 : -1)} />}
 
-          <motion.div variants={item}><ErrorBox>{error}</ErrorBox></motion.div>
+            <AnimatePresence mode="wait" custom={dir} initial={false}>
+              {/* ---------------- LOGIN / REGISTER ---------------- */}
+              {isAuthTab && (
+                <Screen key={mode} id={mode} dir={dir}>
+                  <Heading
+                    title={mode === "login" ? "Bine ai revenit." : "Hai în feed."}
+                    sub={mode === "login" ? "Intră ca să vezi ce se întâmplă diseară." : "Îți faci cont în mai puțin de un minut."}
+                  />
 
-          <motion.div variants={item}>
-            <PrimaryButton
-              onClick={handleSubmit}
-              disabled={loading || (mode === "login" && loginCooldown > 0) || (mode === "register" && !acceptedTerms)}
-            >
-              {loading
-                ? "Se procesează..."
-                : mode === "login" && loginCooldown > 0
-                  ? `Prea multe încercări — mai încearcă în ${loginCooldown}s`
-                  : mode === "login" ? "Intră în cont" : "Creează contul"}
-            </PrimaryButton>
-          </motion.div>
+                  <Item className="relative">
+                    <OutlineButton type="button" onClick={handleGoogleSignIn} disabled={googleLoading}>
+                      <GoogleLogo /> {googleLoading ? "Te redirecționăm…" : "Continuă cu Google"}
+                    </OutlineButton>
+                    {mode === "login" && lastAuth?.method === "google" && <LastUsedTag />}
+                  </Item>
 
-          <motion.div variants={item} className="mt-1 text-center">
-            <span className="font-sans text-[13px] text-white/35">
-              {mode === "login" ? "Nu ai cont? " : "Ai deja cont? "}
-            </span>
-            <button
-              onClick={() => { goTo(mode === "login" ? "register" : "login", mode === "login" ? 1 : -1); setError(""); }}
-              className="border-0 bg-transparent font-sans text-[13px] font-bold text-[#FF3366]"
-            >
-              {mode === "login" ? "Înregistrează-te" : "Autentifică-te"}
-            </button>
-          </motion.div>
-        </Card>
-      )}
+                  <Divider />
+
+                  <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
+                    {emailField()}
+
+                    <Item>
+                      <PasswordField
+                        id="auth-password"
+                        label="Parolă"
+                        autoComplete={mode === "login" ? "current-password" : "new-password"}
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                        onFocus={() => setPasswordFocused(true)}
+                      />
+                      {mode === "register" && <PasswordRules password={password} show={passwordFocused || password.length > 0} />}
+                    </Item>
+
+                    {mode === "login" && (
+                      <Item className="-mt-0.5 flex justify-end">
+                        <TextButton onClick={() => goTo("forgot", 1)}>Ai uitat parola?</TextButton>
+                      </Item>
+                    )}
+
+                    {mode === "register" && (
+                      <Item className="mt-2 flex flex-col gap-3">
+                        <Checkbox checked={confirmedAge} onChange={setConfirmedAge}>Am cel puțin 16 ani.</Checkbox>
+                        <Checkbox checked={acceptedTerms} onChange={setAcceptedTerms}>
+                          Accept{" "}
+                          <span
+                            onClick={(e) => { e.preventDefault(); setShowLegal(true); }}
+                            className="cursor-pointer text-white underline decoration-white/30 underline-offset-[3px] hover:decoration-white"
+                          >
+                            Termenii și Politica de Confidențialitate
+                          </span>
+                          .
+                        </Checkbox>
+                      </Item>
+                    )}
+
+                    <ErrorNote>{error}</ErrorNote>
+
+                    <Item className="relative mt-2">
+                      <PrimaryButton type="submit" loading={loading} disabled={mode === "login" && loginCooldown > 0}>
+                        {mode === "login" && loginCooldown > 0
+                          ? `Prea multe încercări · ${loginCooldown}s`
+                          : mode === "login" ? "Intră" : "Creează contul"}
+                      </PrimaryButton>
+                      {mode === "login" && lastAuth?.method === "password" && <LastUsedTag />}
+                    </Item>
+                  </form>
+
+                  {mode === "login" && (
+                    <Item className="relative mt-4 flex justify-center">
+                      <TextButton onClick={() => { setCodeSent(false); goTo("code", 1); }}>
+                        Intră fără parolă — primește un cod pe email
+                      </TextButton>
+                      {lastAuth?.method === "code" && (
+                        <span className="ml-2 self-center rounded-full bg-[#FF3366] px-2 py-[2px] font-sans text-[10px] font-semibold text-white">Ultima dată</span>
+                      )}
+                    </Item>
+                  )}
+                </Screen>
+              )}
+
+              {/* ---------------- COD PE EMAIL ---------------- */}
+              {mode === "code" && !codeSent && (
+                <Screen key="code-request" id="code-request" dir={dir}>
+                  <Heading title="Intră cu un cod." sub="Îți trimitem un cod de 6 cifre pe email. Fără parolă de ținut minte." />
+                  <form onSubmit={sendCode} noValidate className="flex flex-col gap-3">
+                    {emailField(true)}
+                    <ErrorNote>{error}</ErrorNote>
+                    <Item className="mt-2">
+                      <PrimaryButton type="submit" loading={loading}>Trimite codul</PrimaryButton>
+                    </Item>
+                  </form>
+                  <Item className="mt-5 flex justify-center">
+                    <TextButton onClick={() => goTo("login", -1)}>← Înapoi la login cu parolă</TextButton>
+                  </Item>
+                </Screen>
+              )}
+
+              {mode === "code" && codeSent && (
+                <Screen key="code-verify" id="code-verify" dir={dir}>
+                  <MailBadge />
+                  <Heading
+                    title="Verifică emailul."
+                    sub={<>Dacă există un cont pentru <span className="text-white">{trimmedEmail}</span>, ți-am trimis un cod. Îl poți scrie aici sau poți apăsa direct linkul din email.</>}
+                  />
+                  <Item>
+                    <OtpInput
+                      length={OTP_LENGTH}
+                      value={code}
+                      onChange={(v) => { setCode(v); setCodeInvalid(false); setError(""); }}
+                      onComplete={verifyCode}
+                      invalid={codeInvalid}
+                      disabled={loading}
+                    />
+                  </Item>
+                  <div className="mt-3"><ErrorNote>{error}</ErrorNote></div>
+                  <Item className="mt-3">
+                    <PrimaryButton type="button" loading={loading} disabled={code.length !== OTP_LENGTH} onClick={() => verifyCode(code)}>
+                      Confirmă codul
+                    </PrimaryButton>
+                  </Item>
+                  <div className="mt-3"><OpenMailButton email={trimmedEmail} /></div>
+                  <Item className="mt-2 flex items-center justify-between">
+                    <TextButton onClick={() => { setCodeSent(false); setError(""); }}>Schimbă emailul</TextButton>
+                    <TextButton onClick={() => sendCode()} disabled={resendCooldown > 0 || loading}>{resendLabel("Retrimite codul")}</TextButton>
+                  </Item>
+                </Screen>
+              )}
+
+              {/* ---------------- CONFIRMARE CONT NOU ---------------- */}
+              {mode === "verify" && (
+                <Screen key="verify" id="verify" dir={dir}>
+                  <MailBadge />
+                  <Heading
+                    title="Mai ai un pas."
+                    sub={<>Am trimis un link de confirmare la <span className="text-white">{trimmedEmail}</span>. Apasă-l și revino aici ca să intri.</>}
+                  />
+                  <OpenMailButton email={trimmedEmail} />
+                  <Item>
+                    <PrimaryButton type="button" onClick={() => { setPassword(""); goTo("login", -1); }}>
+                      Am confirmat, mergi la login <ArrowRightIcon size={15} />
+                    </PrimaryButton>
+                  </Item>
+                  <div className="mt-3"><ErrorNote>{error}</ErrorNote></div>
+                  <Item className="mt-5 flex flex-col items-center gap-1.5 text-center">
+                    <span className="font-sans text-[13px] text-white/35">Nu ai primit nimic? Verifică și Spam.</span>
+                    <TextButton onClick={resendConfirmation} disabled={resendCooldown > 0 || loading} className="text-white/70">
+                      {resendLabel("Retrimite emailul de confirmare")}
+                    </TextButton>
+                  </Item>
+                </Screen>
+              )}
+
+              {/* ---------------- AM UITAT PAROLA ---------------- */}
+              {mode === "forgot" && (
+                <Screen key="forgot" id="forgot" dir={dir}>
+                  <Heading title="Resetează parola." sub="Scrie emailul contului și îți trimitem un link pentru o parolă nouă." />
+                  <form onSubmit={handleForgotSubmit} noValidate className="flex flex-col gap-3">
+                    {emailField(true)}
+                    <ErrorNote>{error}</ErrorNote>
+                    <Item className="mt-2">
+                      <PrimaryButton type="submit" loading={loading} disabled={resendCooldown > 0}>
+                        {resendCooldown > 0 ? `Poți retrimite în ${resendCooldown}s` : "Trimite linkul"}
+                      </PrimaryButton>
+                    </Item>
+                  </form>
+                  <Item className="mt-5 flex justify-center">
+                    <TextButton onClick={() => goTo("login", -1)}>← Înapoi la login</TextButton>
+                  </Item>
+                </Screen>
+              )}
+
+              {mode === "forgot-sent" && (
+                <Screen key="forgot-sent" id="forgot-sent" dir={dir}>
+                  <MailBadge />
+                  <Heading
+                    title="Verifică emailul."
+                    sub={<>Dacă există un cont pentru <span className="text-white">{trimmedEmail}</span>, ți-am trimis un link de resetare.</>}
+                  />
+                  <OpenMailButton email={trimmedEmail} />
+                  <Item>
+                    <PrimaryButton type="button" onClick={() => goTo("login", -1)}>
+                      Înapoi la login <ArrowRightIcon size={15} />
+                    </PrimaryButton>
+                  </Item>
+                  <div className="mt-3"><ErrorNote>{error}</ErrorNote></div>
+                  <Item className="mt-5 flex justify-center">
+                    <TextButton onClick={() => handleForgotSubmit()} disabled={resendCooldown > 0 || loading}>
+                      {resendLabel("Retrimite linkul")}
+                    </TextButton>
+                  </Item>
+                </Screen>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <footer className="relative z-10 px-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] pt-2 text-center">
+          <button
+            type="button"
+            onClick={() => setShowLegal(true)}
+            className="cursor-pointer border-0 bg-transparent p-0 font-sans text-[12px] text-white/30 transition-colors hover:text-white/60"
+          >
+            Termeni · Confidențialitate
+          </button>
+        </footer>
+      </main>
 
       {showLegal && <LegalPage onClose={() => setShowLegal(false)} />}
     </div>

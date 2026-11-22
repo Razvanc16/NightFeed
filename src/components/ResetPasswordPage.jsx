@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
-import PasswordChecklist from "./PasswordChecklist";
-import PasswordInput from "./PasswordInput";
-import { CheckCircleIcon } from "./Icons";
+import { EASE, fadeUp, PasswordField, PasswordRules, PrimaryButton, TextButton, ErrorNote, Collapse } from "./AuthUI";
+import { WarningIcon } from "./Icons";
+
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } } };
 
 export default function ResetPasswordPage({ onDone }) {
   const [password, setPassword] = useState("");
@@ -12,28 +14,21 @@ export default function ResetPasswordPage({ onDone }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async () => {
+  const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
+
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
     setError("");
-    if (!validatePassword(password)) {
-      setError("Parola nu îndeplinește toate condițiile de mai jos!");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Parolele nu coincid!");
-      return;
-    }
+    if (!validatePassword(password)) { setError("Parola nu îndeplinește toate condițiile."); return; }
+    if (password !== confirmPassword) { setError("Parolele nu coincid."); return; }
 
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
+    if (error) { setError(error.message); return; }
 
     setSuccess(true);
-    // Delogăm sesiunea de recovery din siguranță — userul se loghează curat cu noua parolă
+    // Delogăm sesiunea de recovery — userul intră curat cu parola nouă.
     await supabase.auth.signOut();
     setTimeout(() => onDone(), 2200);
   };
@@ -44,89 +39,88 @@ export default function ResetPasswordPage({ onDone }) {
   };
 
   return (
-    <div style={{
-      width: "100%", height: "100%",
-      background: "#080808",
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      padding: "0 24px",
-      animation: "slideUp 0.3s ease-out",
-    }}>
-      <div style={{ marginBottom: 32, textAlign: "center" }}>
-        <div style={{
-          width: 64, height: 64, borderRadius: 20,
-          background: "linear-gradient(135deg, #FF3366, #FF6B35)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          margin: "0 auto 16px",
-          boxShadow: "0 0 40px rgba(255,51,102,0.4)",
-        }}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-            <path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm0 2a3 3 0 0 1 3 3v3H9V6a3 3 0 0 1 3-3z"/>
-          </svg>
-        </div>
-        <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
-          Setează o parolă nouă
+    <div className="relative flex h-full w-full flex-col overflow-y-auto bg-[#09090b]">
+      <div
+        className="pointer-events-none absolute -top-48 left-1/2 h-[380px] w-[380px] -translate-x-1/2 rounded-full opacity-50 blur-[100px]"
+        style={{ background: "radial-gradient(circle, rgba(255,51,102,0.3), transparent 70%)" }}
+      />
+      <header className="relative z-10 flex items-center justify-center gap-2 px-5 pb-2 pt-[calc(env(safe-area-inset-top,0px)+24px)]">
+        <img src="/icon-512.png" alt="" className="h-7 w-7 rounded-[8px]" />
+        <span className="font-syne text-[16px] font-extrabold tracking-tight text-white">NightFeed</span>
+      </header>
+
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-8">
+        <div className="w-full max-w-[380px]">
+          <AnimatePresence mode="wait" initial={false}>
+            {success ? (
+              <motion.div
+                key="done"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: EASE }}
+                className="flex flex-col items-center text-center"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 20, delay: 0.1 }}
+                  className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#00C864]"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <motion.path d="M5 12.5 10 17l9-10" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 0.3, duration: 0.35 }} />
+                  </svg>
+                </motion.div>
+                <h1 className="m-0 font-syne text-[28px] font-extrabold tracking-[-0.02em] text-white">Parola e schimbată.</h1>
+                <p className="m-0 mt-2 font-sans text-[15px] text-white/50">Te ducem la login…</p>
+              </motion.div>
+            ) : (
+              <motion.form key="form" onSubmit={handleSubmit} noValidate variants={stagger} initial="hidden" animate="show" exit={{ opacity: 0 }} className="flex flex-col gap-3">
+                <motion.div variants={fadeUp} className="mb-4">
+                  <h1 className="m-0 font-syne text-[28px] font-extrabold leading-[1.1] tracking-[-0.02em] text-white">Setează o parolă nouă.</h1>
+                  <p className="m-0 mt-2 font-sans text-[15px] leading-relaxed text-white/50">Alege ceva ce nu mai folosești în altă parte.</p>
+                </motion.div>
+
+                <motion.div variants={fadeUp}>
+                  <PasswordField
+                    id="reset-password"
+                    label="Parolă nouă"
+                    autoComplete="new-password"
+                    autoFocus
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                  />
+                  <PasswordRules password={password} show={password.length > 0} />
+                </motion.div>
+
+                <motion.div variants={fadeUp}>
+                  <PasswordField
+                    id="reset-password-confirm"
+                    label="Repetă parola"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    invalid={mismatch}
+                    onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
+                  />
+                  <Collapse show={mismatch}>
+                    <div className="flex items-center gap-1.5 pl-1 pt-2 font-sans text-[12px] text-[#FF6B8A]">
+                      <WarningIcon size={13} /> Parolele nu coincid
+                    </div>
+                  </Collapse>
+                </motion.div>
+
+                <ErrorNote>{error}</ErrorNote>
+
+                <motion.div variants={fadeUp} className="mt-2">
+                  <PrimaryButton type="submit" loading={loading}>Salvează parola</PrimaryButton>
+                </motion.div>
+                <motion.div variants={fadeUp} className="mt-3 flex justify-center">
+                  <TextButton onClick={handleCancel}>Anulează și mergi la login</TextButton>
+                </motion.div>
+              </motion.form>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-
-      {success ? (
-        <div style={{ width: "100%", maxWidth: 340, textAlign: "center" }}>
-          <div style={{ marginBottom: 16, color: "#00C864", display: "flex", justifyContent: "center" }}><CheckCircleIcon size={48} /></div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 8 }}>
-            Parola a fost schimbată!
-          </div>
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
-            Te redirecționăm spre login...
-          </div>
-        </div>
-      ) : (
-        <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Parolă nouă</div>
-            <PasswordInput placeholder="parolă nouă" value={password} onChange={e => setPassword(e.target.value)} />
-            <PasswordChecklist password={password} />
-          </div>
-
-          <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Confirmă parola</div>
-            <PasswordInput
-              placeholder="repetă parola"
-              value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleSubmit()}
-            />
-          </div>
-
-          {error && (
-            <div style={{ padding: "10px 14px", background: "rgba(255,51,102,0.15)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, color: "#FF3366", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
-              {error}
-            </div>
-          )}
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            style={{
-              width: "100%", padding: "14px",
-              background: loading ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)",
-              border: "none", borderRadius: 14,
-              color: "#fff", fontSize: 16, fontWeight: 700,
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-              cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: "0 4px 20px rgba(255,51,102,0.3)",
-              marginTop: 4,
-            }}
-          >
-            {loading ? "Se salvează..." : "Salvează parola nouă"}
-          </button>
-
-          <button
-            onClick={handleCancel}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", padding: "8px 0" }}
-          >
-            Anulează și mergi la login
-          </button>
-        </div>
-      )}
     </div>
   );
 }

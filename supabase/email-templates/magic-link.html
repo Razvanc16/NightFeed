@@ -1,0 +1,44 @@
+<!--
+  Supabase Dashboard → Authentication → Email Templates → Magic Link
+  Lipește tot conținutul de mai jos în câmpul "Message body" (subiect
+  sugerat: "Codul tău NightFeed: {{ .Token }}").
+  Folosit de "Intră fără parolă — primește un cod pe email" din AuthPage.
+  {{ .Token }} = codul de 6 cifre, {{ .ConfirmationURL }} = linkul direct.
+-->
+<div style="background:#0a0a0c;padding:40px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:440px;margin:0 auto;">
+    <tr>
+      <td style="padding-bottom:28px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">
+          Night<span style="color:#FF3366;">Feed</span>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="background:#111114;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:36px 28px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:#ffffff;margin-bottom:10px;">Codul tău de intrare</div>
+        <p style="font-size:14px;line-height:1.6;color:rgba(255,255,255,0.6);margin:0 0 24px;">
+          Scrie codul de mai jos în aplicație. Expiră într-o oră.
+        </p>
+        <div style="display:inline-block;padding:16px 24px;border-radius:14px;background:#1b1b20;border:1px solid rgba(255,255,255,0.1);font-family:'SFMono-Regular',Menlo,Consolas,monospace;font-size:32px;font-weight:700;letter-spacing:10px;color:#ffffff;">
+          {{ .Token }}
+        </div>
+        <p style="font-size:13px;line-height:1.6;color:rgba(255,255,255,0.45);margin:26px 0 14px;">sau intră direct:</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+          <tr>
+            <td style="border-radius:12px;background:#ffffff;">
+              <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 28px;font-size:14px;font-weight:700;color:#000000;text-decoration:none;">Intră în NightFeed</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding-top:24px;text-align:center;">
+        <p style="font-size:12px;color:rgba(255,255,255,0.3);margin:0;">
+          Dacă nu ai cerut tu acest cod, poți ignora emailul în siguranță.
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>
