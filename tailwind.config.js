@@ -4,15 +4,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // "sans" (font-sans) e utilitarul implicit de text din tot restul
-        // Landing/Auth — DM Sans, ca să fie identic cu textul de corp din
-        // restul aplicației (inline styles). "syne" (font-syne) e pentru
-        // titluri/accente, la fel ca fontFamily: "'Syne'" din componentele
-        // cu inline styles.
-        sans: ["'DM Sans'", "sans-serif"],
-        syne: ["'Syne'", "sans-serif"],
-        dm: ["'DM Sans'", "sans-serif"],
-        mono: ["'DM Mono'", "monospace"],
+        // Fontul de sistem peste tot (San Francisco pe iPhone, Segoe UI pe
+        // Windows) — aceeași stivă ca în inline styles din restul aplicației.
+        // "syne"/"dm" rămân ca alias-uri, ca să nu rupem clasele existente.
+        sans: ["-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "Roboto", "sans-serif"],
+        syne: ["-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "Roboto", "sans-serif"],
+        dm: ["-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "Roboto", "sans-serif"],
+        mono: ["ui-monospace", "'SF Mono'", "Menlo", "Monaco", "monospace"],
       },
       colors: {
         nf: {
