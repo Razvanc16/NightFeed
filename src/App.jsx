@@ -156,6 +156,23 @@ export default function App() {
   // Postează înainte să-și completeze profilul, deși aplicația presupune
   // peste tot că there's already un profil (nume afișat, avatar etc.).
   const [hasProfile, setHasProfile] = useState(null);
+
+  // Link partajat spre un eveniment: nightfeed.ro/e/<id>. Ținem id-ul și în
+  // sessionStorage, ca să supraviețuiască login-ului (inclusiv redirectului Google).
+  const [pendingEventId, setPendingEventId] = useState(() => {
+    const m = window.location.pathname.match(/^\/e\/([0-9a-f-]{36})/i);
+    try {
+      if (m) { sessionStorage.setItem("nf_pending_event", m[1]); return m[1]; }
+      return sessionStorage.getItem("nf_pending_event");
+    } catch { return m ? m[1] : null; }
+  });
+  const [sharedEvent, setSharedEvent] = useState(null);
+  const clearPendingEvent = () => {
+    setPendingEventId(null);
+    setSharedEvent(null);
+    try { sessionStorage.removeItem("nf_pending_event"); } catch { /* ignorăm */ }
+    if (window.location.pathname.startsWith("/e/")) window.history.replaceState(null, "", "/");
+  };
   useEffect(() => {
     if (!user) { setHasProfile(null); return; }
     let active = true;
@@ -732,6 +749,31 @@ export default function App() {
     }, 50);
   };
 
+  // Fără cont: arătăm pe landing o previzualizare a evenimentului primit.
+  useEffect(() => {
+    if (!pendingEventId || user) return;
+    supabase
+      .from("posted_events_feed")
+      .select("id,title,cover_url,event_date,venue,location_visible,type")
+      .eq("id", pendingEventId)
+      .maybeSingle()
+      .then(({ data }) => setSharedEvent(data || null));
+  }, [pendingEventId, user]);
+
+  // Cu cont: după ce s-a încărcat feed-ul, sărim direct la eveniment.
+  useEffect(() => {
+    if (!pendingEventId || !user || hasProfile === false) return;
+    const id = `posted_${pendingEventId}`;
+    const found = slides.some(sl => sl.type === "single" ? sl.event.id === id : sl.events.some(e => e.id === id));
+    if (!found) {
+      // Feed-ul e încărcat, dar evenimentul nu mai există (șters / expirat).
+      if (postedEvents.length > 0) clearPendingEvent();
+      return;
+    }
+    openEventFromNotification(id);
+    clearPendingEvent();
+  }, [pendingEventId, user, hasProfile, slides.length]);
+
   return (
     <>
       <style>{`
@@ -834,6 +876,7 @@ export default function App() {
                     style={{ position: "absolute", inset: 0 }}
                   >
                     <LandingPage
+                      sharedEvent={sharedEvent}
                       onNewUser={() => openAuthScreen("register")}
                       onExistingUser={() => openAuthScreen("login")}
                     />

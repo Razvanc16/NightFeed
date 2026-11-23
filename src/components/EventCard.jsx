@@ -522,10 +522,15 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
     e.stopPropagation();
     animateBtn("share");
     spawnBurst(e, "#fff");
+    // Link propriu al evenimentului — previzualizarea (poză, titlu, dată) e
+    // generată de api/event.js, iar la deschidere aplicația sare la el.
+    const rawId = String(event.id).replace(/^posted_/, "");
+    const url = `https://nightfeed.ro/e/${rawId}`;
+    const where = event.location_visible ? event.venue : "locația se află după ce ești acceptat";
     if (navigator.share) {
-      navigator.share({ title: event.title, text: `${event.title} — ${event.venue} · ${event.date}`, url: window.location.href }).catch(() => {});
+      navigator.share({ title: event.title, text: `${event.title} — ${event.date} · ${where}`, url }).catch(() => {});
     } else {
-      navigator.clipboard?.writeText(window.location.href);
+      navigator.clipboard?.writeText(url);
       showToast("Link copiat!", event.color);
     }
   };

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRightIcon } from "./Icons";
 import FeedPhoneMockup from "./FeedPhoneMockup";
+import { formatEventDateTime } from "../utils/eventTime";
 
 // Landing-ul — același limbaj vizual ca AuthPage: fundal aproape negru, un
 // singur glow discret, tipografie mare, buton principal alb plin. Fără card de
@@ -38,7 +39,41 @@ function Marquee() {
   );
 }
 
-export default function LandingPage({ onNewUser, onExistingUser }) {
+// Cardul evenimentului primit printr-un link nightfeed.ro/e/<id>, afișat
+// în locul mockup-ului de telefon pentru cine încă nu are cont.
+function SharedEventCard({ event }) {
+  const when = event.event_date ? formatEventDateTime(event.event_date) : "";
+  const where = event.location_visible ? event.venue : "Locația se află după ce ești acceptat";
+  const isVideo = /\.(mp4|mov|webm|m4v)(\?|$)/i.test(event.cover_url || "");
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.7, ease: EASE, delay: 0.1 }}
+      className="relative w-full max-w-[340px] overflow-hidden rounded-[24px] border border-solid border-white/10 bg-[#141418] shadow-[0_30px_80px_rgba(0,0,0,0.6)] lg:max-w-[400px]"
+    >
+      <div className="relative aspect-[4/3] w-full bg-[#1b1b20] max-lg:[@media(max-height:739px)]:aspect-[16/7]">
+        {event.cover_url && !isVideo && (
+          <img src={event.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        {event.cover_url && isVideo && (
+          <video src={event.cover_url} muted autoPlay loop playsInline className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        <div className="absolute inset-x-0 bottom-0 h-2/3" style={{ background: "linear-gradient(to top, #141418, transparent)" }} />
+      </div>
+      <div className="relative -mt-10 px-5 pb-5">
+        <span className="rounded-full bg-white/10 px-2.5 py-1 font-sans text-[11px] font-semibold text-white/80">
+          {event.type === "official" ? "Eveniment" : "Petrecere homemade"}
+        </span>
+        <div className="mt-2.5 font-sans text-[22px] font-extrabold leading-tight tracking-[-0.02em] text-white">{event.title}</div>
+        {when && <div className="mt-1.5 font-sans text-[14px] text-white/60">{when}</div>}
+        {where && <div className="mt-0.5 truncate font-sans text-[13px] text-white/40">{where}</div>}
+      </div>
+    </motion.div>
+  );
+}
+
+export default function LandingPage({ onNewUser, onExistingUser, sharedEvent }) {
   return (
     <div className="relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden bg-[#09090b]">
       <div
@@ -70,14 +105,16 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
       {/* Hero */}
       <main className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-stretch justify-center gap-4 px-6 py-4 md:px-10 lg:py-6 lg:flex-row lg:items-center lg:gap-16">
         {/* Mockup-ul de telefon — pe mobil deasupra textului, pe desktop în dreapta */}
-        <div className="flex items-center justify-center py-2 max-lg:[@media(max-height:739px)]:hidden lg:flex-1 lg:order-2">
+        <div className={`flex items-center justify-center py-2 lg:flex-1 lg:order-2 ${sharedEvent ? "" : "max-lg:[@media(max-height:739px)]:hidden"}`}>
           {/* Telefonul e desenat la 270px și scalat proporțional — așa textul din
               ecran rămâne în proporții corecte la orice mărime. */}
+          {sharedEvent ? <SharedEventCard event={sharedEvent} /> : (
           <div className="relative h-[250px] w-[120px] max-sm:[@media(min-height:860px)]:h-[332px] max-sm:[@media(min-height:860px)]:w-[159px] sm:h-[480px] sm:w-[230px] lg:h-[564px] lg:w-[270px]">
             <div className="absolute left-0 top-0 w-[270px] origin-top-left scale-[0.443] max-sm:[@media(min-height:860px)]:scale-[0.59] sm:scale-[0.852] lg:scale-100">
               <FeedPhoneMockup className="w-[270px]" />
             </div>
           </div>
+          )}
         </div>
 
         <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col lg:order-1 lg:max-w-[620px] lg:flex-[1.2]">
@@ -90,15 +127,18 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
               />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FF3366]" />
             </span>
-            Ce se întâmplă diseară în orașul tău
+            {sharedEvent ? "Ai primit o invitație pe NightFeed" : "Ce se întâmplă diseară în orașul tău"}
           </motion.div>
 
           <motion.h1
             variants={fadeUp}
             className="m-0 font-sans text-[44px] font-extrabold leading-[0.98] tracking-[-0.04em] text-white sm:text-[56px] lg:text-[64px] xl:text-[76px]"
           >
-            Orașul nu doarme.<br />
-            <span className="text-white/35">Nici feed-ul tău.</span>
+            {sharedEvent ? (
+              <>Hai și tu.<br /><span className="text-white/35">Intră ca să participi.</span></>
+            ) : (
+              <>Orașul nu doarme.<br /><span className="text-white/35">Nici feed-ul tău.</span></>
+            )}
           </motion.h1>
 
           <motion.p variants={fadeUp} className="m-0 mt-5 max-w-[440px] font-sans text-[16px] leading-relaxed text-white/55 lg:text-[18px]">

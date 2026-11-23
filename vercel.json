@@ -15,6 +15,12 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/e/:id",
+      "destination": "/api/event?id=:id"
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",
