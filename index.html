@@ -4,7 +4,62 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
-    <title>NightFeed</title>
+    <title>NightFeed — petreceri, cluburi și evenimente din orașul tău</title>
+    <meta name="description" content="NightFeed e feed-ul cu ce se întâmplă diseară în orașul tău: petreceri homemade, cluburi și evenimente. Ceri să participi direct de la organizator și intri cu cod QR." />
+    <meta name="application-name" content="NightFeed" />
+    <link rel="canonical" href="https://nightfeed.ro/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+
+    <!-- Previzualizare la share (WhatsApp, Instagram, Facebook, iMessage, X) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NightFeed" />
+    <meta property="og:locale" content="ro_RO" />
+    <meta property="og:url" content="https://nightfeed.ro/" />
+    <meta property="og:title" content="NightFeed — ce se întâmplă diseară în orașul tău" />
+    <meta property="og:description" content="Petreceri homemade, cluburi și evenimente într-un singur feed. Ceri să participi direct de la organizator și intri cu cod QR." />
+    <meta property="og:image" content="https://nightfeed.ro/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="NightFeed — Orașul nu doarme. Nici feed-ul tău." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NightFeed — ce se întâmplă diseară în orașul tău" />
+    <meta name="twitter:description" content="Petreceri homemade, cluburi și evenimente într-un singur feed." />
+    <meta name="twitter:image" content="https://nightfeed.ro/og-image.png" />
+
+    <!-- Date structurate: Google afișează numele site-ului și logo-ul corect în rezultate -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://nightfeed.ro/#website",
+            "name": "NightFeed",
+            "alternateName": ["Night Feed", "nightfeed.ro"],
+            "url": "https://nightfeed.ro/",
+            "inLanguage": "ro-RO"
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://nightfeed.ro/#organization",
+            "name": "NightFeed",
+            "url": "https://nightfeed.ro/",
+            "logo": "https://nightfeed.ro/icon-512.png",
+            "email": "contact@nightfeed.ro"
+          },
+          {
+            "@type": "WebApplication",
+            "name": "NightFeed",
+            "url": "https://nightfeed.ro/",
+            "applicationCategory": "SocialNetworkingApplication",
+            "operatingSystem": "iOS, Android, Web",
+            "inLanguage": "ro-RO",
+            "description": "Feed cu petreceri homemade, cluburi și evenimente din orașul tău.",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RON" }
+          }
+        ]
+      }
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <!-- PWA pe iOS: deschide de pe ecranul principal ca aplicație (fără bara Safari) -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -13,11 +68,19 @@
     <!-- Bara de status transparentă peste aplicație (fundal închis, text alb) — conținutul
          se ferește singur de ea prin env(safe-area-inset-top), folosit peste tot în app. -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="icon" href="/favicon-32.png" type="image/png" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   </head>
   <body>
     <div id="root"></div>
+    <!-- Text static pentru motoarele de căutare / fără JavaScript. React îl
+         înlocuiește imediat ce pornește aplicația (e în afara #root, dar ascuns). -->
+    <noscript>
+      <h1>NightFeed — Orașul nu doarme. Nici feed-ul tău.</h1>
+      <p>Petreceri homemade, cluburi și evenimente din orașul tău, într-un singur feed. Ceri să participi direct de la organizator și intri pe bază de cod QR.</p>
+      <p>Activează JavaScript ca să folosești NightFeed.</p>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
