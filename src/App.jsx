@@ -1,19 +1,20 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import EventCard from "./components/EventCard";
 import MiniEventCard from "./components/MiniEventCard";
 import Navbar from "./components/Navbar";
 import ProgressDots from "./components/ProgressDots";
 import ProfilePage from "./components/ProfilePage";
-import MapPage from "./components/MapPage";
+// Încărcat doar când e deschis (cod separat) — pornire mai rapidă.
+const MapPage = lazy(() => import("./components/MapPage"));
 import SplashScreen from "./components/SplashScreen";
 import AuthPage from "./components/AuthPage";
 import LandingPage from "./components/LandingPage";
 import NotificationsPage from "./components/NotificationsPage";
-import SearchPage from "./components/SearchPage";
-import PublicProfilePage from "./components/PublicProfilePage";
+const SearchPage = lazy(() => import("./components/SearchPage"));
+const PublicProfilePage = lazy(() => import("./components/PublicProfilePage"));
 import ResetPasswordPage from "./components/ResetPasswordPage";
-import PostPage from "./components/PostPage";
+const PostPage = lazy(() => import("./components/PostPage"));
 import CommentsSheet from "./components/CommentsSheet";
 import EventPeopleSheet from "./components/EventPeopleSheet";
 import InstallPrompt from "./components/InstallPrompt";
@@ -263,6 +264,8 @@ export default function App() {
   // Căutarea nu mai are tab propriu în bara de jos (înlocuit de Hartă/Notificări)
   // — rămâne accesibilă ca overlay, dintr-o iconiță pe Feed.
   const [showSearch, setShowSearch] = useState(false);
+  // Harta (Google Maps) se montează abia la prima vizită pe tab, apoi rămâne montată.
+  const [mapVisited, setMapVisited] = useState(false);
   const [commentsEvent, setCommentsEvent] = useState(null);
   const [commentsHighlightId, setCommentsHighlightId] = useState(null);
   const [likesSheetEventId, setLikesSheetEventId] = useState(null);
@@ -775,6 +778,8 @@ export default function App() {
     clearPendingEvent();
   }, [pendingEventId, user, hasProfile, slides.length]);
 
+  useEffect(() => { if (activeTab === "map") setMapVisited(true); }, [activeTab]);
+
   return (
     <>
       <style>{`
@@ -910,7 +915,7 @@ export default function App() {
           {showPost && (
             <div style={{ position: "fixed", ...tabWrapStyle, zIndex: 20, animation: "slideUp 0.3s ease-out" }}>
               {user
-                ? <PostPage user={user} onClose={() => { setShowPost(false); loadPostedEvents(); }} />
+                ? <Suspense fallback={null}><PostPage user={user} onClose={() => { setShowPost(false); loadPostedEvents(); }} /></Suspense>
                 : <AuthPage onAuth={(u) => setUser(u)} />
               }
             </div>
@@ -919,6 +924,7 @@ export default function App() {
           {/* PUBLIC PROFILE — overlay peste tot când vizitezi profilul cuiva */}
           {viewingProfile && (
             <div style={{ position: "fixed", inset: 0, zIndex: 9996, background: "#080808", animation: "pageSlideInRight 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+              <Suspense fallback={null}>
               <PublicProfilePage
                 profileUserId={viewingProfile}
                 currentUser={user}
@@ -926,6 +932,7 @@ export default function App() {
                 onOpenEvent={(event) => { setViewingProfile(null); openSpecificEvent(event); }}
                 onViewProfile={(uid) => setViewingProfile(uid)}
               />
+              </Suspense>
             </div>
           )}
 
@@ -933,11 +940,13 @@ export default function App() {
               Căutarea nu mai are tab propriu în bara de jos (înlocuit de Hartă/Notificări). */}
           {showSearch && (
             <div style={{ position: "fixed", inset: 0, zIndex: 9995, background: "#080808", animation: "pageSlideInRight 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+              <Suspense fallback={null}>
               <SearchPage
                 onOpenEvent={(event) => { setShowSearch(false); openSpecificEvent(event); }}
                 onViewProfile={(uid) => { setShowSearch(false); setViewingProfile(uid); }}
                 onClose={() => setShowSearch(false)}
               />
+              </Suspense>
             </div>
           )}
 
@@ -947,7 +956,7 @@ export default function App() {
               internet, reconstruia toate marker-ele), ceea ce o făcea să se simtă
               foarte lentă. Exact ca la Feed, care are același tipar. */}
           <div style={{ display: activeTab === "map" ? "block" : "none", position: "fixed", ...tabWrapStyle, zIndex: 10, animation: activeTab === "map" ? `${tabDirection >= 0 ? "tabSlideFromRight" : "tabSlideFromLeft"} 0.35s cubic-bezier(0.16,1,0.3,1)` : "none" }}>
-            <MapPage user={user} isActive={activeTab === "map"} focusTarget={mapFocus} onViewProfile={(uid) => setViewingProfile(uid)} onDragging={setNavHidden} />
+            {mapVisited && <Suspense fallback={null}><MapPage user={user} isActive={activeTab === "map"} focusTarget={mapFocus} onViewProfile={(uid) => setViewingProfile(uid)} onDragging={setNavHidden} /></Suspense>}
           </div>
 
           {/* NOTIFICATIONS PAGE */}

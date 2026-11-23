@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../supabase";
 import { events as staticEvents } from "../data/events";
-import PostPage from "./PostPage";
+const PostPage = lazy(() => import("./PostPage"));
 import RequestsPage from "./RequestsPage";
 import FollowListSheet from "./FollowListSheet";
 import LegalPage from "./LegalPage";
 import SettingsPage from "./SettingsPage";
-import AdminPage from "./AdminPage";
+const AdminPage = lazy(() => import("./AdminPage"));
 import { ADMIN_EMAILS } from "../utils/admin";
 import AvatarCropSheet from "./AvatarCropSheet";
 import PhotoViewerModal from "./PhotoViewerModal";
 import MyTicketsPage, { TicketQR } from "./MyTicketsPage";
-import CheckinScannerSheet from "./CheckinScannerSheet";
+const CheckinScannerSheet = lazy(() => import("./CheckinScannerSheet"));
 import EventInsightsModal from "./EventInsightsModal";
 import MyHistoryPage from "./MyHistoryPage";
 import { filterActiveEvents, dropExpiredEvents, cleanupOwnExpiredEvents, formatPrice } from "../utils/eventTime";
@@ -1236,12 +1236,12 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       )}
 
       {showAdmin && createPortal(
-        <AdminPage
+        <Suspense fallback={null}><AdminPage
           onClose={() => { setShowAdmin(false); setAdminInitial(null); }}
           initialTab={adminInitial?.tab}
           initialNavState={adminInitial?.navState}
           currentUser={user}
-        />,
+        /></Suspense>,
         document.body
       )}
 
@@ -1253,7 +1253,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
       {showOwnPhoto && createPortal(<PhotoViewerModal src={profile?.avatar_url} onClose={() => setShowOwnPhoto(false)} />, document.body)}
 
-      {scannerEvent && createPortal(<CheckinScannerSheet event={scannerEvent} onClose={() => setScannerEvent(null)} />, document.body)}
+      {scannerEvent && createPortal(<Suspense fallback={null}><CheckinScannerSheet event={scannerEvent} onClose={() => setScannerEvent(null)} /></Suspense>, document.body)}
 
       {infoEvent && createPortal(
         <EventInsightsModal
@@ -1336,7 +1336,7 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
 
       {editingEvent && (
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "#080808", animation: "tabEnter 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
-          <PostPage user={user} editEvent={editingEvent} onClose={() => { setEditingEvent(null); loadMyPostedEvents(); }} />
+          <Suspense fallback={null}><PostPage user={user} editEvent={editingEvent} onClose={() => { setEditingEvent(null); loadMyPostedEvents(); }} /></Suspense>
         </div>
       )}
     </div>
