@@ -82,7 +82,7 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
       {!isDesktopNav && (
         <div style={{
           position: "absolute", top: 6, bottom: 6, left: indicator.left, width: indicator.width,
-          borderRadius: 19, background: "rgba(255,51,102,0.22)", border: "1px solid rgba(255,51,102,0.4)",
+          borderRadius: 19, background: "rgba(255,255,255,0.14)",
           opacity: indicator.ready ? 1 : 0,
           // cubic-bezier "ease-out" simplu, fără elastic/overshoot — cel de
           // dinainte (1.56 pe Y) depășea ținta pentru o clipă, iar la o
@@ -105,7 +105,7 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
             aria-label={tab.label}
             style={isDesktopNav ? {
               position: "relative",
-              background: isPost ? "linear-gradient(135deg, #FF3366, #FF6B35)" : "none",
+              background: isPost ? "#fff" : "none",
               border: "none",
               cursor: "pointer",
               display: "flex",
@@ -124,7 +124,7 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
               // "pilulă" al tab-ului activ e desenat separat, ca indicator
               // care alunecă (vezi mai sus), nu direct pe buton.
               position: "relative",
-              background: isPost ? "linear-gradient(135deg, #FF3366, #FF6B35)" : "transparent",
+              background: isPost ? "#fff" : "transparent",
               border: "none",
               cursor: "pointer",
               display: "flex",
@@ -149,10 +149,10 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
                 justifyContent: "center",
                 fontSize: isPost ? (isDesktopNav ? 22 : 20) : 18,
                 color: isPost
-                  ? "#fff"
+                  ? "#000"
                   : isActive
-                  ? "#FF3366"
-                  : "rgba(255,255,255,0.65)",
+                  ? "#fff"
+                  : "rgba(255,255,255,0.55)",
                 transition: "color 0.25s, transform 0.25s cubic-bezier(0.16,1,0.3,1)",
                 transform: isActive && !isPost ? "scale(1.1)" : "none",
                 lineHeight: 1,
@@ -160,7 +160,7 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
             >
               <tab.icon size={isPost ? (isDesktopNav ? 22 : 21) : isDesktopNav ? 18 : 19} />
               {!!badges[tab.id] && (
-                <span style={{ position: "absolute", top: -6, right: -9, minWidth: 17, height: 17, padding: "0 3px", borderRadius: 9, background: "#FF3366", border: "1.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 800, color: "#fff", lineHeight: 1, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
+                <span style={{ position: "absolute", top: -6, right: -9, minWidth: 17, height: 17, padding: "0 3px", borderRadius: 9, background: "#FF3366", border: "1.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9.5, fontWeight: 800, color: "#fff", lineHeight: 1, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
                   {badges[tab.id] > 9 ? "9+" : badges[tab.id]}
                 </span>
               )}
@@ -173,9 +173,9 @@ export default function Navbar({ active, onChange, badges = {}, hidden = false }
                   position: "relative",
                   zIndex: 1,
                   fontSize: 10,
-                  color: isActive ? "#FF3366" : "rgba(255,255,255,0.55)",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.5)",
                   fontWeight: isActive ? 700 : 500,
-                  fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
+                  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                   letterSpacing: "0.05em",
                   transition: "color 0.25s",
                 }}

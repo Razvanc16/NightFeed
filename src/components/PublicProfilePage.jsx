@@ -137,7 +137,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
       <div style={{ padding: "24px 20px 0", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
         <div
           onClick={() => profile?.avatar_url && setShowPhoto(true)}
-          style={{ width: 96, height: 96, borderRadius: "50%", overflow: "hidden", border: "2px solid rgba(255,51,102,0.4)", background: profile?.avatar_url ? "transparent" : "linear-gradient(135deg, #FF3366, #B44FFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, fontWeight: 800, color: "#fff", marginBottom: 14, cursor: profile?.avatar_url ? "pointer" : "default" }}
+          style={{ width: 96, height: 96, borderRadius: "50%", overflow: "hidden", border: "2px solid rgba(255,51,102,0.4)", background: profile?.avatar_url ? "transparent" : "#26262c", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, fontWeight: 800, color: "#fff", marginBottom: 14, cursor: profile?.avatar_url ? "pointer" : "default" }}
         >
           {profile?.avatar_url ? <img src={profile.avatar_url} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : displayName.charAt(0).toUpperCase()}
         </div>
@@ -149,15 +149,15 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
         <div style={{ display: "flex", gap: 28, marginTop: 20, marginBottom: 20 }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{events.length}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase" }}>Evenimente</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", }}>Evenimente</div>
           </div>
           <button onClick={() => setFollowSheet("followers")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{followers}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase" }}>Urmăritori</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", }}>Urmăritori</div>
           </button>
           <button onClick={() => setFollowSheet("following")} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "center", padding: 0 }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{following}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase" }}>Urmărește</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", }}>Urmărește</div>
           </button>
         </div>
 
@@ -167,7 +167,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
             width: "100%", maxWidth: 300, padding: "13px", borderRadius: 30, cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             border: isFollowing ? "1px solid rgba(255,255,255,0.2)" : "none",
-            background: isFollowing ? "rgba(255,255,255,0.06)" : "linear-gradient(120deg, #FF3366, #B44FFF)",
+            background: isFollowing ? "rgba(255,255,255,0.06)" : "#FF3366",
             color: "#fff", fontSize: 15, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             boxShadow: isFollowing ? "none" : "0 6px 24px rgba(255,51,102,0.35)",
           }}>
@@ -178,7 +178,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
 
       {/* Evenimentele organizatorului */}
       <div style={{ padding: "30px 20px 0" }}>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 14 }}>
           Evenimentele lui {profile?.prenume || displayName}
         </div>
         {events.length === 0 ? (
@@ -195,7 +195,7 @@ export default function PublicProfilePage({ profileUserId, currentUser, onBack, 
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{event.title}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 2 }}>
                     {event.location_visible ? event.venue : "Zonă aproximativă"} · {event.date}
                   </div>
                 </div>

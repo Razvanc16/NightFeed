@@ -13,10 +13,10 @@ export default function SplashScreen({ onDone }) {
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       r: Math.random() * 2.5 + 0.5,
-      color: ["#FF3366", "#FF6B35", "#B44FFF", "#00E5FF", "#FFB800"][Math.floor(Math.random() * 5)],
+      color: "#ffffff",
       vx: (Math.random() - 0.5) * 0.8,
       vy: (Math.random() - 0.5) * 0.8,
-      alpha: Math.random() * 0.7 + 0.3,
+      alpha: Math.random() * 0.25 + 0.05,
     }));
 
     let frame;
@@ -88,14 +88,11 @@ export default function SplashScreen({ onDone }) {
         {/* Icon */}
         <div style={{
           width: 80, height: 80, borderRadius: 24,
-          background: "linear-gradient(135deg, #FF3366, #FF6B35)",
+          overflow: "hidden",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 0 60px rgba(255,51,102,0.5)",
           animation: "popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both",
         }}>
-          <svg width="38" height="38" viewBox="0 0 24 24" fill="white">
-            <path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5a6.5 6.5 0 0 0 10 10z" />
-          </svg>
+          <img src="/icon-512.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 
         {/* Name */}
@@ -112,9 +109,9 @@ export default function SplashScreen({ onDone }) {
         {/* Tagline */}
         <div style={{
           fontSize: 13, color: "rgba(255,255,255,0.45)",
-          fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           letterSpacing: "0.15em",
-          textTransform: "uppercase",
+          
           animation: "slideUpFade 0.5s ease-out 0.7s both",
         }}>
         </div>

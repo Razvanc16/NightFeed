@@ -562,26 +562,16 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile, on
         <div style={{ position: "absolute", inset: 0, zIndex: 50, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: 24, textAlign: "center", background: "#050506" }}>
           <MapIcon size={32} style={{ color: "rgba(255,255,255,0.3)" }} />
           <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Harta nu s-a putut încărca</div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", maxWidth: 280 }}>{mapsError}</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", maxWidth: 280 }}>{mapsError}</div>
         </div>
       )}
-
-      {/* Ambient "lumini de club" — foarte discret, doar ca să dea o notă de petrecere fără să lumineze harta */}
-      <div style={{
-        position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
-        background: `
-          radial-gradient(circle at 12% 15%, rgba(255,51,102,0.14) 0%, transparent 32%),
-          radial-gradient(circle at 88% 10%, rgba(180,79,255,0.13) 0%, transparent 32%),
-          radial-gradient(circle at 50% 95%, rgba(0,229,255,0.10) 0%, transparent 38%)
-        `,
-      }} />
 
       {/* Filter chips — pot fi combinate (ex: Oficial + Gratuit), nu doar unul */}
       <div style={{ position: "absolute", top: 16, left: 0, right: 0, display: "flex", gap: 6, padding: "0 12px", overflowX: "auto", zIndex: 500, scrollbarWidth: "none" }}>
         {filters.map(f => {
           const selected = f.id === "all" ? activeFilters.size === 0 : activeFilters.has(f.id);
           return (
-            <button key={f.id} onClick={() => toggleFilter(f.id)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 20, background: selected ? "rgba(255,51,102,0.9)" : "rgba(8,8,10,0.92)", border: `1px solid ${selected ? "#FF3366" : "rgba(255,255,255,0.25)"}`, color: selected ? "#fff" : "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5, transition: "all 0.2s", boxShadow: selected ? "0 0 16px rgba(255,51,102,0.5)" : "none" }}>
+            <button key={f.id} onClick={() => toggleFilter(f.id)} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 20, background: selected ? "rgba(255,51,102,0.9)" : "rgba(8,8,10,0.92)", border: `1px solid ${selected ? "#FF3366" : "rgba(255,255,255,0.25)"}`, color: selected ? "#fff" : "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", gap: 5, transition: "all 0.2s", boxShadow: selected ? "0 0 16px rgba(255,51,102,0.5)" : "none" }}>
               <f.icon size={13} /> {f.label}
             </button>
           );
@@ -616,11 +606,11 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile, on
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: selectedEvent.color, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: selectedEvent.color, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", }}>
                   {selectedEvent.type === "official" ? <><LightningIcon size={11} /> Oficial</> : <><HouseIcon size={11} /> Homemade</>}
                 </div>
                 {selectedEvent.age_restricted && (
-                  <span style={{ fontSize: 10, fontWeight: 800, color: "#FF3366", background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.5)", borderRadius: 10, padding: "1px 6px", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>18+</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: "#FF3366", background: "rgba(255,51,102,0.2)", border: "1px solid rgba(255,51,102,0.5)", borderRadius: 10, padding: "1px 6px", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>18+</span>
                 )}
               </div>
               <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{selectedEvent.title}</div>
@@ -628,19 +618,19 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile, on
           </div>
 
           <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}><ClockIcon size={13} /> {selectedEvent.date}</span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}><ClockIcon size={13} /> {selectedEvent.date}</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
               <PinIcon size={13} />
               {canSeeExactAddress(selectedEvent) ? selectedEvent.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
             </span>
-            <span style={{ fontSize: 12, color: selectedEvent.color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", fontWeight: 700 }}>{formatPrice(selectedEvent.price)}</span>
+            <span style={{ fontSize: 12, color: selectedEvent.color, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: 700 }}>{formatPrice(selectedEvent.price)}</span>
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
             {selectedEvent.hostId && user && selectedEvent.hostId === user.id ? (
               // E propriul tău eveniment — n-are sens să "participi" la el, arătăm
               // în schimb statisticile (aprecieri/participanți).
-              <button onClick={() => setInsightsEvent(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: "none", borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
+              <button onClick={() => setInsightsEvent(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `${selectedEvent.color}`, border: "none", borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                 <InfoIcon size={15} /> Insights
               </button>
             ) : selectedEvent.isHomemade && !selectedEvent.location_visible ? (
@@ -669,13 +659,13 @@ export default function MapPage({ user, isActive, focusTarget, onViewProfile, on
                   );
                 }
                 return (
-                  <button onClick={() => handleJoinRequest(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: "none", borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
+                  <button onClick={() => handleJoinRequest(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: `${selectedEvent.color}`, border: "none", borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                     <LockIcon size={15} /> Cer să particip
                   </button>
                 );
               })()
             ) : (
-              <button onClick={() => handleAttend(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: attending[selectedEvent.id] ? `${selectedEvent.color}35` : `linear-gradient(135deg, ${selectedEvent.color}, ${selectedEvent.color}cc)`, border: `1px solid ${attending[selectedEvent.id] ? selectedEvent.color : "transparent"}`, borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
+              <button onClick={() => handleAttend(selectedEvent)} style={{ flex: 2, padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: attending[selectedEvent.id] ? `${selectedEvent.color}35` : `${selectedEvent.color}`, border: `1px solid ${attending[selectedEvent.id] ? selectedEvent.color : "transparent"}`, borderRadius: 12, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                 {attending[selectedEvent.id] ? <><CheckCircleIcon size={15} /> Participi</> : <><PlusIcon size={15} /> Particip</>}
               </button>
             )}

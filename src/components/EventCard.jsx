@@ -665,7 +665,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
 
       {event.age_restricted && (
         <div style={{ position: "absolute", top: 20, right: 16, padding: "4px 10px", borderRadius: 20, background: "rgba(255,51,102,0.25)", border: "1px solid rgba(255,51,102,0.6)", backdropFilter: "blur(10px)" }}>
-          <span style={{ fontSize: 11, fontWeight: 800, color: "#FF3366", letterSpacing: "0.05em", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>18+</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: "#FF3366", letterSpacing: "0.05em", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>18+</span>
         </div>
       )}
 
@@ -678,10 +678,10 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             onClick={() => { if (event.organizer_id && onViewProfile) onViewProfile(event.organizer_id); }}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: event.organizer_id ? "pointer" : "default", minWidth: 0 }}
           >
-            <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: event.organizer_avatar ? "transparent" : `${event.color}30`, border: `1px solid ${event.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: event.color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
+            <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: event.organizer_avatar ? "transparent" : `${event.color}30`, border: `1px solid ${event.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: event.color, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
               {event.organizer_avatar ? <img src={event.organizer_avatar} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (event.organizer || "?").charAt(0).toUpperCase()}
             </div>
-            <span style={{ fontSize: 11, color: event.color, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", opacity: 0.9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span style={{ fontSize: 11, color: event.color, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", opacity: 0.9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {event.organizer}{event.organizer_id && " ›"}
             </span>
           </div>
@@ -703,21 +703,21 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
           <span
             onClick={(e) => { if (onOpenLocation) { e.stopPropagation(); onOpenLocation(event); } }}
-            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: onOpenLocation ? "pointer" : "default" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: onOpenLocation ? "pointer" : "default" }}
           >
             <PinIcon size={13} />
             {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
           </span>
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>·</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}><ClockIcon size={13} /> {event.date}</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}><ClockIcon size={13} /> {event.date}</span>
         </div>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, margin: 0, marginBottom: 12 }}>{event.description}</p>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{formatPrice(event.price)}</span>
+          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{formatPrice(event.price)}</span>
           {event.code && (
             <span
               onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(event.code); showToast("Cod copiat!", "#00C864"); }}
-              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+              style={{ fontSize: 11, padding: "3px 10px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
               title="Apasă pentru a copia codul"
             >
               <KeyIcon size={12} /> {event.code}
@@ -731,7 +731,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           {/* Panou stânga — organizator, în golul dintre sidebar și card */}
           <div style={{ position: "fixed", top: "50%", left: DESKTOP_SIDEBAR_WIDTH + 24, transform: "translateY(-50%)", width: 220, zIndex: 55, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center" }}>
             {event.type === "official" && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 12, background: `${event.color}20`, color: event.color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 12, background: `${event.color}20`, color: event.color, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
                 <LightningIcon size={11} /> Oficial
               </span>
             )}
@@ -770,24 +770,24 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
               <span
                 onClick={() => onOpenLocation && onOpenLocation(event)}
-                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: onOpenLocation ? "pointer" : "default" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: onOpenLocation ? "pointer" : "default" }}
               >
                 <PinIcon size={13} />
                 {event.location_visible ? event.venue : <>Zonă aproximativă <LockIcon size={12} /></>}
               </span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 14 }}>
               <ClockIcon size={13} /> {event.date}
             </div>
             {event.description && (
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, margin: 0, marginBottom: 14 }}>{event.description}</p>
             )}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{formatPrice(event.price)}</span>
+              <span style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: `${event.color}25`, color: event.color, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{formatPrice(event.price)}</span>
               {event.code && (
                 <span
                   onClick={() => { navigator.clipboard?.writeText(event.code); showToast("Cod copiat!", "#00C864"); }}
-                  style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", letterSpacing: "0.1em", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
+                  style={{ fontSize: 12, padding: "4px 11px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", letterSpacing: "0.1em", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
                   title="Apasă pentru a copia codul"
                 >
                   <KeyIcon size={12} /> {event.code}
@@ -809,7 +809,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
               {btn.icon}
             </div>
             {btn.label && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: btn.active ? event.color : "rgba(255,255,255,0.55)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", transition: "color 0.2s" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: btn.active ? event.color : "rgba(255,255,255,0.55)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", transition: "color 0.2s" }}>
                 {btn.label}
               </span>
             )}
@@ -887,7 +887,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           </button>
         </div>
 
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 12, background: event.type === "official" ? `${event.color}25` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "50" : "rgba(255,255,255,0.15)"}`, color: event.type === "official" ? event.color : "rgba(255,255,255,0.75)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 8, marginBottom: 16 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 12, background: event.type === "official" ? `${event.color}25` : "rgba(255,255,255,0.1)", border: `1px solid ${event.type === "official" ? event.color + "50" : "rgba(255,255,255,0.15)"}`, color: event.type === "official" ? event.color : "rgba(255,255,255,0.75)", fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 8, marginBottom: 16 }}>
           {event.type === "official" ? <LightningIcon size={11} /> : <HouseIcon size={11} />}
           {event.type === "official" ? "Oficial" : "Neoficial"}
         </span>
@@ -900,7 +900,7 @@ export default function EventCard({ event, isActive, user, onComment, onViewProf
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             <ClockIcon size={14} style={{ flexShrink: 0, color: "rgba(255,255,255,0.4)" }} /> {event.date}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: event.color, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: event.color, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             {formatPrice(event.price)}
           </div>
         </div>

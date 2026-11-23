@@ -111,9 +111,9 @@ export default function CheckinScannerSheet({ event, onClose }) {
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, padding: "calc(50px + env(safe-area-inset-top, 0px)) 20px 16px", background: "linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Scanează bilete</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{event.title}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 2 }}>{event.title}</div>
         </div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 10, padding: "7px 12px", color: "#fff", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 10, padding: "7px 12px", color: "#fff", fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
           Închide
         </button>
       </div>

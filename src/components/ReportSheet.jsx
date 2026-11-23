@@ -98,7 +98,7 @@ export default function ReportSheet({ event, reportedUser, user, open, onClose }
               <span style={{ color: "#FFB800" }}><WarningIcon size={18} /></span>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{isUserReport ? "Raportează utilizator" : "Raportează"}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{isUserReport ? reportedUser.name : event.title}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{isUserReport ? reportedUser.name : event.title}</div>
               </div>
             </div>
 
@@ -115,7 +115,7 @@ export default function ReportSheet({ event, reportedUser, user, open, onClose }
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Detalii (opțional)</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 8, }}>Detalii (opțional)</div>
               <textarea
                 placeholder="Orice detaliu care ne ajută să înțelegem situația..."
                 value={details}

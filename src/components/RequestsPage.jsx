@@ -137,7 +137,7 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
     };
     const s = map[status] || map.pending;
     return (
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 20, background: s.bg, color: s.color, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", fontWeight: 700 }}>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 10px", borderRadius: 20, background: s.bg, color: s.color, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", fontWeight: 700 }}>
         <s.Icon size={12} /> {s.label}
       </span>
     );
@@ -164,12 +164,12 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
           <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
             Cereri participare
             {pendingCount > 0 && (
-              <span style={{ marginLeft: 8, background: "#FF3366", color: "#fff", fontSize: 11, borderRadius: 20, padding: "2px 8px", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{pendingCount}</span>
+              <span style={{ marginLeft: 8, background: "#FF3366", color: "#fff", fontSize: 11, borderRadius: 20, padding: "2px 8px", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{pendingCount}</span>
             )}
           </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 3 }}>Gestionează accesul la evenimentele tale</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 3 }}>Gestionează accesul la evenimentele tale</div>
         </div>
-        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
           Înapoi
         </button>
       </div>
@@ -180,7 +180,7 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
           { id: "incoming", label: "Primite", count: pendingCount },
           { id: "outgoing", label: "Trimise", count: 0 },
         ].map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ flex: 1, padding: "10px", borderRadius: 12, border: `1px solid ${activeTab === tab.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.08)"}`, background: activeTab === tab.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)", cursor: "pointer", color: activeTab === tab.id ? "#FF3366" : "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ flex: 1, padding: "10px", borderRadius: 12, border: `1px solid ${activeTab === tab.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.08)"}`, background: activeTab === tab.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)", cursor: "pointer", color: activeTab === tab.id ? "#FF3366" : "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             {tab.label}
             {tab.count > 0 && <span style={{ background: "#FF3366", color: "#fff", fontSize: 10, borderRadius: 20, padding: "1px 6px" }}>{tab.count}</span>}
           </button>
@@ -205,7 +205,7 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
                 border: `1px solid ${statusFilter === f.id ? "rgba(255,51,102,0.5)" : "rgba(255,255,255,0.08)"}`,
                 background: statusFilter === f.id ? "rgba(255,51,102,0.15)" : "rgba(255,255,255,0.04)",
                 color: statusFilter === f.id ? "#FF3366" : "rgba(255,255,255,0.4)",
-                fontSize: 12, fontWeight: 700, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
+                fontSize: 12, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               }}
             >
               {f.label}
@@ -256,7 +256,7 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
                     {req.requester_username || "Utilizator"}
                     {req.requester_profile?.varsta && <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400 }}> · {req.requester_profile.varsta} ani</span>}
                   </div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 2 }}>
                     vrea să participe la <span style={{ color: "#FF3366" }}>{req.posted_events?.title}</span>
                   </div>
                   {req.requester_profile?.hobby && (
@@ -264,12 +264,12 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
                   )}
                   {req.requester_profile?.prompt_answer && (
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8, borderLeft: "2px solid rgba(255,184,0,0.4)" }}>
-                      <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>Caută</span><br />
+                      <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Caută</span><br />
                       {req.requester_profile.prompt_answer}
                     </div>
                   )}
                   {req.requester_profile?.instagram && (
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 4 }}>@{req.requester_profile.instagram.replace(/^@/, "")}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 4 }}>@{req.requester_profile.instagram.replace(/^@/, "")}</div>
                   )}
                   {req.message && (
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 6, padding: "6px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8, borderLeft: "2px solid rgba(255,51,102,0.4)" }}>
@@ -315,7 +315,7 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{req.posted_events?.title}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{req.posted_events?.date}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 2 }}>{req.posted_events?.date}</div>
                   <div style={{ marginTop: 6 }}>{statusBadge(req.status)}</div>
                 </div>
               </div>
@@ -328,10 +328,10 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
 
               {req.status === "accepted" && req.posted_events?.venue && (
                 <div style={{ marginTop: 10, padding: "10px 14px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.2)", borderRadius: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00C864", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 4, fontWeight: 700 }}><PinIcon size={12} /> ADRESĂ EXACTĂ</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00C864", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4, fontWeight: 700 }}><PinIcon size={12} /> ADRESĂ EXACTĂ</div>
                   <div style={{ fontSize: 14, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{req.posted_events.venue}</div>
                   {req.posted_events.lat && (
-                    <button onClick={() => { window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${req.posted_events.lat},${req.posted_events.lng}`; }} style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "rgba(0,200,100,0.2)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, padding: "6px 12px", color: "#00C864", fontSize: 12, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
+                    <button onClick={() => { window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${req.posted_events.lat},${req.posted_events.lng}`; }} style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "rgba(0,200,100,0.2)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 8, padding: "6px 12px", color: "#00C864", fontSize: 12, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
                       <MapIcon size={13} /> Navighez
                     </button>
                   )}
@@ -352,7 +352,7 @@ export default function RequestsPage({ user, onClose, initialEventId, initialTab
         <div onClick={() => setOpenTicket(null)} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, animation: "backdropIn 0.2s ease-out" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "#0f0f12", borderRadius: 24, padding: "24px", width: "100%", maxWidth: 320, textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", animation: "modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4 }}>{openTicket.posted_events?.title}</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 20 }}>Arată codul la intrare</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 20 }}>Arată codul la intrare</div>
 
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <TicketQR token={openTicket.checkin.token} />

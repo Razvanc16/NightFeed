@@ -972,14 +972,14 @@ export default function App() {
                   width: 42, height: 42, borderRadius: "50%", position: "relative",
                   background: "rgba(10,10,12,0.9)", border: "1px solid rgba(255,255,255,0.1)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 4px 20px rgba(255,51,102,0.25)",
+                  boxShadow: "none",
                   animation: !refreshing && pullDistance >= PULL_THRESHOLD ? "ptrPop 0.4s ease-out" : "none",
                 }}>
                   <svg width="42" height="42" viewBox="0 0 42 42" style={{ position: "absolute", inset: 0, animation: refreshing ? "ptrSpin 0.9s linear infinite" : "none" }}>
                     <defs>
                       <linearGradient id="ptrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor="#FF3366" />
-                        <stop offset="100%" stopColor="#B44FFF" />
+                        <stop offset="100%" stopColor="#FF3366" />
                       </linearGradient>
                     </defs>
                     <circle cx="21" cy="21" r="17" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
@@ -1011,7 +1011,7 @@ export default function App() {
                   width: 42, height: 42, borderRadius: "50%", position: "relative",
                   background: "rgba(10,10,12,0.9)", border: "1px solid rgba(255,255,255,0.1)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 4px 20px rgba(180,79,255,0.25)",
+                  boxShadow: "none",
                   animation: endPull >= END_PULL_MAX * 0.9 ? "ptrPop 0.4s ease-out" : "none",
                 }}>
                   <div style={{
@@ -1023,7 +1023,7 @@ export default function App() {
                   </div>
                 </div>
                 <div style={{
-                  fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace",
+                  fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                   letterSpacing: "0.02em", textAlign: "center",
                 }}>
                   Asta e tot pentru acum
@@ -1041,9 +1041,6 @@ export default function App() {
             }}>
               {filtered.length === 0 ? (
                 <div style={{ height: "100%", position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px", textAlign: "center", overflow: "hidden" }}>
-                  {/* Orbi subtili în fundal, ca pe landing */}
-                  <div style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", top: "20%", left: "-60px", background: "radial-gradient(circle, rgba(255,51,102,0.25), transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
-                  <div style={{ position: "absolute", width: 320, height: 320, borderRadius: "50%", bottom: "15%", right: "-80px", background: "radial-gradient(circle, rgba(180,79,255,0.22), transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
 
                   <div style={{ position: "relative", zIndex: 2 }}>
                     <div style={{
@@ -1061,9 +1058,9 @@ export default function App() {
                     </div>
                     <button onClick={() => setShowPost(true)} style={{
                       padding: "14px 28px", borderRadius: 30, border: "none", cursor: "pointer",
-                      background: "linear-gradient(120deg, #FF3366, #B44FFF)", color: "#fff",
+                      background: "#FF3366", color: "#fff",
                       fontSize: 15, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                      boxShadow: "0 8px 30px rgba(255,51,102,0.35)",
+                      boxShadow: "none",
                     }}>
                       + Postează primul eveniment
                     </button>
@@ -1125,11 +1122,11 @@ export default function App() {
                 position: "relative", overflow: "hidden", display: "flex", alignItems: "center", gap: 10,
                 background: "rgba(15,15,18,0.97)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16,
                 padding: "12px 14px", backdropFilter: "blur(20px)",
-                animation: notifToastShow ? "toastGlow 2.2s ease-in-out infinite" : "none",
+                animation: "none",
               }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: "50%", overflow: "hidden",
-                  background: notifToast.avatarUrl ? "transparent" : "linear-gradient(135deg, #FF3366, #B44FFF)",
+                  background: notifToast.avatarUrl ? "transparent" : "#26262c",
                   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff",
                   animation: notifToastShow ? "toastIconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s both" : "none",
                 }}>
@@ -1143,7 +1140,7 @@ export default function App() {
                 </div>
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "rgba(255,255,255,0.06)" }}>
                   <div style={{
-                    height: "100%", background: "linear-gradient(90deg, #FF3366, #B44FFF)",
+                    height: "100%", background: "#FF3366",
                     width: notifToastShow ? "0%" : "100%",
                     transition: notifToastShow ? "width 4s linear" : "none",
                   }} />

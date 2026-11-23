@@ -54,7 +54,7 @@ const StatCard = ({ label, value, sub, accent, i, onClick }) => (
     onClick={onClick}
     style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 18px", cursor: onClick ? "pointer" : "default", transition: "background 0.15s" }}
   >
-    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{label}</div>
+    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 6 }}>{label}</div>
     <div style={{ fontSize: 26, fontWeight: 800, color: accent || "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{value}</div>
     {sub && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 2 }}>{sub}</div>}
   </div>
@@ -100,16 +100,16 @@ const MiniChart = ({ title, color, data, bucket, i }) => {
   const barWidth = bucket === "hour" ? 30 : bucket === "week" ? 32 : bucket === "month" ? 40 : 26;
   return (
     <div style={{ ...rowStyle(i), background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 16px 12px" }}>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>{title}</div>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 12 }}>{title}</div>
       {data.length === 0 ? (
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", padding: "16px 0" }}>Nimic în perioada asta.</div>
       ) : (
         <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 104, overflowX: "auto", paddingBottom: 2 }}>
           {data.map((d) => (
             <div key={d.bucket} style={{ flexShrink: 0, width: barWidth, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{d.count}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{d.count}</div>
               <div style={{ width: "100%", maxWidth: 18, height: Math.max(3, (d.count / maxCount) * 56), background: `linear-gradient(180deg, ${color}, ${color}80)`, borderRadius: 4 }} />
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", whiteSpace: "nowrap" }}>{bucketLabel(d.bucket, bucket)}</div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", whiteSpace: "nowrap" }}>{bucketLabel(d.bucket, bucket)}</div>
             </div>
           ))}
         </div>
@@ -152,7 +152,7 @@ function StatsTab({ onNavigate }) {
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>Evoluție</div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", }}>Evoluție</div>
         <select
           value={preset}
           onChange={(e) => setPreset(e.target.value)}
@@ -259,11 +259,11 @@ function ReportsTab({ onViewUser, onViewEvent }) {
                   {r.event_venue ? ` · ${r.event_venue}` : ""}
                 </div>
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", whiteSpace: "nowrap" }}>{fmtDateTime(r.created_at)}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", whiteSpace: "nowrap" }}>{fmtDateTime(r.created_at)}</div>
             </div>
             {r.details && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 8, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{r.details}</div>}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 8, flexWrap: "wrap" }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>de la {r.reporter_email || "necunoscut"}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>de la {r.reporter_email || "necunoscut"}</div>
               {!r.resolved && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   <button onClick={() => dismiss(r.id)} disabled={busyId === r.id} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(0,200,100,0.1)", border: "1px solid rgba(0,200,100,0.3)", borderRadius: 10, color: "#00C864", fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
@@ -350,7 +350,7 @@ function UsersTab({ initialFilter, onViewUser }) {
               <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {[u.prenume, u.nume].filter(Boolean).join(" ") || "(fără profil)"}
               </div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
                 înscris {fmtDate(u.created_at)} · {u.events_count} evenimente
                 {u.reports_against_count > 0 && <span style={{ color: "#FFB800" }}> · {u.reports_against_count} raportări</span>}
@@ -468,7 +468,7 @@ function EventsTab({ initialStatus, onViewEvent }) {
                   {e.archived && <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: 6, flexShrink: 0 }}>ARHIVAT</span>}
                 </div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 2 }}>
                   {e.organizer_email || "organizator necunoscut"}
                   {e.reports_count > 0 && (
                     <span onClick={(ev) => { ev.stopPropagation(); toggleReporters(e.id); }} style={{ color: "#FFB800", cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted" }}>
@@ -571,7 +571,7 @@ function AdminEventPreview({ eventId, onClose, onViewOrganizer }) {
 
           <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 6 }}>{event.title}</div>
           <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4 }}>{event.venue || "fără locație"}</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 18 }}>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 18 }}>
             {fmtDateTime(event.event_date)} · {formatPrice(event.price) || "Gratuit"}
           </div>
 
@@ -600,7 +600,7 @@ function AdminEventPreview({ eventId, onClose, onViewOrganizer }) {
 
           {event.type === "official" && (event.contact_name || event.contact_phone || event.contact_email || event.contact_social) && (
             <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Date de contact</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 8, }}>Date de contact</div>
               <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", lineHeight: 1.6 }}>
                 {[event.contact_name, event.contact_phone, event.contact_email, event.contact_social].filter(Boolean).join(" · ")}
               </div>
@@ -664,8 +664,8 @@ function TrashTab() {
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{e.title}</div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 3 }}>{e.venue || "fără locație"} · {fmtDateTime(e.event_date)}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 2 }}>{e.organizer_email || "organizator necunoscut"}</div>
-                <div style={{ fontSize: 11, color: "#FFB800", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 2 }}>{e.organizer_email || "organizator necunoscut"}</div>
+                <div style={{ fontSize: 11, color: "#FFB800", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 4 }}>
                   șters {fmtDateTime(e.admin_deleted_at)} · dispare definitiv în {daysLeft(e.admin_deleted_at)}z
                 </div>
               </div>
@@ -724,7 +724,7 @@ export default function AdminPage({ onClose, initialTab, initialNavState, curren
           <ShieldIcon size={18} style={{ color: "#FF3366" }} />
           <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>Admin</div>
         </div>
-        <button onClick={onClose} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, padding: "7px 12px", color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", cursor: "pointer" }}>
+        <button onClick={onClose} style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.3)", borderRadius: 10, padding: "7px 12px", color: "#FF3366", fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>
           Închide
         </button>
       </div>

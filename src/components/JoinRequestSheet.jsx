@@ -85,11 +85,11 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
           <>
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 4 }}>Cer să particip</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace" }}>{event.title}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>{event.title}</div>
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "ui-monospace, 'SF Mono', Menlo, Monaco, monospace", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Mesaj pentru host (opțional)</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginBottom: 8, }}>Mesaj pentru host (opțional)</div>
               <textarea
                 placeholder="Scrie un mesaj pentru host..."
                 value={message}
@@ -101,7 +101,7 @@ export default function JoinRequestSheet({ event, user, open, onClose, alreadyRe
 
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 14, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: "pointer" }}>Anulează</button>
-              <button onClick={handleSend} disabled={sending} style={{ flex: 2, padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: sending ? "rgba(255,51,102,0.4)" : "linear-gradient(135deg, #FF3366, #FF6B35)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: sending ? "not-allowed" : "pointer" }}>
+              <button onClick={handleSend} disabled={sending} style={{ flex: 2, padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: sending ? "rgba(255,51,102,0.4)" : "#FF3366", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", cursor: sending ? "not-allowed" : "pointer" }}>
                 {sending ? "Se trimite..." : <>Trimite cererea <RocketIcon size={15} /></>}
               </button>
             </div>
