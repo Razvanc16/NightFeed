@@ -19,6 +19,10 @@
     {
       "source": "/e/:id",
       "destination": "/api/event?id=:id"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
     }
   ],
   "headers": [
