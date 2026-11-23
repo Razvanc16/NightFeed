@@ -16,6 +16,7 @@ import ResetPasswordPage from "./components/ResetPasswordPage";
 import PostPage from "./components/PostPage";
 import CommentsSheet from "./components/CommentsSheet";
 import EventPeopleSheet from "./components/EventPeopleSheet";
+import InstallPrompt from "./components/InstallPrompt";
 import { supabase } from "./supabase";
 import { events as staticEvents } from "./data/events";
 import { filterActiveEvents, dropExpiredEvents, formatEventDateTime } from "./utils/eventTime";
@@ -1148,6 +1149,7 @@ export default function App() {
           {/* Ascunsă complet (nu doar blocată) cât timp userul n-are încă profil —
               nu are sens să vadă Feed/Hartă/Notificări dacă oricum nu poate
               ajunge acolo, doar creează impresia falsă că ar putea. */}
+          {user && hasProfile === true && <InstallPrompt />}
           {hasProfile !== false && <Navbar active={activeTab} onChange={handleTabChange} badges={{ notifications: unreadNotifCount }} hidden={navHidden} />}
 
           {notifToast && (
