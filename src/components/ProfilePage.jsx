@@ -670,22 +670,6 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
       transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : "none",
       transition: pullStartY.current ? "none" : "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
     }}>
-      {isMouseDevice && !isSetup && (
-        <button
-          onClick={doRefresh}
-          disabled={refreshing}
-          title="Reîmprospătează"
-          style={{
-            position: "fixed", top: "calc(20px + env(safe-area-inset-top, 0px))", right: 16,
-            zIndex: 50, width: 38, height: 38, borderRadius: "50%", cursor: refreshing ? "default" : "pointer",
-            background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)",
-            backdropFilter: "blur(14px)", boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
-            color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <RefreshIcon size={16} style={{ animation: refreshing ? "ptrSpin 0.9s linear infinite" : "none" }} />
-        </button>
-      )}
       {(pullDistance > 0 || refreshing) && (
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, height: 90, zIndex: 5, pointerEvents: "none",
@@ -994,6 +978,23 @@ export default function ProfilePage({ user, onLogout, onViewProfile, onOpenEvent
             {/* Clopoțelul separat a dispărut — Notificări e acum un tab propriu
                 (implicit la deschiderea Profilului), nu mai are sens un al
                 doilea acces la același conținut. */}
+            {/* Pe desktop (fără pull-to-refresh) — butonul de refresh stă în
+                același rând cu Setările, nu mai e fix peste ele în colț. */}
+            {isMouseDevice && (
+              <button
+                onClick={doRefresh}
+                disabled={refreshing}
+                title="Reîmprospătează"
+                style={{
+                  width: 32, height: 32, borderRadius: 10, padding: 0, cursor: refreshing ? "default" : "pointer",
+                  background: "#141418", border: "1px solid rgba(255,255,255,0.12)",
+                  color: "rgba(255,255,255,0.75)", display: "flex", alignItems: "center", justifyContent: "center",
+                  animation: "fadeIn 0.3s ease-out",
+                }}
+              >
+                <RefreshIcon size={15} style={{ animation: refreshing ? "ptrSpin 0.9s linear infinite" : "none" }} />
+              </button>
+            )}
             <button onClick={() => setShowSettings(true)} style={{
               width: 32, height: 32, borderRadius: 10, color: "rgba(255,255,255,0.85)",
               display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0,
