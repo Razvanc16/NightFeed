@@ -500,7 +500,7 @@ export default function PostPage({ user, onClose, editEvent }) {
 
       <div style={{ padding: "20px 20px 0" }}>
         {/* Cover */}
-        <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: (coverPreview || coverUnverified) ? "transparent" : "rgba(255,51,102,0.08)", border: `2px dashed ${(coverPreview || coverUnverified) ? "transparent" : "rgba(255,51,102,0.3)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: 8, overflow: "hidden" }}>
+        <div onClick={() => fileRef.current?.click()} style={{ width: "100%", height: 160, borderRadius: 16, background: (coverPreview || coverUnverified) ? "transparent" : "rgba(255,255,255,0.03)", border: `1.5px dashed ${(coverPreview || coverUnverified) ? "transparent" : "rgba(255,255,255,0.18)"}`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginBottom: 8, overflow: "hidden" }}>
           {coverUnverified ? (
             <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.06)", width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
               <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}><CameraIcon size={30} /></div>
@@ -526,7 +526,7 @@ export default function PostPage({ user, onClose, editEvent }) {
           </div>
         )}
         {!coverPreview && !coverUnverified && !coverError && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: "#FF3366", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 8, marginBottom: 20, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", marginTop: 8, marginBottom: 20, textAlign: "center" }}>
             <CameraIcon size={13} /> Evenimentele cu poză sau video ies mult mai bine în evidență în feed
           </div>
         )}
