@@ -27,7 +27,7 @@ function formatDate(iso) {
 }
 
 function setMeta(html, attr, key, value) {
-  const re = new RegExp(`(<meta\s+${attr}="${key}"\s+content=")[^"]*(")`, "i");
+  const re = new RegExp(`(<meta\\s+${attr}="${key}"\\s+content=")[^"]*(")`, "i");
   return html.replace(re, `$1${esc(value)}$2`);
 }
 
