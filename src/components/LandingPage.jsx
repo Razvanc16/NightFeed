@@ -68,13 +68,13 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
       </motion.header>
 
       {/* Hero */}
-      <main className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-stretch gap-6 px-6 py-6 md:px-10 lg:flex-row lg:items-center lg:gap-16">
+      <main className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-stretch justify-center gap-4 px-6 py-4 md:px-10 lg:py-6 lg:flex-row lg:items-center lg:gap-16">
         {/* Mockup-ul de telefon — pe mobil deasupra textului, pe desktop în dreapta */}
-        <div className="flex flex-1 items-center justify-center py-4 lg:order-2">
+        <div className="flex items-center justify-center py-2 max-lg:[@media(max-height:739px)]:hidden lg:flex-1 lg:order-2">
           {/* Telefonul e desenat la 270px și scalat proporțional — așa textul din
               ecran rămâne în proporții corecte la orice mărime. */}
-          <div className="relative h-[332px] w-[159px] sm:h-[480px] sm:w-[230px] lg:h-[564px] lg:w-[270px]">
-            <div className="absolute left-0 top-0 w-[270px] origin-top-left scale-[0.59] sm:scale-[0.852] lg:scale-100">
+          <div className="relative h-[250px] w-[120px] max-sm:[@media(min-height:860px)]:h-[332px] max-sm:[@media(min-height:860px)]:w-[159px] sm:h-[480px] sm:w-[230px] lg:h-[564px] lg:w-[270px]">
+            <div className="absolute left-0 top-0 w-[270px] origin-top-left scale-[0.443] max-sm:[@media(min-height:860px)]:scale-[0.59] sm:scale-[0.852] lg:scale-100">
               <FeedPhoneMockup className="w-[270px]" />
             </div>
           </div>
@@ -105,12 +105,12 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
             Petreceri homemade, cluburi și evenimente într-un singur feed. Ceri să participi direct de la organizator și intri cu QR la ușă.
           </motion.p>
 
-          <motion.div variants={fadeUp} className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <motion.div variants={fadeUp} className="mt-7 grid grid-cols-2 gap-3 sm:flex sm:flex-row">
             <motion.button
               type="button"
               onClick={onNewUser}
               whileTap={{ scale: 0.98 }}
-              className="group flex h-[54px] cursor-pointer items-center justify-center gap-2 rounded-[14px] border-0 bg-white px-7 font-sans text-[15px] font-semibold text-black transition-colors hover:bg-white/90 sm:w-auto"
+              className="group flex h-[54px] cursor-pointer items-center justify-center gap-2 rounded-[14px] border-0 bg-white px-4 font-sans text-[15px] font-semibold text-black sm:px-7 transition-colors hover:bg-white/90 sm:w-auto"
             >
               Creează cont
               <ArrowRightIcon size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
@@ -119,7 +119,7 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
               type="button"
               onClick={onExistingUser}
               whileTap={{ scale: 0.98 }}
-              className="flex h-[54px] cursor-pointer items-center justify-center rounded-[14px] border border-solid border-white/[0.12] bg-transparent px-7 font-sans text-[15px] font-medium text-white transition-colors hover:border-white/25 hover:bg-white/[0.04] sm:w-auto"
+              className="flex h-[54px] cursor-pointer items-center justify-center rounded-[14px] border border-solid border-white/[0.12] bg-transparent px-4 font-sans sm:px-7 text-[15px] font-medium text-white transition-colors hover:border-white/25 hover:bg-white/[0.04] sm:w-auto"
             >
               Am deja cont
             </motion.button>
@@ -132,7 +132,7 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.6 }}
-        className="relative z-10 border-0 border-t border-solid border-white/[0.06] py-5 pb-[calc(env(safe-area-inset-bottom,0px)+20px)]"
+        className="relative z-10 hidden border-0 border-t border-solid lg:block border-white/[0.06] py-5 pb-[calc(env(safe-area-inset-bottom,0px)+20px)]"
       >
         <Marquee />
       </motion.div>

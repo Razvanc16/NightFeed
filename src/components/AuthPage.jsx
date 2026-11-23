@@ -4,6 +4,7 @@ import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
 import { suggestEmail, isValidEmail, mailProviderFor, getLastAuth, setLastAuth } from "../utils/authHelpers";
 import { GOOGLE_CLIENT_ID, loadGoogleIdentity, createNonce } from "../utils/googleIdentity";
+import { SITE_URL } from "../utils/siteUrl";
 import LegalPage from "./LegalPage";
 import { ArrowLeftIcon, ArrowRightIcon } from "./Icons";
 import {
@@ -45,7 +46,7 @@ const Item = ({ children, className = "" }) => (
 
 function Heading({ title, sub }) {
   return (
-    <Item className="mb-7">
+    <Item className="mb-5 md:mb-7">
       <h1 className="m-0 font-syne text-[28px] font-extrabold leading-[1.1] tracking-[-0.02em] text-white">{title}</h1>
       {sub && <p className="m-0 mt-2 font-sans text-[15px] leading-relaxed text-white/50">{sub}</p>}
     </Item>
@@ -56,7 +57,7 @@ function Heading({ title, sub }) {
 function ModeTabs({ mode, onChange }) {
   const tabs = [{ id: "login", label: "Intră în cont" }, { id: "register", label: "Cont nou" }];
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-8">
+    <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-6 md:mb-8">
       <div role="tablist" className="relative grid grid-cols-2 rounded-[14px] border border-solid border-white/[0.08] bg-white/[0.03] p-1">
         {tabs.map((t) => {
           const active = mode === t.id;
@@ -87,7 +88,7 @@ function ModeTabs({ mode, onChange }) {
 
 function Divider() {
   return (
-    <Item className="my-5 flex items-center gap-3">
+    <Item className="my-4 flex items-center gap-3 md:my-5">
       <div className="h-px flex-1 bg-white/[0.08]" />
       <span className="font-sans text-[12px] text-white/30">sau cu email</span>
       <div className="h-px flex-1 bg-white/[0.08]" />
@@ -342,7 +343,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
         const { data, error } = await supabase.auth.signUp({
           email: trimmedEmail,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: SITE_URL },
         });
         if (error) {
           setError(error.message.includes("already registered") ? "Există deja un cont cu acest email." : error.message);
@@ -375,7 +376,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     // (detectSessionInUrl) și declanșează SIGNED_IN, ascultat în App.jsx.
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: SITE_URL },
     });
     if (error) { setError(error.message); setGoogleLoading(false); }
   };
@@ -400,7 +401,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
-      options: { shouldCreateUser: false, emailRedirectTo: window.location.origin },
+      options: { shouldCreateUser: false, emailRedirectTo: SITE_URL },
     });
     setLoading(false);
     // Pentru un email fără cont Supabase răspunde cu eroare ("Signups not allowed
@@ -443,7 +444,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: trimmedEmail,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: SITE_URL },
     });
     setLoading(false);
     if (error) { setError(error.message); return; }
@@ -457,7 +458,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
     if (resendCooldown > 0) return;
     if (!isValidEmail(email)) { setEmailTouched(true); setError("Introdu o adresă de email validă."); return; }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, { redirectTo: window.location.origin });
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, { redirectTo: SITE_URL });
     setLoading(false);
     if (error) { setError(error.message); return; }
     setResendCooldown(RESEND_SECONDS);
@@ -512,7 +513,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           style={{ background: "radial-gradient(circle, rgba(255,51,102,0.3), transparent 70%)" }}
         />
 
-        <header className="relative z-10 flex items-center justify-between px-5 pb-2 pt-[calc(env(safe-area-inset-top,0px)+18px)] md:px-8">
+        <header className="relative z-10 flex items-center justify-between px-5 pb-1 pt-[calc(env(safe-area-inset-top,0px)+14px)] md:px-8 md:pb-2 md:pt-[calc(env(safe-area-inset-top,0px)+18px)]">
           {onBack ? (
             <motion.button
               type="button"
@@ -531,7 +532,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           <span className="h-10 w-10" />
         </header>
 
-        <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-8 md:px-10">
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-3 md:px-10 md:py-8">
           <div className="w-full max-w-[380px]">
             {isAuthTab && <ModeTabs mode={mode} onChange={(m) => m !== mode && goTo(m, m === "register" ? 1 : -1)} />}
 
@@ -735,7 +736,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
           </div>
         </div>
 
-        <footer className="relative z-10 px-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] pt-2 text-center">
+        <footer className="relative z-10 px-6 pb-[calc(env(safe-area-inset-bottom,0px)+14px)] pt-1 text-center md:pb-[calc(env(safe-area-inset-bottom,0px)+20px)] md:pt-2">
           <button
             type="button"
             onClick={() => setShowLegal(true)}
