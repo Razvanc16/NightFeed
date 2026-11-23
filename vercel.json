@@ -2,6 +2,19 @@
   "buildCommand": "npx vite build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "nightfeed.vercel.app"
+        }
+      ],
+      "destination": "https://nightfeed.ro/$1",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",
