@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../supabase";
 import { validatePassword } from "../utils/passwordValidation";
 import { suggestEmail, isValidEmail, mailProviderFor, getLastAuth, setLastAuth } from "../utils/authHelpers";
+import { GOOGLE_CLIENT_ID, loadGoogleIdentity, createNonce } from "../utils/googleIdentity";
 import LegalPage from "./LegalPage";
 import { ArrowLeftIcon, ArrowRightIcon } from "./Icons";
 import {
@@ -193,6 +194,72 @@ function BrandPanel() {
   );
 }
 
+// Butonul oficial Google (Google Identity Services). Fereastra Google arată
+// "nightfeed.ro" în loc de domeniul Supabase. Pornește și One Tap (propunerea
+// automată de cont din colțul ecranului). Dacă scriptul nu se încarcă,
+// cheamă onUnavailable și AuthPage revine la butonul cu redirect.
+function GoogleIdentityButton({ onCredential, onUnavailable }) {
+  const ref = useRef(null);
+  const cbRef = useRef(onCredential);
+  cbRef.current = onCredential;
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const google = await loadGoogleIdentity();
+        const nonce = await createNonce();
+        if (cancelled || !ref.current) return;
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          nonce: nonce.hashed,
+          callback: (res) => cbRef.current(res.credential, nonce.raw),
+          context: "signin",
+          ux_mode: "popup",
+          itp_support: true,
+          use_fedcm_for_prompt: true,
+        });
+        google.accounts.id.renderButton(ref.current, {
+          type: "standard",
+          theme: "filled_black",
+          size: "large",
+          shape: "rectangular",
+          text: "continue_with",
+          logo_alignment: "center",
+          locale: "ro",
+          width: Math.min(400, Math.round(ref.current.offsetWidth)),
+        });
+        setReady(true);
+        google.accounts.id.prompt();
+      } catch {
+        if (!cancelled) onUnavailable?.();
+      }
+    })();
+    return () => {
+      cancelled = true;
+      window.google?.accounts?.id?.cancel?.();
+    };
+  }, []);
+
+  return (
+    <div className="relative h-[44px]">
+      <AnimatePresence>
+        {!ready && (
+          <motion.div exit={{ opacity: 0 }} className="absolute inset-0 rounded-[6px] border border-solid border-white/[0.12] bg-white/[0.03]" />
+        )}
+      </AnimatePresence>
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: ready ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex h-full w-full items-center justify-center overflow-hidden"
+      />
+    </div>
+  );
+}
+
 export default function AuthPage({ onAuth, initialMode, onBack }) {
   const lastAuth = useRef(getLastAuth()).current;
 
@@ -207,6 +274,7 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
   const [emailTouched, setEmailTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [gisAvailable, setGisAvailable] = useState(!!GOOGLE_CLIENT_ID);
   const [error, setError] = useState("");
 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -310,6 +378,17 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
       options: { redirectTo: window.location.origin },
     });
     if (error) { setError(error.message); setGoogleLoading(false); }
+  };
+
+  // Token-ul primit de la butonul GIS → sesiune Supabase, fără redirect.
+  const handleGoogleCredential = async (token, nonce) => {
+    setError("");
+    setGoogleLoading(true);
+    const { data, error } = await supabase.auth.signInWithIdToken({ provider: "google", token, nonce });
+    setGoogleLoading(false);
+    if (error) { setError("Nu am putut intra cu Google. Încearcă din nou."); return; }
+    setLastAuth("google", null);
+    onAuth(data.user);
   };
 
   // --- Login cu cod pe email (fără parolă) -----------------------------------
@@ -466,9 +545,13 @@ export default function AuthPage({ onAuth, initialMode, onBack }) {
                   />
 
                   <Item className="relative">
-                    <OutlineButton type="button" onClick={handleGoogleSignIn} disabled={googleLoading}>
-                      <GoogleLogo /> {googleLoading ? "Te redirecționăm…" : "Continuă cu Google"}
-                    </OutlineButton>
+                    {gisAvailable ? (
+                      <GoogleIdentityButton onCredential={handleGoogleCredential} onUnavailable={() => setGisAvailable(false)} />
+                    ) : (
+                      <OutlineButton type="button" onClick={handleGoogleSignIn} disabled={googleLoading}>
+                        <GoogleLogo /> {googleLoading ? "Te redirecționăm…" : "Continuă cu Google"}
+                      </OutlineButton>
+                    )}
                     {mode === "login" && lastAuth?.method === "google" && <LastUsedTag />}
                   </Item>
 

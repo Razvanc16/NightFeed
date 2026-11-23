@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRightIcon } from "./Icons";
+import FeedPhoneMockup from "./FeedPhoneMockup";
 
 // Landing-ul — același limbaj vizual ca AuthPage: fundal aproape negru, un
 // singur glow discret, tipografie mare, buton principal alb plin. Fără card de
@@ -16,56 +17,6 @@ const fadeUp = {
   hidden: { opacity: 0, y: 18 },
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
 };
-
-// "Afișe" ilustrative de eveniment — doar compoziție grafică (gradient +
-// tipografie), fără date inventate de tip "500 participanți".
-const POSTERS = [
-  { tag: "Homemade", title: "House party", meta: "Vineri · 22:00", bg: "radial-gradient(120% 90% at 20% 10%, #FF3366 0%, #7a1033 45%, #140509 100%)" },
-  { tag: "Club", title: "Techno all night", meta: "Sâmbătă · 23:30", bg: "radial-gradient(120% 90% at 80% 0%, #6b5cff 0%, #2a1f6b 45%, #08061a 100%)" },
-  { tag: "Rooftop", title: "Sunset session", meta: "Duminică · 19:00", bg: "radial-gradient(120% 90% at 50% 0%, #FF8A3D 0%, #8a2d12 50%, #160804 100%)" },
-];
-
-function Poster({ p, className, style, delay, float }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40, rotate: 0 }}
-      animate={{ opacity: 1, y: 0, rotate: style.rotate }}
-      transition={{ duration: 0.9, ease: EASE, delay }}
-      className={`absolute ${className}`}
-      style={{ zIndex: style.z }}
-    >
-      <motion.div
-        animate={{ y: [0, -float, 0] }}
-        transition={{ duration: 6 + float / 4, repeat: Infinity, ease: "easeInOut", delay }}
-        className="relative flex aspect-[3/4] w-full flex-col justify-between overflow-hidden rounded-[22px] border border-solid border-white/10 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
-        style={{ background: p.bg }}
-      >
-        {/* granulație fină, ca de afiș printat */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-overlay"
-          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}
-        />
-        <span className="relative self-start rounded-full bg-black/30 px-2.5 py-1 font-sans text-[11px] font-semibold text-white/90 backdrop-blur-sm">
-          {p.tag}
-        </span>
-        <div className="relative">
-          <div className="font-sans text-[26px] font-extrabold leading-[1] tracking-[-0.03em] text-white">{p.title}</div>
-          <div className="mt-2 font-mono text-[11px] text-white/70">{p.meta}</div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function PosterStack({ className = "" }) {
-  return (
-    <div className={`relative ${className}`}>
-      <Poster p={POSTERS[2]} className="right-0 top-[6%] w-[58%]" style={{ rotate: 8, z: 1 }} delay={0.35} float={8} />
-      <Poster p={POSTERS[1]} className="left-0 top-[10%] w-[58%]" style={{ rotate: -9, z: 2 }} delay={0.25} float={10} />
-      <Poster p={POSTERS[0]} className="left-[21%] top-0 w-[58%]" style={{ rotate: -1, z: 3 }} delay={0.15} float={6} />
-    </div>
-  );
-}
 
 function Marquee() {
   const tags = ["Petreceri homemade", "Cluburi", "Rooftop", "Techno", "House", "Hip-hop", "Afterparty", "Open air", "Live"];
@@ -118,9 +69,15 @@ export default function LandingPage({ onNewUser, onExistingUser }) {
 
       {/* Hero */}
       <main className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-stretch gap-6 px-6 py-6 md:px-10 lg:flex-row lg:items-center lg:gap-16">
-        {/* Afișele — pe mobil deasupra textului, pe desktop în dreapta */}
-        <div className="flex flex-1 items-center justify-center lg:order-2">
-          <PosterStack className="aspect-[10/9] w-full max-w-[280px] sm:max-w-[360px] lg:aspect-[5/4] lg:max-w-[480px]" />
+        {/* Mockup-ul de telefon — pe mobil deasupra textului, pe desktop în dreapta */}
+        <div className="flex flex-1 items-center justify-center py-4 lg:order-2">
+          {/* Telefonul e desenat la 270px și scalat proporțional — așa textul din
+              ecran rămâne în proporții corecte la orice mărime. */}
+          <div className="relative h-[332px] w-[159px] sm:h-[480px] sm:w-[230px] lg:h-[564px] lg:w-[270px]">
+            <div className="absolute left-0 top-0 w-[270px] origin-top-left scale-[0.59] sm:scale-[0.852] lg:scale-100">
+              <FeedPhoneMockup className="w-[270px]" />
+            </div>
+          </div>
         </div>
 
         <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col lg:order-1 lg:max-w-[620px] lg:flex-[1.2]">
